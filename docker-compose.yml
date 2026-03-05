@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: morocco360_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-morocco360}
+      POSTGRES_PASSWORD: ${DB_PASS:-morocco360}
+      POSTGRES_DB: ${DB_NAME:-morocco360}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-morocco360} -d ${DB_NAME:-morocco360}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
