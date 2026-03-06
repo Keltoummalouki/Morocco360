@@ -8,7 +8,10 @@ import { UsersService } from '../../users/users.service';
 import { JwtPayload } from './jwt.strategy';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     config: ConfigService,
     private usersService: UsersService,

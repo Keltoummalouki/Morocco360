@@ -48,15 +48,21 @@ export class UserSeeder {
 
   async seed(): Promise<void> {
     for (const data of SEED_USERS) {
-      const exists = await this.userRepo.findOne({ where: { email: data.email } });
+      const exists = await this.userRepo.findOne({
+        where: { email: data.email },
+      });
       if (exists) {
         console.log(`  [UserSeeder] User already exists: ${data.email}`);
         continue;
       }
 
-      const role = await this.roleRepo.findOne({ where: { name: data.roleName } });
+      const role = await this.roleRepo.findOne({
+        where: { name: data.roleName },
+      });
       if (!role) {
-        console.warn(`  [UserSeeder] Role not found: ${data.roleName} — run role seeder first`);
+        console.warn(
+          `  [UserSeeder] Role not found: ${data.roleName} — run role seeder first`,
+        );
         continue;
       }
 
@@ -69,7 +75,9 @@ export class UserSeeder {
         role,
       });
       await this.userRepo.save(user);
-      console.log(`  [UserSeeder] Created user: ${data.email} (${data.roleName})`);
+      console.log(
+        `  [UserSeeder] Created user: ${data.email} (${data.roleName})`,
+      );
     }
   }
 }

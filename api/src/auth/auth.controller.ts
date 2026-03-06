@@ -15,7 +15,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { User } from '../users/entities/user.entity';
 
-interface JwtUser   { id: number; sub: number; email: string; role: string | null }
+interface JwtUser {
+  id: number;
+  sub: number;
+  email: string;
+  role: string | null;
+}
 
 @Controller('auth')
 export class AuthController {

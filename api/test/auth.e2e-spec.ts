@@ -19,7 +19,7 @@ import { User } from '../src/users/entities/user.entity';
 import { Role, RoleName } from '../src/users/entities/role.entity';
 
 // ── Test constants ────────────────────────────────────────
-const ACCESS_SECRET  = 'test_access_secret_min_32_chars_1234';
+const ACCESS_SECRET = 'test_access_secret_min_32_chars_1234';
 const REFRESH_SECRET = 'test_refresh_secret_min_32_chars_12';
 const PLAIN_PASSWORD = 'Admin1234';
 
@@ -51,9 +51,9 @@ describe('Auth endpoints (e2e)', () => {
   // mutable repository mocks — reset before each test
   const userRepoMock = {
     findOne: jest.fn(),
-    create:  jest.fn(),
-    save:    jest.fn(),
-    update:  jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    update: jest.fn(),
   };
   const roleRepoMock = {
     findOne: jest.fn(),
@@ -81,11 +81,13 @@ describe('Auth endpoints (e2e)', () => {
           provide: ConfigService,
           useValue: {
             getOrThrow: jest.fn().mockImplementation((key: string) => {
-              if (key === 'JWT_ACCESS_SECRET')  return ACCESS_SECRET;
+              if (key === 'JWT_ACCESS_SECRET') return ACCESS_SECRET;
               if (key === 'JWT_REFRESH_SECRET') return REFRESH_SECRET;
               throw new Error(`Unknown config key: ${key}`);
             }),
-            get: jest.fn().mockImplementation((_key: string, def: string) => def ?? '15m'),
+            get: jest
+              .fn()
+              .mockImplementation((_key: string, def: string) => def ?? '15m'),
           },
         },
       ],
@@ -93,7 +95,11 @@ describe('Auth endpoints (e2e)', () => {
 
     app = module.createNestApplication();
     app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
     );
     await app.init();
   });
@@ -110,27 +116,36 @@ describe('Auth endpoints (e2e)', () => {
   // ── POST /auth/register ────────────────────────────────
   describe('POST /auth/register', () => {
     it('201 – creates a new account and returns tokens', async () => {
-      userRepoMock.findOne.mockResolvedValue(null);   // no existing user
+      userRepoMock.findOne.mockResolvedValue(null); // no existing user
       userRepoMock.create.mockReturnValue(mockUser);
       userRepoMock.save.mockResolvedValue(mockUser);
       userRepoMock.update.mockResolvedValue({ affected: 1 });
 
       const res = await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'testuser', email: 'test@example.com', password: PLAIN_PASSWORD })
+        .send({
+          username: 'testuser',
+          email: 'test@example.com',
+          password: PLAIN_PASSWORD,
+        })
         .expect(201);
 
-      expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).toHaveProperty('refreshToken');
-      expect(typeof res.body.accessToken).toBe('string');
+      const body = res.body as { accessToken: string; refreshToken: string };
+      expect(body).toHaveProperty('accessToken');
+      expect(body).toHaveProperty('refreshToken');
+      expect(typeof body.accessToken).toBe('string');
     });
 
     it('409 – returns Conflict when the email is already in use', async () => {
-      userRepoMock.findOne.mockResolvedValue(mockUser);   // email exists
+      userRepoMock.findOne.mockResolvedValue(mockUser); // email exists
 
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'testuser', email: 'test@example.com', password: PLAIN_PASSWORD })
+        .send({
+          username: 'testuser',
+          email: 'test@example.com',
+          password: PLAIN_PASSWORD,
+        })
         .expect(409);
     });
 
@@ -151,7 +166,11 @@ describe('Auth endpoints (e2e)', () => {
     it('400 – returns BadRequest when the email is malformed', async () => {
       await request(app.getHttpServer())
         .post('/auth/register')
-        .send({ username: 'user', email: 'not-an-email', password: PLAIN_PASSWORD })
+        .send({
+          username: 'user',
+          email: 'not-an-email',
+          password: PLAIN_PASSWORD,
+        })
         .expect(400);
     });
   });
@@ -207,7 +226,7 @@ describe('Auth endpoints (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: mockUser.email, password: PLAIN_PASSWORD });
-      accessToken = res.body.accessToken;
+      accessToken = (res.body as { accessToken: string }).accessToken;
     });
 
     it('200 – clears the session with a valid JWT', async () => {
@@ -219,16 +238,13 @@ describe('Auth endpoints (e2e)', () => {
         .expect(200);
 
       // Verify refresh_token_hash was set to null
-      expect(userRepoMock.update).toHaveBeenCalledWith(
-        mockUser.id,
-        { refresh_token_hash: null },
-      );
+      expect(userRepoMock.update).toHaveBeenCalledWith(mockUser.id, {
+        refresh_token_hash: null,
+      });
     });
 
     it('401 – returns Unauthorized without a Bearer token', async () => {
-      await request(app.getHttpServer())
-        .post('/auth/logout')
-        .expect(401);
+      await request(app.getHttpServer()).post('/auth/logout').expect(401);
     });
 
     it('401 – returns Unauthorized with a tampered token', async () => {
@@ -250,13 +266,16 @@ describe('Auth endpoints (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: mockUser.email, password: PLAIN_PASSWORD });
-      refreshToken = res.body.refreshToken;
+      refreshToken = (res.body as { refreshToken: string }).refreshToken;
 
       // 2. Hash the refresh token as the service would store it
       const rtHash = await bcrypt.hash(refreshToken, 10);
       // From now on, findById (called by JwtRefreshStrategy) returns the user
       // with the stored hash so bcrypt.compare succeeds.
-      userRepoMock.findOne.mockResolvedValue({ ...mockUser, refresh_token_hash: rtHash });
+      userRepoMock.findOne.mockResolvedValue({
+        ...mockUser,
+        refresh_token_hash: rtHash,
+      });
     });
 
     it('200 – issues new tokens with a valid refresh token', async () => {
@@ -272,9 +291,7 @@ describe('Auth endpoints (e2e)', () => {
     });
 
     it('401 – returns Unauthorized without a token', async () => {
-      await request(app.getHttpServer())
-        .post('/auth/refresh')
-        .expect(401);
+      await request(app.getHttpServer()).post('/auth/refresh').expect(401);
     });
 
     it('403 – returns Forbidden when the stored hash does not match', async () => {
@@ -291,7 +308,10 @@ describe('Auth endpoints (e2e)', () => {
     });
 
     it('403 – returns Forbidden when the user has no stored hash (already logged out)', async () => {
-      userRepoMock.findOne.mockResolvedValue({ ...mockUser, refresh_token_hash: null });
+      userRepoMock.findOne.mockResolvedValue({
+        ...mockUser,
+        refresh_token_hash: null,
+      });
 
       await request(app.getHttpServer())
         .post('/auth/refresh')

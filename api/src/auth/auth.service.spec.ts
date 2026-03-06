@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -6,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
-  hash:    jest.fn(),
+  hash: jest.fn(),
 }));
 
 import { AuthService } from './auth.service';
@@ -37,7 +38,6 @@ describe('AuthService', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,9 +46,9 @@ describe('AuthService', () => {
         {
           provide: UsersService,
           useValue: {
-            findByEmail:        jest.fn(),
-            findById:           jest.fn(),
-            create:             jest.fn(),
+            findByEmail: jest.fn(),
+            findById: jest.fn(),
+            create: jest.fn(),
             updateRefreshToken: jest.fn(),
           },
         },
@@ -60,16 +60,15 @@ describe('AuthService', () => {
           provide: ConfigService,
           useValue: {
             getOrThrow: jest.fn().mockReturnValue('test_secret'),
-            get:        jest.fn().mockReturnValue('15m'),
+            get: jest.fn().mockReturnValue('15m'),
           },
         },
       ],
     }).compile();
 
-    service       = module.get<AuthService>(AuthService);
-    usersService  = module.get(UsersService);
-    jwtService    = module.get(JwtService);
-    configService = module.get(ConfigService);
+    service = module.get<AuthService>(AuthService);
+    usersService = module.get(UsersService);
+    jwtService = module.get(JwtService);
   });
 
   afterEach(() => {
@@ -82,7 +81,10 @@ describe('AuthService', () => {
       usersService.findByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      const result = await service.validateUser('test@example.com', 'Password1');
+      const result = await service.validateUser(
+        'test@example.com',
+        'Password1',
+      );
 
       expect(result).toEqual(mockUser);
       expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
@@ -91,7 +93,10 @@ describe('AuthService', () => {
     it('returns null when the user does not exist', async () => {
       usersService.findByEmail.mockResolvedValue(null);
 
-      const result = await service.validateUser('ghost@example.com', 'Password1');
+      const result = await service.validateUser(
+        'ghost@example.com',
+        'Password1',
+      );
 
       expect(result).toBeNull();
       expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -101,7 +106,10 @@ describe('AuthService', () => {
       usersService.findByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      const result = await service.validateUser('test@example.com', 'WrongPass1');
+      const result = await service.validateUser(
+        'test@example.com',
+        'WrongPass1',
+      );
 
       expect(result).toBeNull();
     });
@@ -120,7 +128,7 @@ describe('AuthService', () => {
       const result = await service.login(mockUser);
 
       expect(result).toEqual({
-        accessToken:  'mock_access_token',
+        accessToken: 'mock_access_token',
         refreshToken: 'mock_refresh_token',
       });
     });
@@ -129,9 +137,9 @@ describe('AuthService', () => {
       await service.login(mockUser);
 
       const expectedPayload = {
-        sub:   mockUser.id,
+        sub: mockUser.id,
         email: mockUser.email,
-        role:  mockRole.name,
+        role: mockRole.name,
       };
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         expectedPayload,
@@ -153,7 +161,7 @@ describe('AuthService', () => {
   describe('register', () => {
     const dto = {
       username: 'newuser',
-      email:    'new@example.com',
+      email: 'new@example.com',
       password: 'NewPass1',
     };
 
@@ -170,7 +178,7 @@ describe('AuthService', () => {
 
       expect(usersService.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual({
-        accessToken:  'mock_access_token',
+        accessToken: 'mock_access_token',
         refreshToken: 'mock_refresh_token',
       });
     });
@@ -183,7 +191,10 @@ describe('AuthService', () => {
 
       await service.logout(mockUser.id);
 
-      expect(usersService.updateRefreshToken).toHaveBeenCalledWith(mockUser.id, null);
+      expect(usersService.updateRefreshToken).toHaveBeenCalledWith(
+        mockUser.id,
+        null,
+      );
     });
   });
 
@@ -192,7 +203,9 @@ describe('AuthService', () => {
     it('throws UnauthorizedException when the user is not found', async () => {
       usersService.findById.mockResolvedValue(null);
 
-      await expect(service.refreshTokens(999)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(999)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('issues new tokens for a valid user', async () => {
@@ -205,7 +218,7 @@ describe('AuthService', () => {
       const result = await service.refreshTokens(mockUser.id);
 
       expect(result).toEqual({
-        accessToken:  'new_access_token',
+        accessToken: 'new_access_token',
         refreshToken: 'new_refresh_token',
       });
       expect(usersService.updateRefreshToken).toHaveBeenCalledWith(

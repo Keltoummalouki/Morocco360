@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException } from '@nestjs/common';
@@ -5,7 +6,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt', () => ({
-  hash:    jest.fn(),
+  hash: jest.fn(),
   compare: jest.fn(),
 }));
 
@@ -45,9 +46,9 @@ describe('UsersService', () => {
           provide: getRepositoryToken(User),
           useValue: {
             findOne: jest.fn(),
-            create:  jest.fn(),
-            save:    jest.fn(),
-            update:  jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -57,7 +58,7 @@ describe('UsersService', () => {
       ],
     }).compile();
 
-    service  = module.get<UsersService>(UsersService);
+    service = module.get<UsersService>(UsersService);
     userRepo = module.get(getRepositoryToken(User));
     roleRepo = module.get(getRepositoryToken(Role));
   });
@@ -69,7 +70,9 @@ describe('UsersService', () => {
 
       const result = await service.findByEmail('test@example.com');
 
-      expect(userRepo.findOne).toHaveBeenCalledWith({ where: { email: 'test@example.com' } });
+      expect(userRepo.findOne).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
+      });
       expect(result).toEqual(mockUser);
     });
 
@@ -106,7 +109,7 @@ describe('UsersService', () => {
   describe('create', () => {
     const dto = {
       username: 'newuser',
-      email:    'new@example.com',
+      email: 'new@example.com',
       password: 'NewPass1',
     };
 
@@ -120,9 +123,15 @@ describe('UsersService', () => {
 
       const result = await service.create(dto as any);
 
-      expect(roleRepo.findOne).toHaveBeenCalledWith({ where: { name: RoleName.USER } });
+      expect(roleRepo.findOne).toHaveBeenCalledWith({
+        where: { name: RoleName.USER },
+      });
       expect(userRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ email: dto.email, password: 'hashed_pw', role: mockRole }),
+        expect.objectContaining({
+          email: dto.email,
+          password: 'hashed_pw',
+          role: mockRole,
+        }),
       );
       expect(result).toEqual(saved);
     });
@@ -152,7 +161,9 @@ describe('UsersService', () => {
     it('throws ConflictException when the email is already in use', async () => {
       userRepo.findOne.mockResolvedValue(mockUser);
 
-      await expect(service.create(dto as any)).rejects.toThrow(ConflictException);
+      await expect(service.create(dto as any)).rejects.toThrow(
+        ConflictException,
+      );
       expect(userRepo.save).not.toHaveBeenCalled();
     });
   });
@@ -166,7 +177,9 @@ describe('UsersService', () => {
       await service.updateRefreshToken(1, 'raw_refresh_token');
 
       expect(bcrypt.hash).toHaveBeenCalledWith('raw_refresh_token', 10);
-      expect(userRepo.update).toHaveBeenCalledWith(1, { refresh_token_hash: 'hashed_rt' });
+      expect(userRepo.update).toHaveBeenCalledWith(1, {
+        refresh_token_hash: 'hashed_rt',
+      });
     });
 
     it('stores null on logout (token = null)', async () => {
@@ -174,7 +187,9 @@ describe('UsersService', () => {
 
       await service.updateRefreshToken(1, null);
 
-      expect(userRepo.update).toHaveBeenCalledWith(1, { refresh_token_hash: null });
+      expect(userRepo.update).toHaveBeenCalledWith(1, {
+        refresh_token_hash: null,
+      });
     });
   });
 });

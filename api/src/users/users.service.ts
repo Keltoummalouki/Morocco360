@@ -27,13 +27,22 @@ export class UsersService {
     const exists = await this.findByEmail(dto.email);
     if (exists) throw new ConflictException('Email already in use');
 
-    const defaultRole = await this.roleRepo.findOne({ where: { name: RoleName.USER } });
+    const defaultRole = await this.roleRepo.findOne({
+      where: { name: RoleName.USER },
+    });
     const passwordHash = await bcrypt.hash(dto.password, 12);
-    const user = this.repo.create({ ...dto, password: passwordHash, role: defaultRole ?? undefined });
+    const user = this.repo.create({
+      ...dto,
+      password: passwordHash,
+      role: defaultRole ?? undefined,
+    });
     return this.repo.save(user);
   }
 
-  async updateRefreshToken(userId: number, token: string | null): Promise<void> {
+  async updateRefreshToken(
+    userId: number,
+    token: string | null,
+  ): Promise<void> {
     const hash = token ? await bcrypt.hash(token, 10) : null;
     await this.repo.update(userId, { refresh_token_hash: hash });
   }
