@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
+import { Role, RoleName } from './entities/role.entity';
 import { RegisterDto } from '../auth/dto/register.dto';
 
 @Injectable()
@@ -10,6 +11,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly repo: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepo: Repository<Role>,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -24,8 +27,9 @@ export class UsersService {
     const exists = await this.findByEmail(dto.email);
     if (exists) throw new ConflictException('Email already in use');
 
+    const defaultRole = await this.roleRepo.findOne({ where: { name: RoleName.USER } });
     const passwordHash = await bcrypt.hash(dto.password, 12);
-    const user = this.repo.create({ ...dto, password: passwordHash });
+    const user = this.repo.create({ ...dto, password: passwordHash, role: defaultRole ?? undefined });
     return this.repo.save(user);
   }
 

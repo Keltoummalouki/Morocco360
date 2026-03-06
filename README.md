@@ -48,15 +48,15 @@ Morocco360 est une plateforme web permettant aux utilisateurs (locaux et tourist
 
 ## Stack technologique
 
-| Couche | Technologies |
-|--------|-------------|
-| **Frontend** | Next.js 14+ (React, TypeScript) |
-| **Backend** | Node.js + NestJS 11 (TypeScript) |
-| **Database** | PostgreSQL 16 (Docker) |
-| **ORM** | TypeORM 0.3 |
-| **Auth** | JWT (access + refresh) + Passport.js |
-| **CI/CD** | GitHub Actions |
-| **Container** | Docker + Docker Compose |
+| Couche        | Technologies                          |
+|---------------|---------------------------------------|
+| **Frontend**  | Next.js 14+ (React, TypeScript)       |
+| **Backend**   | Node.js + NestJS 11 (TypeScript)      |
+| **Database**  | PostgreSQL 16 (Docker)                |
+| **ORM**       | TypeORM 0.3                           |
+| **Auth**      | JWT (access + refresh) + Passport.js  |
+| **CI/CD**     | GitHub Actions                        |
+| **Container** | Docker + Docker Compose               |
 
 ---
 
@@ -103,15 +103,15 @@ morocco360/
 
 ### Entites
 
-| Entite | Description |
-|--------|-------------|
-| `User` | Utilisateur avec role (ADMIN, ORGANIZER, USER) |
-| `Role` | Role systeme |
-| `Event` | Evenement avec categorie, dates, capacite, lieu |
+| Entite           | Description                                            |
+|------------------|--------------------------------------------------------|
+| `User`           | Utilisateur avec role (ADMIN, ORGANIZER, USER)         |
+| `Role`           | Role systeme                                           |
+| `Event`          | Evenement avec categorie, dates, capacite, lieu        |
 | `TicketCategory` | Categories de billets par evenement (VIP, standard...) |
-| `Order` | Commande d'un utilisateur |
-| `Ticket` | Billet individuel avec QR code |
-| `Payment` | Transaction de paiement |
+| `Order`          | Commande d'un utilisateur                              |
+| `Ticket`         | Billet individuel avec QR code                         |
+| `Payment`        | Transaction de paiement                                |
 
 ### Relations cles
 - `User` N:1 `Role`
@@ -181,11 +181,11 @@ npm run seed
 
 Comptes crees par le seeder :
 
-| Email | Mot de passe | Role |
-|-------|-------------|------|
-| admin@morocco360.ma | Admin1234 | ADMIN |
+| Email                   | Mot de passe  | Role      |
+|-------------------------|---------------|-----------|
+| admin@morocco360.ma     | Admin1234     | ADMIN     |
 | organizer@morocco360.ma | Organizer1234 | ORGANIZER |
-| user@morocco360.ma | User1234 | USER |
+| user@morocco360.ma      | User1234      | USER      |
 
 ---
 
@@ -193,12 +193,12 @@ Comptes crees par le seeder :
 
 ### Endpoints
 
-| Methode | Route | Description | Auth |
-|---------|-------|-------------|------|
-| POST | `/auth/register` | Inscription | Public |
-| POST | `/auth/login` | Connexion | Public |
-| POST | `/auth/logout` | Deconnexion | Bearer (access) |
-| POST | `/auth/refresh` | Renouveler les tokens | Bearer (refresh) |
+| Methode | Route               | Description           | Auth             |
+|---------|---------------------|-----------------------|------------------|
+| POST    | `/auth/register`    | Inscription           | Public           |
+| POST    | `/auth/login`       | Connexion             | Public           |
+| POST    | `/auth/logout`      | Deconnexion           | Bearer (access)  |
+| POST    | `/auth/refresh`     | Renouveler les tokens | Bearer (refresh) |
 
 ### Inscription
 
