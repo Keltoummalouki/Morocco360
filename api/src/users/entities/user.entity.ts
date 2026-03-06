@@ -31,6 +31,9 @@ export class User {
   @Column({ length: 20, nullable: true })
   phone_number: string;
 
+  @Column({ type: 'text', nullable: true })
+  refresh_token_hash: string | null;
+
   @CreateDateColumn()
   created_at: Date;
 
