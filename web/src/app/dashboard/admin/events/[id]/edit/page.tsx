@@ -19,6 +19,8 @@ interface Event {
   date_start: string;
   date_end: string;
   location_name: string;
+  city: string | null;
+  category: string | null;
   latitude: number | null;
   longitude: number | null;
   total_stock: number;
@@ -59,6 +61,8 @@ export default async function EditEventPage({
     date_start: event.date_start,
     date_end: event.date_end,
     location_name: event.location_name,
+    city: event.city ?? '',
+    category: event.category ?? '',
     latitude: event.latitude?.toString() ?? '',
     longitude: event.longitude?.toString() ?? '',
     total_stock: event.total_stock.toString(),

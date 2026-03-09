@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Event } from '../../events/entities/event.entity';
+import { Event, EventCategory } from '../../events/entities/event.entity';
 import { TicketCategory } from '../../events/entities/ticket-category.entity';
 import { User } from '../../users/entities/user.entity';
 
@@ -17,6 +17,8 @@ interface SeedEvent {
   date_start: string;
   date_end: string;
   location_name: string;
+  city: string;
+  category: EventCategory;
   latitude: number;
   longitude: number;
   total_stock: number;
@@ -32,6 +34,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-07-15',
     date_end: '2025-07-17',
     location_name: 'Jemaa el-Fna, Marrakech',
+    city: 'Marrakech',
+    category: EventCategory.MUSIQUE,
     latitude: 31.6258,
     longitude: -7.9892,
     total_stock: 1500,
@@ -49,6 +53,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-06-06',
     date_end: '2025-06-14',
     location_name: 'Medina de Fes',
+    city: 'Fès',
+    category: EventCategory.MUSIQUE,
     latitude: 34.0609,
     longitude: -4.9816,
     total_stock: 3000,
@@ -66,6 +72,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-06-26',
     date_end: '2025-06-29',
     location_name: 'Essaouira',
+    city: 'Essaouira',
+    category: EventCategory.MUSIQUE,
     latitude: 31.5085,
     longitude: -9.7595,
     total_stock: 5000,
@@ -83,6 +91,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-05-23',
     date_end: '2025-06-01',
     location_name: 'Rabat — Scenes OLM Souissi & Bouregreg',
+    city: 'Rabat',
+    category: EventCategory.MUSIQUE,
     latitude: 34.0209,
     longitude: -6.8417,
     total_stock: 10000,
@@ -100,6 +110,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-09-18',
     date_end: '2025-09-21',
     location_name: 'Jardin de la Mendoubia, Tanger',
+    city: 'Tanger',
+    category: EventCategory.MUSIQUE,
     latitude: 35.7595,
     longitude: -5.834,
     total_stock: 2000,
@@ -117,6 +129,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-11-28',
     date_end: '2025-12-06',
     location_name: 'Palais des Congres, Marrakech',
+    city: 'Marrakech',
+    category: EventCategory.CINEMA,
     latitude: 31.634,
     longitude: -7.9956,
     total_stock: 4000,
@@ -134,16 +148,14 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-04-11',
     date_end: '2025-04-20',
     location_name: "Desert du Sahara, region d'Ouarzazate",
+    city: 'Ouarzazate',
+    category: EventCategory.SPORT,
     latitude: 30.9335,
     longitude: -6.937,
     total_stock: 1000,
     categories: [
       { name: 'Inscription coureur', price: 3500, stock_allocated: 900 },
-      {
-        name: 'Pack supporter acces bivouac',
-        price: 500,
-        stock_allocated: 100,
-      },
+      { name: 'Pack supporter acces bivouac', price: 500, stock_allocated: 100 },
     ],
   },
   {
@@ -154,6 +166,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-03-15',
     date_end: '2025-03-26',
     location_name: 'Depart Agadir — arrivee Essaouira',
+    city: 'Agadir',
+    category: EventCategory.SPORT,
     latitude: 30.4278,
     longitude: -9.5981,
     total_stock: 600,
@@ -170,6 +184,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-06-19',
     date_end: '2025-06-22',
     location_name: 'Palmeraie et scenes ouvertes, Marrakech',
+    city: 'Marrakech',
+    category: EventCategory.HUMOUR,
     latitude: 31.6889,
     longitude: -7.9525,
     total_stock: 3000,
@@ -187,6 +203,8 @@ const SEED_EVENTS: SeedEvent[] = [
     date_start: '2025-10-03',
     date_end: '2025-10-05',
     location_name: "Domaine Ourika, pied de l'Atlas",
+    city: 'Marrakech',
+    category: EventCategory.MUSIQUE,
     latitude: 31.3553,
     longitude: -7.8543,
     total_stock: 2500,
@@ -235,6 +253,8 @@ export class EventSeeder {
         date_start: new Date(data.date_start),
         date_end: new Date(data.date_end),
         location_name: data.location_name,
+        city: data.city,
+        category: data.category,
         latitude: data.latitude,
         longitude: data.longitude,
         total_stock: data.total_stock,
