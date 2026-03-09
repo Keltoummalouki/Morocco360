@@ -3,29 +3,33 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ROLE_LABEL, apiLogout, type Role } from '@/lib/auth';
+import { useLocale } from './LocaleProvider';
+import LocaleSwitcher from './LocaleSwitcher';
+import type { Translations } from '@/lib/i18n';
 
-type NavItem = { label: string; href: string; symbol: string };
+type NavKey = keyof Translations['nav'];
+type NavItem = { key: NavKey; href: string; symbol: string };
 
 const NAV_ITEMS: Record<Role, NavItem[]> = {
   ADMIN: [
-    { label: 'Overview',   href: '/dashboard/admin',              symbol: '◎' },
-    { label: 'Events',     href: '/dashboard/admin/events',       symbol: '◆' },
-    { label: 'Users',      href: '/dashboard/admin/users',        symbol: '◈' },
-    { label: 'Content',    href: '/dashboard/admin/content',      symbol: '◇' },
-    { label: 'Settings',   href: '/dashboard/admin/settings',     symbol: '○' },
+    { key: 'overview',  href: '/dashboard/admin',          symbol: '◎' },
+    { key: 'events',    href: '/dashboard/admin/events',   symbol: '◆' },
+    { key: 'users',     href: '/dashboard/admin/users',    symbol: '◈' },
+    { key: 'content',   href: '/dashboard/admin/content',  symbol: '◇' },
+    { key: 'settings',  href: '/dashboard/admin/settings', symbol: '○' },
   ],
   ORGANIZER: [
-    { label: 'Overview',    href: '/dashboard/organizer',               symbol: '◎' },
-    { label: 'Experiences', href: '/dashboard/organizer/experiences',   symbol: '◈' },
-    { label: 'Analytics',   href: '/dashboard/organizer/analytics',     symbol: '◇' },
-    { label: 'Bookings',    href: '/dashboard/organizer/bookings',      symbol: '○' },
+    { key: 'overview',     href: '/dashboard/organizer',               symbol: '◎' },
+    { key: 'experiences',  href: '/dashboard/organizer/experiences',   symbol: '◈' },
+    { key: 'analytics',    href: '/dashboard/organizer/analytics',     symbol: '◇' },
+    { key: 'bookings',     href: '/dashboard/organizer/bookings',      symbol: '○' },
   ],
   USER: [
-    { label: 'Explore',  href: '/dashboard/user',               symbol: '◎' },
-    { label: 'Events',   href: '/dashboard/user/events',        symbol: '◆' },
-    { label: 'Saved',    href: '/dashboard/user/saved',         symbol: '◈' },
-    { label: 'History',  href: '/dashboard/user/history',       symbol: '◇' },
-    { label: 'Profile',  href: '/dashboard/user/profile',       symbol: '○' },
+    { key: 'explore',  href: '/dashboard/user',          symbol: '◎' },
+    { key: 'events',   href: '/dashboard/user/events',   symbol: '◆' },
+    { key: 'saved',    href: '/dashboard/user/saved',    symbol: '◈' },
+    { key: 'history',  href: '/dashboard/user/history',  symbol: '◇' },
+    { key: 'profile',  href: '/dashboard/user/profile',  symbol: '○' },
   ],
 };
 
@@ -41,10 +45,11 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ role, name }: SidebarProps) {
-  const pathname = usePathname();
-  const router   = useRouter();
-  const items    = NAV_ITEMS[role] ?? [];
-  const accent   = ROLE_ACCENT[role];
+  const pathname  = usePathname();
+  const router    = useRouter();
+  const { t }     = useLocale();
+  const items     = NAV_ITEMS[role] ?? [];
+  const accent    = ROLE_ACCENT[role];
 
   async function logout() {
     await apiLogout();
@@ -57,7 +62,7 @@ export default function Sidebar({ role, name }: SidebarProps) {
       style={{
         width: '240px',
         minHeight: '100vh',
-        borderRight: '1px solid var(--border)',
+        borderInlineEnd: '1px solid var(--border)',
         background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
@@ -109,17 +114,22 @@ export default function Sidebar({ role, name }: SidebarProps) {
                 fontSize: '0.875rem',
                 color: active ? accent : 'var(--muted)',
                 background: active ? `${accent}10` : 'transparent',
-                borderLeft: active ? `2px solid ${accent}` : '2px solid transparent',
+                borderInlineStart: active ? `2px solid ${accent}` : '2px solid transparent',
                 transition: 'all 0.2s ease',
                 fontWeight: active ? 500 : 400,
               }}
             >
               <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>{item.symbol}</span>
-              {item.label}
+              {t.nav[item.key]}
             </Link>
           );
         })}
       </nav>
+
+      {/* Language switcher */}
+      <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)' }}>
+        <LocaleSwitcher />
+      </div>
 
       {/* User info + logout */}
       <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)' }}>
@@ -140,7 +150,7 @@ export default function Sidebar({ role, name }: SidebarProps) {
             fontSize: '0.75rem',
           }}
         >
-          Sign Out
+          {t.nav.signOut}
         </button>
       </div>
     </aside>

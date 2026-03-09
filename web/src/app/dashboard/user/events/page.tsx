@@ -1,5 +1,7 @@
 import { cookies, headers } from 'next/headers';
 import EventsGrid from './EventsGrid';
+import type { Locale } from '@/lib/i18n';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE, getTranslations } from '@/lib/i18n';
 
 interface TicketCategory {
   id: number;
@@ -17,6 +19,8 @@ interface Event {
   location_name: string;
   city: string | null;
   category: string | null;
+  latitude: number | null;
+  longitude: number | null;
   total_stock: number;
   is_active: boolean;
   categories: TicketCategory[];
@@ -26,8 +30,8 @@ async function getEvents(): Promise<Event[]> {
   try {
     const cookieStore = await cookies();
     const headerStore = await headers();
-    const host = headerStore.get('host') ?? 'localhost:3000';
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const host        = headerStore.get('host') ?? 'localhost:4001';
+    const protocol    = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
     const res = await fetch(`${protocol}://${host}/api/events`, {
       cache: 'no-store',
@@ -41,7 +45,11 @@ async function getEvents(): Promise<Event[]> {
 }
 
 export default async function EventsPage() {
-  const events = await getEvents();
+  const events      = await getEvents();
+  const cookieStore = await cookies();
+  const raw         = cookieStore.get(LOCALE_COOKIE)?.value;
+  const locale: Locale = LOCALES.includes(raw as Locale) ? (raw as Locale) : DEFAULT_LOCALE;
+  const t           = getTranslations(locale);
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1200px' }}>
@@ -57,7 +65,7 @@ export default async function EventsPage() {
             marginBottom: '8px',
           }}
         >
-          Découvrez
+          {t.events.discover}
         </p>
         <h1
           style={{
@@ -67,10 +75,10 @@ export default async function EventsPage() {
             marginBottom: '6px',
           }}
         >
-          Événements à venir
+          {t.events.title}
         </h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>
-          Explorez les meilleurs événements culturels, musicaux et sportifs du Maroc.
+          {t.events.subtitle}
         </p>
       </div>
 
