@@ -20,10 +20,11 @@ const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: 'Bookings',    href: '/dashboard/organizer/bookings',      symbol: '○' },
   ],
   USER: [
-    { label: 'Explore',  href: '/dashboard/user',          symbol: '◎' },
-    { label: 'Saved',    href: '/dashboard/user/saved',    symbol: '◈' },
-    { label: 'History',  href: '/dashboard/user/history',  symbol: '◇' },
-    { label: 'Profile',  href: '/dashboard/user/profile',  symbol: '○' },
+    { label: 'Explore',  href: '/dashboard/user',               symbol: '◎' },
+    { label: 'Events',   href: '/dashboard/user/events',        symbol: '◆' },
+    { label: 'Saved',    href: '/dashboard/user/saved',         symbol: '◈' },
+    { label: 'History',  href: '/dashboard/user/history',       symbol: '◇' },
+    { label: 'Profile',  href: '/dashboard/user/profile',       symbol: '○' },
   ],
 };
 

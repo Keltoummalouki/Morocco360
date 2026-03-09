@@ -10,6 +10,7 @@ import { Ticket } from '../../orders/entities/ticket.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { RoleSeeder } from './role.seeder';
 import { UserSeeder } from './user.seeder';
+import { EventSeeder } from './event.seeder';
 import { SeederService } from './seeder.service';
 
 @Module({
@@ -29,8 +30,8 @@ import { SeederService } from './seeder.service';
         synchronize: false,
       }),
     }),
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([User, Role, Event, TicketCategory]),
   ],
-  providers: [RoleSeeder, UserSeeder, SeederService],
+  providers: [RoleSeeder, UserSeeder, EventSeeder, SeederService],
 })
 export class SeederModule {}

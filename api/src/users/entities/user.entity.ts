@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Role } from './role.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { Event } from '../../events/entities/event.entity';
@@ -22,6 +23,7 @@ export class User {
   @Column({ unique: true, length: 150 })
   email: string;
 
+  @Exclude()
   @Column()
   password: string;
 
@@ -31,6 +33,7 @@ export class User {
   @Column({ length: 20, nullable: true })
   phone_number: string;
 
+  @Exclude()
   @Column({ type: 'text', nullable: true })
   refresh_token_hash: string | null;
 

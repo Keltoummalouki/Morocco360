@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
 import { Event } from './events/entities/event.entity';
@@ -35,6 +36,7 @@ import { Payment } from './payments/entities/payment.entity';
     }),
     AuthModule,
     UsersModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
