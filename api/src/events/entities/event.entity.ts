@@ -52,6 +52,7 @@ export class Event {
 
   @OneToMany(() => TicketCategory, (category) => category.event, {
     cascade: true,
+    orphanedRowAction: 'delete',
   })
   categories: TicketCategory[];
 }

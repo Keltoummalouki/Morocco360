@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, dev, MR-9-Page-Détail-Événement]
+    branches: [main, dev, MR-10-CRUD-Événements]
   pull_request:
     branches: [main, dev]
 
