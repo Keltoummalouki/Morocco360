@@ -2,6 +2,8 @@ import { cookies, headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 interface TicketCategory {
   id: number;
   name: string;
@@ -196,7 +198,7 @@ export default async function EventDetailPage({
               {formatDate(event.date_start)}
             </p>
             <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginTop: '2px' }}>
-              jusqu'au {formatDate(event.date_end)}
+              jusqu&apos;au {formatDate(event.date_end)}
             </p>
           </div>
 
