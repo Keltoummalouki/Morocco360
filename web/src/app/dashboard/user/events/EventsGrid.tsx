@@ -2,6 +2,15 @@
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useLocale } from '@/components/LocaleProvider';
+import type { Translations } from '@/lib/i18n';
+import type { EventWithCoords } from './EventsMap';
+
+const EventsMap = dynamic<{ events: EventWithCoords[] }>(
+  () => import('./EventsMap'),
+  { ssr: false },
+);
 
 interface TicketCategory {
   id: number;
@@ -19,33 +28,28 @@ interface Event {
   location_name: string;
   city: string | null;
   category: string | null;
+  latitude: number | null;
+  longitude: number | null;
   total_stock: number;
   is_active: boolean;
   categories: TicketCategory[];
 }
 
 const CATEGORIES = ['Musique', 'Sport', 'Culture', 'Cinema', 'Humour', 'Art', 'Autre'];
-
-const DATE_OPTIONS = [
-  { label: 'Toutes dates', value: 'all' },
-  { label: 'Ce mois-ci',   value: 'month' },
-  { label: '3 prochains mois', value: '3months' },
-  { label: 'Cette année',  value: 'year' },
-];
-
 const ACCENT = '#4A7C6F';
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(
+    locale === 'ar' ? 'ar-MA' : locale === 'en' ? 'en-GB' : 'fr-FR',
+    { day: 'numeric', month: 'short', year: 'numeric' },
+  );
 }
 
-function minPrice(categories: TicketCategory[]): string {
-  if (!categories.length) return 'Gratuit';
+function minPrice(categories: TicketCategory[], te: Translations['events']): string {
+  if (!categories.length) return te.free;
   const prices = categories.map((c) => Number(c.price));
   const min = Math.min(...prices);
-  return min === 0 ? 'Gratuit' : `Dès ${min.toFixed(0)} MAD`;
+  return min === 0 ? te.free : `${te.from} ${min.toFixed(0)} ${te.currency}`;
 }
 
 function matchesDate(dateStart: string, filter: string): boolean {
@@ -83,7 +87,7 @@ function ChipButton({
         border: `1px solid ${active ? ACCENT : 'var(--border)'}`,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
-        fontFamily: 'var(--font-inter), system-ui, sans-serif',
+        fontFamily: 'inherit',
         whiteSpace: 'nowrap',
       }}
     >
@@ -93,6 +97,8 @@ function ChipButton({
 }
 
 function EventCard({ event }: { event: Event }) {
+  const { t, locale } = useLocale();
+  const te = t.events;
   return (
     <Link
       href={`/dashboard/user/events/${event.id}`}
@@ -123,13 +129,12 @@ function EventCard({ event }: { event: Event }) {
           }}
         >
           <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', color: 'var(--border)' }}>◈</span>
-          {/* Category badge */}
           {event.category && (
             <span
               style={{
                 position: 'absolute',
                 top: '12px',
-                left: '12px',
+                insetInlineStart: '12px',
                 fontSize: '0.625rem',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
@@ -147,7 +152,7 @@ function EventCard({ event }: { event: Event }) {
               style={{
                 position: 'absolute',
                 top: '12px',
-                right: '12px',
+                insetInlineEnd: '12px',
                 fontSize: '0.625rem',
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
@@ -157,7 +162,7 @@ function EventCard({ event }: { event: Event }) {
                 padding: '3px 8px',
               }}
             >
-              Disponible
+              {te.available}
             </span>
           )}
         </div>
@@ -168,8 +173,8 @@ function EventCard({ event }: { event: Event }) {
             <span style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', lineHeight: 1.4 }}>
               {event.city ?? event.location_name}
             </span>
-            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: ACCENT, background: `${ACCENT}14`, padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {minPrice(event.categories)}
+            <span style={{ fontSize: '0.6875rem', color: ACCENT, background: `${ACCENT}14`, padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {minPrice(event.categories, te)}
             </span>
           </div>
 
@@ -185,11 +190,11 @@ function EventCard({ event }: { event: Event }) {
         {/* Footer */}
         <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>{formatDate(event.date_start)}</span>
-            <span style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>— {formatDate(event.date_end)}</span>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>{formatDate(event.date_start, locale)}</span>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>— {formatDate(event.date_end, locale)}</span>
           </div>
           <span style={{ fontSize: '0.6875rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-            {event.categories.length} billet{event.categories.length !== 1 ? 's' : ''}
+            {event.categories.length} {event.categories.length !== 1 ? te.tickets : te.ticket}
           </span>
         </div>
       </div>
@@ -198,12 +203,23 @@ function EventCard({ event }: { event: Event }) {
 }
 
 export default function EventsGrid({ events }: { events: Event[] }) {
-  const [search, setSearch]       = useState('');
+  const { t, locale } = useLocale();
+  const te = t.events;
+  const td = t.dates;
+
+  const [search, setSearch]               = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [activeCity, setActiveCity]         = useState('');
   const [activeDate, setActiveDate]         = useState('all');
+  const [viewMode, setViewMode]             = useState<'grid' | 'map'>('grid');
 
-  // Build unique city list from events
+  const dateOptions = [
+    { label: td.all,         value: 'all'     },
+    { label: td.month,       value: 'month'   },
+    { label: td.threeMonths, value: '3months' },
+    { label: td.year,        value: 'year'    },
+  ];
+
   const cities = useMemo(() => {
     const set = new Set(events.map((e) => e.city).filter(Boolean) as string[]);
     return Array.from(set).sort();
@@ -229,6 +245,38 @@ export default function EventsGrid({ events }: { events: Event[] }) {
     setActiveDate('all');
   }
 
+  function countLabel() {
+    const n = filtered.length;
+    const total = events.length;
+    if (n === total) {
+      return `${n} ${n !== 1 ? te.events : te.event}`;
+    }
+    return `${n} ${n !== 1 ? te.results : te.result} ${te.of} ${total}`;
+  }
+
+  const selectStyle: React.CSSProperties = {
+    border: '1.5px solid var(--border)',
+    background: 'var(--background)',
+    padding: '8px 12px',
+    fontSize: '0.875rem',
+    color: 'var(--foreground)',
+    outline: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
+
+  const viewBtnStyle = (active: boolean): React.CSSProperties => ({
+    padding: '6px 12px',
+    fontSize: '0.75rem',
+    fontWeight: active ? 600 : 400,
+    color: active ? ACCENT : 'var(--muted)',
+    background: active ? `${ACCENT}14` : 'transparent',
+    border: `1px solid ${active ? ACCENT : 'var(--border)'}`,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    letterSpacing: locale !== 'ar' ? '0.06em' : '0',
+  });
+
   return (
     <>
       {/* Search */}
@@ -236,7 +284,7 @@ export default function EventsGrid({ events }: { events: Event[] }) {
         <input
           className="input-field"
           type="text"
-          placeholder="Rechercher un événement, une ville…"
+          placeholder={te.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ maxWidth: '420px' }}
@@ -246,32 +294,27 @@ export default function EventsGrid({ events }: { events: Event[] }) {
       {/* Category chips */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
         <ChipButton active={activeCategory === ''} onClick={() => setActiveCategory('')}>
-          Toutes
+          {te.allCategories}
         </ChipButton>
         {CATEGORIES.map((cat) => (
-          <ChipButton key={cat} active={activeCategory === cat} onClick={() => setActiveCategory(activeCategory === cat ? '' : cat)}>
+          <ChipButton
+            key={cat}
+            active={activeCategory === cat}
+            onClick={() => setActiveCategory(activeCategory === cat ? '' : cat)}
+          >
             {cat}
           </ChipButton>
         ))}
       </div>
 
-      {/* City + Date row */}
+      {/* City + Date + Reset row */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '28px', alignItems: 'center' }}>
         <select
           value={activeCity}
           onChange={(e) => setActiveCity(e.target.value)}
-          style={{
-            border: '1.5px solid var(--border)',
-            background: 'var(--background)',
-            padding: '8px 12px',
-            fontSize: '0.875rem',
-            color: activeCity ? 'var(--foreground)' : 'var(--muted)',
-            outline: 'none',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-inter), system-ui, sans-serif',
-          }}
+          style={{ ...selectStyle, color: activeCity ? 'var(--foreground)' : 'var(--muted)' }}
         >
-          <option value="">Toutes les villes</option>
+          <option value="">{te.allCities}</option>
           {cities.map((city) => (
             <option key={city} value={city}>{city}</option>
           ))}
@@ -280,18 +323,9 @@ export default function EventsGrid({ events }: { events: Event[] }) {
         <select
           value={activeDate}
           onChange={(e) => setActiveDate(e.target.value)}
-          style={{
-            border: '1.5px solid var(--border)',
-            background: 'var(--background)',
-            padding: '8px 12px',
-            fontSize: '0.875rem',
-            color: 'var(--foreground)',
-            outline: 'none',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-inter), system-ui, sans-serif',
-          }}
+          style={selectStyle}
         >
-          {DATE_OPTIONS.map((o) => (
+          {dateOptions.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
@@ -308,40 +342,56 @@ export default function EventsGrid({ events }: { events: Event[] }) {
               cursor: 'pointer',
               padding: '4px 0',
               textDecoration: 'underline',
-              fontFamily: 'var(--font-inter), system-ui, sans-serif',
+              fontFamily: 'inherit',
             }}
           >
-            Réinitialiser
+            {te.reset}
           </button>
         )}
       </div>
 
-      {/* Count */}
-      <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginBottom: '20px' }}>
-        {filtered.length === events.length
-          ? `${events.length} événement${events.length !== 1 ? 's' : ''}`
-          : `${filtered.length} résultat${filtered.length !== 1 ? 's' : ''} sur ${events.length}`}
-      </p>
+      {/* Count + view toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', margin: 0 }}>
+          {countLabel()}
+        </p>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button type="button" onClick={() => setViewMode('grid')} style={viewBtnStyle(viewMode === 'grid')}>
+            {te.gridView}
+          </button>
+          <button type="button" onClick={() => setViewMode('map')} style={viewBtnStyle(viewMode === 'map')}>
+            {te.mapView}
+          </button>
+        </div>
+      </div>
 
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div style={{ border: '1px solid var(--border)', padding: '64px 24px', textAlign: 'center' }}>
-          <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 600, marginBottom: '8px' }}>
-            Aucun résultat
-          </p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
-            Essayez d&apos;autres filtres ou{' '}
-            <button onClick={resetFilters} style={{ color: ACCENT, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', padding: 0, fontFamily: 'inherit' }}>
-              réinitialisez
-            </button>.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
-          {filtered.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </div>
+      {/* Map view */}
+      {viewMode === 'map' && <EventsMap events={filtered} />}
+
+      {/* Grid view */}
+      {viewMode === 'grid' && (
+        filtered.length === 0 ? (
+          <div style={{ border: '1px solid var(--border)', padding: '64px 24px', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 600, marginBottom: '8px' }}>
+              {te.noResults}
+            </p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+              {te.noResultsHint}{' '}
+              <button
+                onClick={resetFilters}
+                style={{ color: ACCENT, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', padding: 0, fontFamily: 'inherit' }}
+              >
+                {te.resetHere}
+              </button>.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
+            {filtered.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        )
       )}
     </>
   );
