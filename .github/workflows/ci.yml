@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, dev, MR-12-Filtres-Recherche-avancée]
+    branches: [main, dev, MR-13-Intégration-Carte-Interactive]
   pull_request:
     branches: [main, dev]
 
