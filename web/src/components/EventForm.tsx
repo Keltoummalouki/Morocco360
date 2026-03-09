@@ -9,12 +9,16 @@ interface TicketCategory {
   stock_allocated: number;
 }
 
+const EVENT_CATEGORIES = ['Musique', 'Sport', 'Culture', 'Cinema', 'Humour', 'Art', 'Autre'];
+
 export interface EventFormData {
   title: string;
   description: string;
   date_start: string;
   date_end: string;
   location_name: string;
+  city: string;
+  category: string;
   latitude: string;
   longitude: string;
   total_stock: string;
@@ -33,6 +37,8 @@ const EMPTY: EventFormData = {
   date_start: '',
   date_end: '',
   location_name: '',
+  city: '',
+  category: '',
   latitude: '',
   longitude: '',
   total_stock: '',
@@ -90,6 +96,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
       date_start: form.date_start,
       date_end: form.date_end,
       location_name: form.location_name,
+      city: form.city || undefined,
+      category: form.category || undefined,
       latitude: form.latitude ? Number(form.latitude) : undefined,
       longitude: form.longitude ? Number(form.longitude) : undefined,
       total_stock: form.total_stock ? Number(form.total_stock) : 0,
@@ -207,6 +215,33 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
             required
             maxLength={255}
           />
+        </div>
+
+        {/* City + Category */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label style={labelStyle}>Ville</label>
+            <input
+              style={inputStyle}
+              value={form.city}
+              onChange={(e) => setField('city', e.target.value)}
+              placeholder="ex: Marrakech"
+              maxLength={100}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Catégorie</label>
+            <select
+              style={{ ...inputStyle, cursor: 'pointer' }}
+              value={form.category}
+              onChange={(e) => setField('category', e.target.value)}
+            >
+              <option value="">— Sélectionner —</option>
+              {EVENT_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Coordinates */}

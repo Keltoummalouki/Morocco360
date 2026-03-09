@@ -4,12 +4,14 @@ import {
   IsNumber,
   IsBoolean,
   IsDateString,
+  IsEnum,
   ValidateNested,
   IsArray,
   Min,
   MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { EventCategory } from '../entities/event.entity';
 
 export class CreateTicketCategoryDto {
   @IsString()
@@ -42,6 +44,15 @@ export class CreateEventDto {
   @IsString()
   @MaxLength(255)
   location_name: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @IsOptional()
+  @IsEnum(EventCategory)
+  category?: EventCategory;
 
   @IsOptional()
   @IsNumber()

@@ -9,6 +9,16 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { TicketCategory } from './ticket-category.entity';
 
+export enum EventCategory {
+  MUSIQUE  = 'Musique',
+  SPORT    = 'Sport',
+  CULTURE  = 'Culture',
+  CINEMA   = 'Cinema',
+  HUMOUR   = 'Humour',
+  ART      = 'Art',
+  AUTRE    = 'Autre',
+}
+
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn()
@@ -28,6 +38,12 @@ export class Event {
 
   @Column({ length: 255 })
   location_name: string;
+
+  @Column({ length: 100, nullable: true })
+  city: string;
+
+  @Column({ type: 'enum', enum: EventCategory, default: EventCategory.AUTRE })
+  category: EventCategory;
 
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   latitude: number;
