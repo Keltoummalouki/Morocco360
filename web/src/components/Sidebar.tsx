@@ -9,6 +9,7 @@ type NavItem = { label: string; href: string; symbol: string };
 const NAV_ITEMS: Record<Role, NavItem[]> = {
   ADMIN: [
     { label: 'Overview',   href: '/dashboard/admin',              symbol: '◎' },
+    { label: 'Events',     href: '/dashboard/admin/events',       symbol: '◆' },
     { label: 'Users',      href: '/dashboard/admin/users',        symbol: '◈' },
     { label: 'Content',    href: '/dashboard/admin/content',      symbol: '◇' },
     { label: 'Settings',   href: '/dashboard/admin/settings',     symbol: '○' },
