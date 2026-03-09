@@ -15,6 +15,8 @@ interface Event {
   date_start: string;
   date_end: string;
   location_name: string;
+  city: string | null;
+  category: string | null;
   total_stock: number;
   is_active: boolean;
   categories: TicketCategory[];
