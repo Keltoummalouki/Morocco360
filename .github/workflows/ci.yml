@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, dev, MR-14-Configuration-Multilingue]
+    branches: [main, dev, MR-17-Intégration-Stripe]
   pull_request:
     branches: [main, dev]
 

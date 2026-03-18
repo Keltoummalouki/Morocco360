@@ -13,6 +13,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
   --font-sans: var(--font-inter);
   --font-display: var(--font-playfair);
 }
@@ -173,6 +178,52 @@ body {
   background: var(--foreground);
   color: var(--background);
   transform: translateY(-2px);
+}
+
+/* ── Page semantic utilities ───────────────────────── */
+
+.font-playfair {
+  font-family: var(--font-playfair);
+}
+
+.label-caps {
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.label-small {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marquee-item {
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0 24px;
+  color: var(--muted);
+}
+
+.nav-bar {
+  background: rgba(250, 250, 248, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.nav-link {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.btn-sm {
+  padding: 9px 22px;
+}
+
+.btn-cta {
+  background: var(--primary);
 }
 
 /* ── Form inputs ───────────────────────────────────── */

@@ -4,15 +4,15 @@ services:
     container_name: morocco360_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-morocco360}
-      POSTGRES_PASSWORD: ${DB_PASS:-morocco360}
-      POSTGRES_DB: ${DB_NAME:-morocco360}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-morocco360} -d ${DB_NAME:-morocco360}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,18 +26,20 @@ services:
     ports:
       - "4000:4000"
     environment:
-      PORT: 4000
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: ${DB_USER:-morocco360}
-      DB_PASS: ${DB_PASS:-morocco360}
-      DB_NAME: ${DB_NAME:-morocco360}
-      NODE_ENV: development
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret_min_32_chars}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh_secret_min_32_chars}
-      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      # Enable file polling for hot reload on Windows host
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      NODE_ENV: ${NODE_ENV}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./api/src:/app/src
