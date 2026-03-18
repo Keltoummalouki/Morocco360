@@ -1,6 +1,7 @@
 import { cookies, headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import BookingPanel from '@/components/BookingPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,13 +63,6 @@ function formatDate(iso: string) {
   });
 }
 
-function formatDateShort(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 export default async function EventDetailPage({
   params,
@@ -81,9 +75,6 @@ export default async function EventDetailPage({
   if (!event) notFound();
 
   const accent = '#4A7C6F';
-  const minPrice = event.categories.length
-    ? Math.min(...event.categories.map((c) => Number(c.price)))
-    : 0;
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: '900px' }}>
@@ -253,81 +244,13 @@ export default async function EventDetailPage({
         </div>
 
         {/* Right — booking sidebar */}
-        <div
-          style={{
-            width: '280px',
-            flexShrink: 0,
-            border: '1px solid var(--border)',
-            padding: '24px',
-            position: 'sticky',
-            top: '24px',
-          }}
-        >
-          {/* Price */}
-          <p
-            style={{
-              fontFamily: 'var(--font-playfair)',
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '4px',
-            }}
-          >
-            {minPrice === 0 ? 'Gratuit' : `Dès ${minPrice.toFixed(0)} MAD`}
-          </p>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginBottom: '20px' }}>
-            {formatDateShort(event.date_start)} — {formatDateShort(event.date_end)}
-          </p>
-
-          {/* Ticket categories */}
-          <div style={{ marginBottom: '20px' }}>
-            {event.categories.map((cat, i) => (
-              <div
-                key={cat.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 0',
-                  borderTop: i === 0 ? '1px solid var(--border)' : undefined,
-                  borderBottom: '1px solid var(--border)',
-                }}
-              >
-                <div>
-                  <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{cat.name}</p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                    {cat.stock_allocated} places
-                  </p>
-                </div>
-                <span
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: Number(cat.price) === 0 ? accent : 'var(--foreground)',
-                  }}
-                >
-                  {Number(cat.price) === 0 ? 'Gratuit' : `${Number(cat.price).toFixed(0)} MAD`}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <button className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>
-            Réserver
-          </button>
-
-          {/* Stock info */}
-          <p
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--muted)',
-              textAlign: 'center',
-              marginTop: '12px',
-            }}
-          >
-            {event.total_stock} places au total
-          </p>
-        </div>
+        <BookingPanel
+          eventId={event.id}
+          categories={event.categories}
+          dateStart={event.date_start}
+          dateEnd={event.date_end}
+          totalStock={event.total_stock}
+        />
       </div>
     </div>
   );

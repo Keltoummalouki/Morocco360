@@ -33,49 +33,26 @@ const MARQUEE_CITIES = [
 
 export default function Home() {
   return (
-    <div style={{ background: "var(--background)", color: "var(--foreground)" }} className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Navbar ─────────────────────────────────────── */}
-      <nav
-        style={{ borderBottom: "1px solid var(--border)" }}
-        className="fixed top-0 left-0 right-0 z-50"
-        aria-label="Main navigation"
-      >
-        <div
-          style={{ background: "rgba(250,250,248,0.94)", backdropFilter: "blur(12px)" }}
-          className="max-w-7xl mx-auto px-8 flex items-center justify-between h-16"
-        >
-          <Link
-            href="/"
-            style={{ fontFamily: "var(--font-playfair)", fontSize: "1.25rem", fontWeight: 700 }}
-          >
-            Morocco<span style={{ color: "var(--primary)" }}>360</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border" aria-label="Main navigation">
+        <div className="nav-bar max-w-7xl mx-auto px-8 flex items-center justify-between h-16">
+          <Link href="/" className="font-playfair text-xl font-bold">
+            Morocco<span className="text-primary">360</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-10">
             {["Experiences", "Destinations", "Gallery", "About"].map((item) => (
-              <Link
-                key={item}
-                href="#"
-                className="link-underline"
-                style={{ fontSize: "0.8125rem", color: "var(--muted)", letterSpacing: "0.04em" }}
-              >
+              <Link key={item} href="#" className="link-underline nav-link">
                 {item}
               </Link>
             ))}
           </div>
 
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="link-underline"
-              style={{ fontSize: "0.8125rem", color: "var(--muted)" }}
-            >
-              Sign in
-            </Link>
-            <Link href="/register" className="btn-primary" style={{ padding: "9px 22px" }}>
-              Get Started
-            </Link>
+            <Link href="/login" className="link-underline nav-link">Sign in</Link>
+            <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
           </div>
         </div>
       </nav>
@@ -87,57 +64,21 @@ export default function Home() {
 
             {/* Left content */}
             <div className="lg:col-span-3">
-              <p
-                className="anim-fade-up"
-                style={{
-                  fontSize: "0.6875rem",
-                  letterSpacing: "0.22em",
-                  color: "var(--primary)",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  marginBottom: "28px",
-                }}
-              >
+              <p className="anim-fade-up label-caps text-primary mb-7">
                 Panoramic Experiences
               </p>
 
-              <h1 className="anim-fade-up delay-100" style={{ fontFamily: "var(--font-playfair)", lineHeight: 1.03 }}>
-                <span style={{ fontSize: "clamp(2.75rem, 7vw, 6.5rem)", display: "block" }}>
-                  Discover
-                </span>
-                <span
-                  style={{
-                    fontSize: "clamp(3.5rem, 11vw, 9.5rem)",
-                    display: "block",
-                    color: "var(--primary)",
-                    lineHeight: 0.95,
-                  }}
-                >
+              <h1 className="anim-fade-up delay-100 font-playfair leading-[1.03]">
+                <span className="block text-[clamp(2.75rem,7vw,6.5rem)]">Discover</span>
+                <span className="block text-[clamp(3.5rem,11vw,9.5rem)] text-primary leading-[0.95]">
                   Morocco
                 </span>
-                <span
-                  style={{
-                    fontSize: "clamp(1.75rem, 4.5vw, 4rem)",
-                    display: "block",
-                    fontWeight: 400,
-                    marginTop: "8px",
-                  }}
-                >
+                <span className="block text-[clamp(1.75rem,4.5vw,4rem)] font-normal mt-2">
                   through 360°
                 </span>
               </h1>
 
-              <p
-                className="anim-fade-up delay-300"
-                style={{
-                  fontSize: "1.0625rem",
-                  color: "var(--muted)",
-                  lineHeight: 1.8,
-                  maxWidth: "460px",
-                  marginTop: "28px",
-                  marginBottom: "40px",
-                }}
-              >
+              <p className="anim-fade-up delay-300 text-muted text-[1.0625rem] leading-[1.8] max-w-[460px] mt-7 mb-10">
                 Step inside the ancient medinas, golden deserts, and coastal cities
                 of Morocco. Immersive panoramic journeys, from anywhere in the world.
               </p>
@@ -148,19 +89,12 @@ export default function Home() {
               </div>
 
               {/* Stats */}
-              <div
-                className="anim-fade-up delay-500 flex gap-12 mt-16 pt-10"
-                style={{ borderTop: "1px solid var(--border)" }}
-              >
+              <div className="anim-fade-up delay-500 flex gap-12 mt-16 pt-10 border-t border-border">
                 {[["240+", "Panoramas"], ["18", "Cities"], ["50K+", "Explorers"]].map(
                   ([num, label]) => (
                     <div key={label}>
-                      <p style={{ fontFamily: "var(--font-playfair)", fontSize: "2.25rem", fontWeight: 700 }}>
-                        {num}
-                      </p>
-                      <p style={{ fontSize: "0.75rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "4px" }}>
-                        {label}
-                      </p>
+                      <p className="font-playfair text-[2.25rem] font-bold">{num}</p>
+                      <p className="label-small text-muted mt-1">{label}</p>
                     </div>
                   )
                 )}
@@ -173,25 +107,20 @@ export default function Home() {
                 {DESTINATIONS.map((dest) => (
                   <div
                     key={dest.city}
-                    className="card-hover"
-                    style={{
-                      background: dest.dark ? "var(--foreground)" : "var(--surface)",
-                      color: dest.dark ? "var(--background)" : "var(--foreground)",
-                      padding: "24px",
-                      aspectRatio: "1",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
+                    className={`card-hover p-6 aspect-square flex flex-col justify-between ${
+                      dest.dark
+                        ? "bg-foreground text-background"
+                        : "bg-surface text-foreground"
+                    }`}
                   >
-                    <span style={{ fontSize: "0.625rem", letterSpacing: "0.18em", opacity: 0.45, textTransform: "uppercase" }}>
+                    <span className="text-[0.625rem] tracking-[0.18em] opacity-45 uppercase">
                       {dest.region}
                     </span>
                     <div>
-                      <span style={{ fontSize: "2.75rem", opacity: 0.08, fontFamily: "var(--font-playfair)", fontWeight: 800, display: "block", lineHeight: 1 }}>
+                      <span className="font-playfair text-[2.75rem] opacity-[0.08] font-extrabold block leading-none">
                         {dest.num}
                       </span>
-                      <p style={{ fontFamily: "var(--font-playfair)", fontSize: "1.125rem", fontWeight: 600, marginTop: "6px" }}>
+                      <p className="font-playfair text-[1.125rem] font-semibold mt-1.5">
                         {dest.city}
                       </p>
                     </div>
@@ -204,28 +133,12 @@ export default function Home() {
       </section>
 
       {/* ── Marquee strip ──────────────────────────────── */}
-      <div
-        style={{
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          padding: "14px 0",
-          overflow: "hidden",
-        }}
-      >
-        <div className="marquee-track flex whitespace-nowrap" style={{ width: "max-content" }}>
+      <div className="border-y border-border py-3.5 overflow-hidden">
+        <div className="marquee-track flex whitespace-nowrap w-max">
           {[...MARQUEE_CITIES, ...MARQUEE_CITIES].map((city, i) => (
-            <span
-              key={i}
-              style={{
-                fontSize: "0.6875rem",
-                letterSpacing: "0.22em",
-                color: "var(--muted)",
-                textTransform: "uppercase",
-                padding: "0 24px",
-              }}
-            >
+            <span key={i} className="marquee-item">
               {city}
-              <span style={{ color: "var(--primary)", marginLeft: "24px" }}>·</span>
+              <span className="text-primary ml-6">·</span>
             </span>
           ))}
         </div>
@@ -236,30 +149,22 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             <div>
-              <p style={{ fontSize: "0.6875rem", letterSpacing: "0.22em", color: "var(--primary)", fontWeight: 600, textTransform: "uppercase", marginBottom: "12px" }}>
-                Why Morocco360
-              </p>
-              <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(2rem, 4vw, 3.25rem)", lineHeight: 1.15, maxWidth: "420px" }}>
+              <p className="label-caps text-primary mb-3">Why Morocco360</p>
+              <h2 className="font-playfair text-[clamp(2rem,4vw,3.25rem)] leading-[1.15] max-w-[420px]">
                 A new way to experience the kingdom
               </h2>
             </div>
-            <Link href="/register" className="link-underline" style={{ fontSize: "0.8125rem", color: "var(--muted)", whiteSpace: "nowrap" }}>
+            <Link href="/register" className="link-underline nav-link whitespace-nowrap">
               See all experiences
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: "1px", background: "var(--border)" }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
             {FEATURES.map((feat) => (
-              <div key={feat.title} className="card-hover" style={{ background: "var(--background)", padding: "48px 40px" }}>
-                <span style={{ fontSize: "1.375rem", display: "block", marginBottom: "28px", color: "var(--primary)" }}>
-                  {feat.symbol}
-                </span>
-                <h3 style={{ fontFamily: "var(--font-playfair)", fontSize: "1.375rem", fontWeight: 600, marginBottom: "14px" }}>
-                  {feat.title}
-                </h3>
-                <p style={{ color: "var(--muted)", lineHeight: 1.8, fontSize: "0.9375rem" }}>
-                  {feat.desc}
-                </p>
+              <div key={feat.title} className="card-hover bg-background px-10 py-12">
+                <span className="text-[1.375rem] block mb-7 text-primary">{feat.symbol}</span>
+                <h3 className="font-playfair text-[1.375rem] font-semibold mb-3.5">{feat.title}</h3>
+                <p className="text-muted leading-[1.8] text-[0.9375rem]">{feat.desc}</p>
               </div>
             ))}
           </div>
@@ -267,15 +172,13 @@ export default function Home() {
       </section>
 
       {/* ── Destinations grid ──────────────────────────── */}
-      <section style={{ background: "var(--surface)" }} className="py-24">
+      <section className="bg-surface py-24">
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-12">
-            <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.2 }}>
+            <h2 className="font-playfair text-[clamp(1.75rem,3vw,2.75rem)] leading-[1.2]">
               Popular destinations
             </h2>
-            <Link href="/register" className="btn-outline" style={{ alignSelf: "flex-start" }}>
-              Explore All
-            </Link>
+            <Link href="/register" className="btn-outline self-start">Explore All</Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -285,15 +188,9 @@ export default function Home() {
               ["Sahara Erg", "96 panoramas" ],
               ["Essaouira",  "74 panoramas" ],
             ].map(([name, count]) => (
-              <div
-                key={name}
-                className="card-hover"
-                style={{ border: "1px solid var(--border)", background: "var(--background)", padding: "32px 24px" }}
-              >
-                <p style={{ fontFamily: "var(--font-playfair)", fontSize: "1.25rem", fontWeight: 600, marginBottom: "8px" }}>
-                  {name}
-                </p>
-                <p style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>{count}</p>
+              <div key={name} className="card-hover border border-border bg-background px-6 py-8">
+                <p className="font-playfair text-[1.25rem] font-semibold mb-2">{name}</p>
+                <p className="text-[0.8125rem] text-muted">{count}</p>
               </div>
             ))}
           </div>
@@ -301,35 +198,31 @@ export default function Home() {
       </section>
 
       {/* ── CTA ────────────────────────────────────────── */}
-      <section style={{ background: "var(--foreground)", color: "var(--background)" }} className="py-32">
+      <section className="bg-foreground text-background py-32">
         <div className="max-w-7xl mx-auto px-8 text-center">
-          <p style={{ fontSize: "0.6875rem", letterSpacing: "0.22em", color: "var(--primary)", fontWeight: 600, textTransform: "uppercase", marginBottom: "20px" }}>
-            Begin your journey
-          </p>
-          <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "clamp(2.25rem, 5vw, 4rem)", lineHeight: 1.12, marginBottom: "24px" }}>
+          <p className="label-caps text-primary mb-5">Begin your journey</p>
+          <h2 className="font-playfair text-[clamp(2.25rem,5vw,4rem)] leading-[1.12] mb-6">
             Morocco awaits you
           </h2>
-          <p style={{ color: "#A8A29E", fontSize: "1.0625rem", maxWidth: "440px", margin: "0 auto 48px", lineHeight: 1.8 }}>
+          <p className="text-[#A8A29E] text-[1.0625rem] max-w-[440px] mx-auto mb-12 leading-[1.8]">
             Create a free account and unlock hundreds of panoramic experiences across the Kingdom of Morocco.
           </p>
-          <Link href="/register" className="btn-primary" style={{ background: "var(--primary)" }}>
-            Create Free Account
-          </Link>
+          <Link href="/register" className="btn-primary btn-cta">Create Free Account</Link>
         </div>
       </section>
 
       {/* ── Footer ─────────────────────────────────────── */}
-      <footer style={{ borderTop: "1px solid var(--border)" }} className="py-12">
+      <footer className="border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.125rem", fontWeight: 700 }}>
-            Morocco<span style={{ color: "var(--primary)" }}>360</span>
+          <Link href="/" className="font-playfair text-[1.125rem] font-bold">
+            Morocco<span className="text-primary">360</span>
           </Link>
-          <p style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>
+          <p className="text-[0.8125rem] text-muted">
             2026 Morocco360. All rights reserved.
           </p>
           <div className="flex gap-8">
             {["Privacy", "Terms", "Contact"].map((item) => (
-              <Link key={item} href="#" className="link-underline" style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>
+              <Link key={item} href="#" className="link-underline nav-link">
                 {item}
               </Link>
             ))}

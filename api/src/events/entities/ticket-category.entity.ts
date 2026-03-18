@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   Entity,
   ManyToOne,
@@ -21,6 +22,17 @@ export class TicketCategory {
 
   @Column({ default: 0 })
   stock_allocated: number;
+
+  /** Places restantes après ventes — initialisé à stock_allocated à la création */
+  @Column({ default: 0 })
+  stock_remaining: number;
+
+  @BeforeInsert()
+  initStockRemaining() {
+    if (!this.stock_remaining) {
+      this.stock_remaining = this.stock_allocated;
+    }
+  }
 
   @ManyToOne(() => Event, (event) => event.categories, { onDelete: 'CASCADE' })
   event: Event;

@@ -42,8 +42,8 @@ export default async function RootLayout({
   const dir = isRTL(locale) ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir}>
-      <body
+    <html lang={locale} dir={dir} suppressHydrationWarning>
+      <body suppressHydrationWarning
         className={`${inter.variable} ${playfair.variable} ${notoArabic.variable} antialiased`}
         style={locale === 'ar' ? { fontFamily: 'var(--font-arabic), system-ui' } : undefined}
       >
