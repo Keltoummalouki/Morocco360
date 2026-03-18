@@ -10,13 +10,13 @@ import { User } from '../../users/entities/user.entity';
 import { TicketCategory } from './ticket-category.entity';
 
 export enum EventCategory {
-  MUSIQUE  = 'Musique',
-  SPORT    = 'Sport',
-  CULTURE  = 'Culture',
-  CINEMA   = 'Cinema',
-  HUMOUR   = 'Humour',
-  ART      = 'Art',
-  AUTRE    = 'Autre',
+  MUSIQUE = 'Musique',
+  SPORT = 'Sport',
+  CULTURE = 'Culture',
+  CINEMA = 'Cinema',
+  HUMOUR = 'Humour',
+  ART = 'Art',
+  AUTRE = 'Autre',
 }
 
 @Entity('events')

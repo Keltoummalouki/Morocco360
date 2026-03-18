@@ -10,7 +10,11 @@ import Stripe from 'stripe';
 
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { Ticket, TicketStatus } from '../orders/entities/ticket.entity';
-import { Payment, PaymentGateway, PaymentStatus } from './entities/payment.entity';
+import {
+  Payment,
+  PaymentGateway,
+  PaymentStatus,
+} from './entities/payment.entity';
 import { TicketCategory } from '../events/entities/ticket-category.entity';
 import { Event } from '../events/entities/event.entity';
 import { User } from '../users/entities/user.entity';
@@ -25,16 +29,22 @@ export class PaymentsService {
   private readonly frontendUrl: string;
 
   constructor(
-    @InjectRepository(Order)          private orderRepo: Repository<Order>,
-    @InjectRepository(Payment)        private paymentRepo: Repository<Payment>,
-    @InjectRepository(TicketCategory) private categoryRepo: Repository<TicketCategory>,
-    @InjectRepository(User)           private userRepo: Repository<User>,
+    @InjectRepository(Order) private orderRepo: Repository<Order>,
+    @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
+    @InjectRepository(TicketCategory)
+    private categoryRepo: Repository<TicketCategory>,
+    @InjectRepository(User) private userRepo: Repository<User>,
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
   ) {
-    this.stripe = new Stripe(configService.getOrThrow<string>('STRIPE_SECRET_KEY'));
-    this.frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:4001');
+    this.stripe = new Stripe(
+      configService.getOrThrow<string>('STRIPE_SECRET_KEY'),
+    );
+    this.frontendUrl = configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:4001',
+    );
   }
 
   // ── Create Stripe Checkout Session ─────────────────────────
@@ -43,7 +53,8 @@ export class PaymentsService {
       where: { id: dto.categoryId },
       relations: ['event'],
     });
-    if (!category) throw new NotFoundException('Catégorie de billet introuvable');
+    if (!category)
+      throw new NotFoundException('Catégorie de billet introuvable');
     if (!category.event.is_active)
       throw new BadRequestException("Cet événement n'est plus actif");
     if (category.event.is_sold_out)
@@ -57,7 +68,7 @@ export class PaymentsService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
 
-    const unitPrice   = Number(category.price);
+    const unitPrice = Number(category.price);
     const totalAmount = unitPrice * dto.quantity;
 
     // ── Billets gratuits — bypass Stripe, tout dans une transaction ──
@@ -76,7 +87,12 @@ export class PaymentsService {
         }
 
         // Décrémentation atomique
-        await em.decrement(TicketCategory, { id: dto.categoryId }, 'stock_remaining', dto.quantity);
+        await em.decrement(
+          TicketCategory,
+          { id: dto.categoryId },
+          'stock_remaining',
+          dto.quantity,
+        );
 
         const order = em.create(Order, {
           user,
@@ -85,10 +101,18 @@ export class PaymentsService {
         });
         const savedOrder = await em.save(order);
 
-        await this.createTicketsInTransaction(em, savedOrder, lockedCategory, dto.quantity);
+        await this.createTicketsInTransaction(
+          em,
+          savedOrder,
+          lockedCategory,
+          dto.quantity,
+        );
         await this.checkAndMarkSoldOut(em, lockedCategory.event.id);
 
-        return { url: `${this.frontendUrl}/payment/success?order_id=${savedOrder.id}`, orderId: savedOrder.id };
+        return {
+          url: `${this.frontendUrl}/payment/success?order_id=${savedOrder.id}`,
+          orderId: savedOrder.id,
+        };
       });
 
       void this.sendTicketEmails(result.orderId);
@@ -130,12 +154,12 @@ export class PaymentsService {
       mode: 'payment',
       client_reference_id: String(savedOrder.id),
       success_url: `${this.frontendUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${this.frontendUrl}/payment/cancel?order_id=${savedOrder.id}`,
+      cancel_url: `${this.frontendUrl}/payment/cancel?order_id=${savedOrder.id}`,
       metadata: {
-        order_id:    String(savedOrder.id),
+        order_id: String(savedOrder.id),
         category_id: String(category.id),
-        quantity:    String(dto.quantity),
-        user_id:     String(userId),
+        quantity: String(dto.quantity),
+        user_id: String(userId),
       },
     });
 
@@ -148,19 +172,26 @@ export class PaymentsService {
 
   // ── Stripe Webhook ─────────────────────────────────────────
   async handleWebhook(payload: Buffer, signature: string) {
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET', '');
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_WEBHOOK_SECRET',
+      '',
+    );
 
     let event: Stripe.Event;
     try {
-      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+      event = this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        webhookSecret,
+      );
     } catch {
       throw new BadRequestException('Invalid Stripe signature');
     }
 
     if (event.type === 'checkout.session.completed') {
-      await this.handleSessionCompleted(event.data.object as Stripe.Checkout.Session);
+      await this.handleSessionCompleted(event.data.object);
     } else if (event.type === 'checkout.session.expired') {
-      await this.handleSessionExpired(event.data.object as Stripe.Checkout.Session);
+      await this.handleSessionExpired(event.data.object);
     }
 
     return { received: true };
@@ -168,9 +199,9 @@ export class PaymentsService {
 
   // ── Traitement session complétée (idempotent, transactionnel) ──
   private async handleSessionCompleted(session: Stripe.Checkout.Session) {
-    const orderId    = Number(session.client_reference_id);
+    const orderId = Number(session.client_reference_id);
     const categoryId = Number(session.metadata?.category_id);
-    const quantity   = Number(session.metadata?.quantity ?? 1);
+    const quantity = Number(session.metadata?.quantity ?? 1);
 
     await this.dataSource.transaction(async (em) => {
       // 1. Verrouiller la commande — vérification idempotence
@@ -195,29 +226,40 @@ export class PaymentsService {
       if (category.stock_remaining < quantity) {
         console.error(
           `[PaymentsService] STOCK INSUFFISANT — orderId=${orderId}, ` +
-          `demandé=${quantity}, restant=${category.stock_remaining}. Révision manuelle requise.`,
+            `demandé=${quantity}, restant=${category.stock_remaining}. Révision manuelle requise.`,
         );
         // Le paiement a déjà eu lieu : marquer la commande payée sans créer les billets
         // pour traitement manuel par l'admin
         await em.update(Order, orderId, { status: OrderStatus.PAID });
         if (order.payment) {
           await em.update(Payment, order.payment.id, {
-            status:         PaymentStatus.SUCCESS,
-            transaction_id: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? ''),
+            status: PaymentStatus.SUCCESS,
+            transaction_id:
+              typeof session.payment_intent === 'string'
+                ? session.payment_intent
+                : (session.payment_intent?.id ?? ''),
           });
         }
         return;
       }
 
       // 4. Décrémentation atomique du stock restant
-      await em.decrement(TicketCategory, { id: categoryId }, 'stock_remaining', quantity);
+      await em.decrement(
+        TicketCategory,
+        { id: categoryId },
+        'stock_remaining',
+        quantity,
+      );
 
       // 5. Mise à jour commande et paiement
       await em.update(Order, orderId, { status: OrderStatus.PAID });
       if (order.payment) {
         await em.update(Payment, order.payment.id, {
-          status:         PaymentStatus.SUCCESS,
-          transaction_id: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? ''),
+          status: PaymentStatus.SUCCESS,
+          transaction_id:
+            typeof session.payment_intent === 'string'
+              ? session.payment_intent
+              : (session.payment_intent?.id ?? ''),
         });
       }
 
@@ -241,7 +283,9 @@ export class PaymentsService {
 
     await this.orderRepo.update(orderId, { status: OrderStatus.CANCELLED });
     if (order.payment) {
-      await this.paymentRepo.update(order.payment.id, { status: PaymentStatus.FAILED });
+      await this.paymentRepo.update(order.payment.id, {
+        status: PaymentStatus.FAILED,
+      });
     }
   }
 
@@ -265,7 +309,7 @@ export class PaymentsService {
 
       const ticket = em.create(Ticket, {
         qr_code: qrCode,
-        status:  TicketStatus.VALID,
+        status: TicketStatus.VALID,
         order,
         category,
       });
@@ -280,7 +324,12 @@ export class PaymentsService {
   async getOrderPdf(orderId: number): Promise<Buffer | null> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },
-      relations: ['user', 'tickets', 'tickets.category', 'tickets.category.event'],
+      relations: [
+        'user',
+        'tickets',
+        'tickets.category',
+        'tickets.category.event',
+      ],
     });
     if (!order || !order.tickets?.length) return null;
     return this.mailService.generateOrderPdf(order, order.user, order.tickets);
@@ -324,7 +373,12 @@ export class PaymentsService {
   private async sendTicketEmails(orderId: number): Promise<void> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },
-      relations: ['user', 'tickets', 'tickets.category', 'tickets.category.event'],
+      relations: [
+        'user',
+        'tickets',
+        'tickets.category',
+        'tickets.category.event',
+      ],
     });
     if (order?.user && order.tickets?.length) {
       await this.mailService.sendTickets(order.user, order, order.tickets);

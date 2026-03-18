@@ -49,7 +49,8 @@ export class PaymentsController {
     @Res() res: Response,
   ) {
     const pdf = await this.paymentsService.getOrderPdf(orderId);
-    if (!pdf) throw new NotFoundException('Billets introuvables pour cette commande');
+    if (!pdf)
+      throw new NotFoundException('Billets introuvables pour cette commande');
 
     res.set({
       'Content-Type': 'application/pdf',

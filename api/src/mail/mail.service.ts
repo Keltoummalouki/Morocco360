@@ -25,18 +25,33 @@ export class MailService {
   }
 
   // ── Public: send confirmation email with single PDF attachment ──────
-  async sendTickets(user: User, order: Order, tickets: Ticket[]): Promise<void> {
+  async sendTickets(
+    user: User,
+    order: Order,
+    tickets: Ticket[],
+  ): Promise<void> {
     try {
       const eventTitle = tickets[0]?.category?.event?.title ?? 'Evenement';
       const pdf = await this.generateOrderPdf(order, user, tickets);
 
-      const from = this.configService.get<string>('MAIL_FROM', 'noreply@morocco360.ma');
+      const from = this.configService.get<string>(
+        'MAIL_FROM',
+        'noreply@morocco360.ma',
+      );
 
       await this.transporter.sendMail({
         from: `Morocco360 <${from}>`,
         to: user.email,
         subject: `Confirmation de reservation — ${eventTitle}`,
-        html: this.buildEmailHtml(user, order, tickets, this.configService.get<string>('FRONTEND_URL', 'http://localhost:4001')),
+        html: this.buildEmailHtml(
+          user,
+          order,
+          tickets,
+          this.configService.get<string>(
+            'FRONTEND_URL',
+            'http://localhost:4001',
+          ),
+        ),
         attachments: [
           {
             filename: `billets-commande-${order.id}.pdf`,
@@ -46,18 +61,28 @@ export class MailService {
         ],
       });
 
-      this.logger.log(`Billets envoyes a ${user.email} pour la commande #${order.id}`);
+      this.logger.log(
+        `Billets envoyes a ${user.email} pour la commande #${order.id}`,
+      );
     } catch (err) {
       this.logger.error(`Echec envoi email pour commande #${order.id}`, err);
     }
   }
 
   // ── Public: generate multi-page PDF (one page per ticket) ──────────
-  async generateOrderPdf(order: Order, user: User, tickets: Ticket[]): Promise<Buffer> {
+  async generateOrderPdf(
+    order: Order,
+    user: User,
+    tickets: Ticket[],
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       void (async () => {
         try {
-          const doc = new PDFDocument({ size: 'A6', margin: 24, autoFirstPage: false });
+          const doc = new PDFDocument({
+            size: 'A6',
+            margin: 24,
+            autoFirstPage: false,
+          });
           const chunks: Buffer[] = [];
 
           doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -71,7 +96,7 @@ export class MailService {
 
           doc.end();
         } catch (err) {
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         }
       })();
     });
@@ -84,40 +109,54 @@ export class MailService {
     order: Order,
     user: User,
   ): Promise<void> {
-    const qrBuffer = await QRCode.toBuffer(ticket.qr_code, { width: 220, margin: 1 });
+    const qrBuffer = await QRCode.toBuffer(ticket.qr_code, {
+      width: 220,
+      margin: 1,
+    });
 
-    const category  = ticket.category;
-    const event     = category?.event;
-    const W         = doc.page.width;   // A6 ≈ 297pt
-    const mx        = 28;               // horizontal margin
-    const cW        = W - mx * 2;       // content width
-    let   y         = 0;
+    const category = ticket.category;
+    const event = category?.event;
+    const W = doc.page.width; // A6 ≈ 297pt
+    const mx = 28; // horizontal margin
+    const cW = W - mx * 2; // content width
+    let y = 0;
 
     // ── Red header ──────────────────────────────────────────
     doc.rect(0, 0, W, 52).fill('#c0392b');
-    doc.fontSize(17).fillColor('#ffffff')
-       .text('Morocco360', 0, 14, { align: 'center', width: W });
-    doc.fontSize(8).fillColor('rgba(255,255,255,0.8)')
-       .text('Votre billet d\'entree', 0, 34, { align: 'center', width: W });
+    doc
+      .fontSize(17)
+      .fillColor('#ffffff')
+      .text('Morocco360', 0, 14, { align: 'center', width: W });
+    doc
+      .fontSize(8)
+      .fillColor('rgba(255,255,255,0.8)')
+      .text("Votre billet d'entree", 0, 34, { align: 'center', width: W });
 
     y = 68;
 
     // ── Event title ─────────────────────────────────────────
-    doc.fontSize(12).fillColor('#1a1a1a')
-       .text(event?.title ?? '', mx, y, { align: 'center', width: cW });
+    doc
+      .fontSize(12)
+      .fillColor('#1a1a1a')
+      .text(event?.title ?? '', mx, y, { align: 'center', width: cW });
     y += 20;
 
     // ── Date & Location ─────────────────────────────────────
     doc.fontSize(8).fillColor('#666');
     if (event?.date_start) {
       const d = new Date(event.date_start).toLocaleDateString('fr-FR', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
       doc.text(`Date : ${d}`, mx, y, { align: 'center', width: cW });
       y += 13;
     }
     if (event?.location_name) {
-      const loc = event.city ? `${event.location_name}, ${event.city}` : event.location_name;
+      const loc = event.city
+        ? `${event.location_name}, ${event.city}`
+        : event.location_name;
       doc.text(`Lieu : ${loc}`, mx, y, { align: 'center', width: cW });
       y += 13;
     }
@@ -125,27 +164,46 @@ export class MailService {
     y += 8;
 
     // ── Separator ───────────────────────────────────────────
-    doc.moveTo(mx, y).lineTo(W - mx, y).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+    doc
+      .moveTo(mx, y)
+      .lineTo(W - mx, y)
+      .strokeColor('#e0e0e0')
+      .lineWidth(0.5)
+      .stroke();
     y += 12;
 
     // ── Ticket details ──────────────────────────────────────
     doc.fontSize(8.5).fillColor('#333');
-    doc.text(`Categorie : ${category?.name ?? ''}`, mx, y, { align: 'center', width: cW });
+    doc.text(`Categorie : ${category?.name ?? ''}`, mx, y, {
+      align: 'center',
+      width: cW,
+    });
     y += 13;
-    const priceLabel = Number(category?.price) === 0 ? 'Gratuit' : `${String(category?.price)} MAD`;
+    const priceLabel =
+      Number(category?.price) === 0
+        ? 'Gratuit'
+        : `${String(category?.price)} MAD`;
     doc.text(`Prix : ${priceLabel}`, mx, y, { align: 'center', width: cW });
     y += 13;
-    doc.text(`Titulaire : ${user.full_name ?? user.username}`, mx, y, { align: 'center', width: cW });
+    doc.text(`Titulaire : ${user.full_name ?? user.username}`, mx, y, {
+      align: 'center',
+      width: cW,
+    });
     y += 18;
 
     // ── QR Code (centered, absolute Y) ─────────────────────
     const qrSize = 130;
-    const qrX    = (W - qrSize) / 2;
+    const qrX = (W - qrSize) / 2;
     doc.image(qrBuffer, qrX, y, { width: qrSize, height: qrSize });
     y += qrSize + 14;
 
     // ── Separator ───────────────────────────────────────────
-    doc.moveTo(mx, y).lineTo(W - mx, y).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+    doc
+      .moveTo(mx, y)
+      .lineTo(W - mx, y)
+      .strokeColor('#e0e0e0')
+      .lineWidth(0.5)
+      .stroke();
     y += 8;
 
     // ── Reference ───────────────────────────────────────────
@@ -156,21 +214,34 @@ export class MailService {
   }
 
   // ── Private: HTML email template ───────────────────────────────────
-  private buildEmailHtml(user: User, order: Order, tickets: Ticket[], frontendUrl: string): string {
-    const event      = tickets[0]?.category?.event;
+  private buildEmailHtml(
+    user: User,
+    order: Order,
+    tickets: Ticket[],
+    frontendUrl: string,
+  ): string {
+    const event = tickets[0]?.category?.event;
     const eventTitle = event?.title ?? 'Evenement';
-    const name       = user.full_name ?? user.username;
-    const totalLabel = Number(order.total_amount) === 0 ? 'Gratuit' : `${Number(order.total_amount).toFixed(2)} MAD`;
-    const category   = tickets[0]?.category?.name ?? '';
+    const name = user.full_name ?? user.username;
+    const totalLabel =
+      Number(order.total_amount) === 0
+        ? 'Gratuit'
+        : `${Number(order.total_amount).toFixed(2)} MAD`;
+    const category = tickets[0]?.category?.name ?? '';
 
     const dateStr = event?.date_start
       ? new Date(event.date_start).toLocaleDateString('fr-FR', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
         })
       : null;
 
     const location = event?.location_name
-      ? (event.city ? `${event.location_name}, ${event.city}` : event.location_name)
+      ? event.city
+        ? `${event.location_name}, ${event.city}`
+        : event.location_name
       : null;
 
     return `<!DOCTYPE html>
