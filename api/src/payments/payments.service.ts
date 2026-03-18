@@ -15,7 +15,9 @@ import { TicketCategory } from '../events/entities/ticket-category.entity';
 import { Event } from '../events/entities/event.entity';
 import { User } from '../users/entities/user.entity';
 
-import { CreateCheckoutDto } from './dto/create-checkout.dto';
+import * as QRCode from 'qrcode';
+import { CreateCheckoutDto } from './dto/create-checkout.dto.js';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class PaymentsService {
@@ -29,6 +31,7 @@ export class PaymentsService {
     @InjectRepository(User)           private userRepo: Repository<User>,
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(configService.getOrThrow<string>('STRIPE_SECRET_KEY'));
     this.frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:4001');
@@ -59,7 +62,7 @@ export class PaymentsService {
 
     // ── Billets gratuits — bypass Stripe, tout dans une transaction ──
     if (totalAmount === 0) {
-      return this.dataSource.transaction(async (em) => {
+      const result = await this.dataSource.transaction(async (em) => {
         // Re-vérification du stock sous verrou exclusif
         const lockedCategory = await em.findOne(TicketCategory, {
           where: { id: dto.categoryId },
@@ -85,8 +88,11 @@ export class PaymentsService {
         await this.createTicketsInTransaction(em, savedOrder, lockedCategory, dto.quantity);
         await this.checkAndMarkSoldOut(em, lockedCategory.event.id);
 
-        return { url: `${this.frontendUrl}/payment/success?order_id=${savedOrder.id}` };
+        return { url: `${this.frontendUrl}/payment/success?order_id=${savedOrder.id}`, orderId: savedOrder.id };
       });
+
+      void this.sendTicketEmails(result.orderId);
+      return { url: result.url };
     }
 
     // ── Billets payants — Stripe Checkout ─────────────────────
@@ -221,6 +227,8 @@ export class PaymentsService {
       // 7. Marquer l'événement sold_out si plus aucune place disponible
       await this.checkAndMarkSoldOut(em, category.event.id);
     });
+
+    void this.sendTicketEmails(orderId);
   }
 
   private async handleSessionExpired(session: Stripe.Checkout.Session) {
@@ -269,6 +277,60 @@ export class PaymentsService {
    * Vérifie si toutes les catégories de l'événement sont épuisées.
    * Si oui, marque l'événement comme sold_out.
    */
+  async getOrderPdf(orderId: number): Promise<Buffer | null> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['user', 'tickets', 'tickets.category', 'tickets.category.event'],
+    });
+    if (!order || !order.tickets?.length) return null;
+    return this.mailService.generateOrderPdf(order, order.user, order.tickets);
+  }
+
+  async getSuccessInfo(params: { sessionId?: string; orderId?: string }) {
+    let order: Order | null = null;
+
+    if (params.orderId) {
+      order = await this.orderRepo.findOne({
+        where: { id: Number(params.orderId) },
+        relations: ['tickets', 'tickets.category', 'tickets.category.event'],
+      });
+    } else if (params.sessionId) {
+      order = await this.orderRepo.findOne({
+        where: { payment_gateway_ref: params.sessionId },
+        relations: ['tickets', 'tickets.category', 'tickets.category.event'],
+      });
+    }
+
+    if (!order) return null;
+
+    const tickets = await Promise.all(
+      (order.tickets ?? []).map(async (t) => ({
+        id: t.id,
+        qrCode: t.qr_code,
+        qrDataUrl: await QRCode.toDataURL(t.qr_code, { width: 200, margin: 1 }),
+        category: t.category?.name,
+        event: t.category?.event?.title,
+      })),
+    );
+
+    return {
+      orderId: order.id,
+      eventTitle: tickets[0]?.event ?? '',
+      totalAmount: order.total_amount,
+      tickets,
+    };
+  }
+
+  private async sendTicketEmails(orderId: number): Promise<void> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['user', 'tickets', 'tickets.category', 'tickets.category.event'],
+    });
+    if (order?.user && order.tickets?.length) {
+      await this.mailService.sendTickets(order.user, order, order.tickets);
+    }
+  }
+
   private async checkAndMarkSoldOut(em: EntityManager, eventId: number) {
     const categories = await em.find(TicketCategory, {
       where: { event: { id: eventId } },
