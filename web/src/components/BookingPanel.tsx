@@ -7,6 +7,7 @@ interface TicketCategory {
   name: string;
   price: string;
   stock_allocated: number;
+  stock_remaining: number;
 }
 
 interface BookingPanelProps {
@@ -37,10 +38,11 @@ export default function BookingPanel({
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState('');
 
-  const selected   = categories.find((c) => c.id === selectedId);
-  const unitPrice  = selected ? Number(selected.price) : 0;
-  const total      = unitPrice * quantity;
-  const isFree     = unitPrice === 0;
+  const selected    = categories.find((c) => c.id === selectedId);
+  const unitPrice   = selected ? Number(selected.price) : 0;
+  const total       = unitPrice * quantity;
+  const isFree      = unitPrice === 0;
+  const maxQuantity = Math.min(10, selected?.stock_remaining ?? 1);
 
   async function handleCheckout() {
     if (!selected) return;
@@ -144,7 +146,7 @@ export default function BookingPanel({
                   {cat.name}
                 </p>
                 <p style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>
-                  {cat.stock_allocated} places
+                  {cat.stock_remaining} places restantes
                 </p>
               </div>
               <span
@@ -164,8 +166,7 @@ export default function BookingPanel({
       </div>
 
       {/* Quantity selector */}
-      {!isFree && (
-        <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '20px' }}>
           <p
             style={{
               fontSize: '0.6875rem',
@@ -212,7 +213,7 @@ export default function BookingPanel({
             </span>
             <button
               type="button"
-              onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+              onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
               style={{
                 width: '36px',
                 height: '36px',
@@ -230,7 +231,6 @@ export default function BookingPanel({
             </button>
           </div>
         </div>
-      )}
 
       {/* Total */}
       {!isFree && (

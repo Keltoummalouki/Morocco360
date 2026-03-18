@@ -5,7 +5,8 @@ export default async function PaymentSuccessPage({
 }: {
   searchParams: Promise<{ session_id?: string; order_id?: string }>;
 }) {
-  const { order_id } = await searchParams;
+  const { order_id, session_id } = await searchParams;
+  const reference = order_id ?? session_id;
   const accent = '#4A7C6F';
 
   return (
@@ -73,11 +74,11 @@ export default async function PaymentSuccessPage({
           Votre paiement a été traité avec succès. Vos billets ont été générés.
         </p>
 
-        {order_id && (
+        {reference && (
           <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginBottom: '32px' }}>
             Référence commande :{' '}
             <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-              #{order_id}
+              #{reference}
             </span>
           </p>
         )}

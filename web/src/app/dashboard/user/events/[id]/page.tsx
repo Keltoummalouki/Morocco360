@@ -10,6 +10,7 @@ interface TicketCategory {
   name: string;
   price: string;
   stock_allocated: number;
+  stock_remaining: number;
 }
 
 interface Organizer {
