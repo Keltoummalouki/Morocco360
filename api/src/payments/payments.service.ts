@@ -197,7 +197,7 @@ export class PaymentsService {
         if (order.payment) {
           await em.update(Payment, order.payment.id, {
             status:         PaymentStatus.SUCCESS,
-            transaction_id: String(session.payment_intent ?? ''),
+            transaction_id: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? ''),
           });
         }
         return;
@@ -211,7 +211,7 @@ export class PaymentsService {
       if (order.payment) {
         await em.update(Payment, order.payment.id, {
           status:         PaymentStatus.SUCCESS,
-          transaction_id: String(session.payment_intent ?? ''),
+          transaction_id: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? ''),
         });
       }
 
