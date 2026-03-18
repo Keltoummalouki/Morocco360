@@ -155,7 +155,11 @@ const SEED_EVENTS: SeedEvent[] = [
     total_stock: 1000,
     categories: [
       { name: 'Inscription coureur', price: 3500, stock_allocated: 900 },
-      { name: 'Pack supporter acces bivouac', price: 500, stock_allocated: 100 },
+      {
+        name: 'Pack supporter acces bivouac',
+        price: 500,
+        stock_allocated: 100,
+      },
     ],
   },
   {

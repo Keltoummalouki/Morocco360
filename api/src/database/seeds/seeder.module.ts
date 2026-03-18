@@ -21,8 +21,8 @@ import { SeederService } from './seeder.service';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host:     config.get<string>('DB_HOST', 'localhost'),
-        port:     config.get<number>('DB_PORT', 5432),
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 5432),
         username: config.get<string>('DB_USER', 'morocco360'),
         password: config.get<string>('DB_PASS', 'morocco360'),
         database: config.get<string>('DB_NAME', 'morocco360'),

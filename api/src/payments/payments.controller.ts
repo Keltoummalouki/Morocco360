@@ -1,14 +1,20 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
   Post,
+  Query,
   RawBody,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
@@ -25,6 +31,33 @@ export class PaymentsController {
     @Req() req: Request & { user: { sub: number } },
   ) {
     return this.paymentsService.createCheckoutSession(dto, req.user.sub);
+  }
+
+  /** Get order info + QR codes for the success page */
+  @Get('success-info')
+  getSuccessInfo(
+    @Query('session_id') sessionId?: string,
+    @Query('order_id') orderId?: string,
+  ) {
+    return this.paymentsService.getSuccessInfo({ sessionId, orderId });
+  }
+
+  /** Download all tickets for an order as a single PDF */
+  @Get('order/:id/pdf')
+  async downloadOrderPdf(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Res() res: Response,
+  ) {
+    const pdf = await this.paymentsService.getOrderPdf(orderId);
+    if (!pdf)
+      throw new NotFoundException('Billets introuvables pour cette commande');
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="billets-commande-${orderId}.pdf"`,
+      'Content-Length': pdf.length,
+    });
+    res.end(pdf);
   }
 
   /** Stripe Webhook — called by Stripe servers, no auth guard */

@@ -8,10 +8,19 @@ import { Ticket } from '../orders/entities/ticket.entity';
 import { TicketCategory } from '../events/entities/ticket-category.entity';
 import { Event } from '../events/entities/event.entity';
 import { User } from '../users/entities/user.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Payment, Order, Ticket, TicketCategory, Event, User]),
+    TypeOrmModule.forFeature([
+      Payment,
+      Order,
+      Ticket,
+      TicketCategory,
+      Event,
+      User,
+    ]),
+    MailModule,
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService],
