@@ -14,24 +14,26 @@ import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
+type AuthRequest = Request & { user: { id: number } };
+
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  getProfile(@Req() req: Request) {
-    return this.usersService.getProfile((req.user as any).id);
+  getProfile(@Req() req: AuthRequest) {
+    return this.usersService.getProfile(req.user.id);
   }
 
   @Patch('me')
-  updateProfile(@Req() req: Request, @Body() dto: UpdateProfileDto) {
-    return this.usersService.updateProfile((req.user as any).id, dto);
+  updateProfile(@Req() req: AuthRequest, @Body() dto: UpdateProfileDto) {
+    return this.usersService.updateProfile(req.user.id, dto);
   }
 
   @Patch('me/password')
   @HttpCode(HttpStatus.NO_CONTENT)
-  changePassword(@Req() req: Request, @Body() dto: ChangePasswordDto) {
-    return this.usersService.changePassword((req.user as any).id, dto);
+  changePassword(@Req() req: AuthRequest, @Body() dto: ChangePasswordDto) {
+    return this.usersService.changePassword(req.user.id, dto);
   }
 }
