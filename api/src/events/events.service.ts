@@ -72,7 +72,10 @@ export class EventsService {
 
   async saveEvent(eventId: number, userId: number): Promise<void> {
     const [user, event] = await Promise.all([
-      this.userRepo.findOne({ where: { id: userId }, relations: ['savedEvents'] }),
+      this.userRepo.findOne({
+        where: { id: userId },
+        relations: ['savedEvents'],
+      }),
       this.repo.findOne({ where: { id: eventId } }),
     ]);
     if (!user) throw new NotFoundException('User not found');

@@ -74,7 +74,8 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     const valid = await bcrypt.compare(dto.current_password, user.password);
-    if (!valid) throw new UnauthorizedException('Current password is incorrect');
+    if (!valid)
+      throw new UnauthorizedException('Current password is incorrect');
 
     user.password = await bcrypt.hash(dto.new_password, 12);
     await this.repo.save(user);
