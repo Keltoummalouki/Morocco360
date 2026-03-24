@@ -26,16 +26,12 @@ interface Event {
   categories: TicketCategory[];
 }
 
-async function getEvents(): Promise<Event[]> {
+async function getEvents(host: string, cookieHeader: string): Promise<Event[]> {
   try {
-    const cookieStore = await cookies();
-    const headerStore = await headers();
-    const host        = headerStore.get('host') ?? 'localhost:4001';
-    const protocol    = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
     const res = await fetch(`${protocol}://${host}/api/events`, {
       cache: 'no-store',
-      headers: { cookie: cookieStore.toString() },
+      headers: { cookie: cookieHeader },
     });
     if (!res.ok) return [];
     return res.json() as Promise<Event[]>;
@@ -44,9 +40,32 @@ async function getEvents(): Promise<Event[]> {
   }
 }
 
+async function getSavedIds(host: string, cookieHeader: string): Promise<number[]> {
+  try {
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const res = await fetch(`${protocol}://${host}/api/events/saved`, {
+      cache: 'no-store',
+      headers: { cookie: cookieHeader },
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as { id: number }[];
+    return data.map((e) => e.id);
+  } catch {
+    return [];
+  }
+}
+
 export default async function EventsPage() {
-  const events      = await getEvents();
   const cookieStore = await cookies();
+  const headerStore = await headers();
+  const host        = headerStore.get('host') ?? 'localhost:4001';
+  const cookieHeader = cookieStore.toString();
+
+  const [events, savedIds] = await Promise.all([
+    getEvents(host, cookieHeader),
+    getSavedIds(host, cookieHeader),
+  ]);
+
   const raw         = cookieStore.get(LOCALE_COOKIE)?.value;
   const locale: Locale = LOCALES.includes(raw as Locale) ? (raw as Locale) : DEFAULT_LOCALE;
   const t           = getTranslations(locale);
@@ -82,7 +101,7 @@ export default async function EventsPage() {
         </p>
       </div>
 
-      <EventsGrid events={events} />
+      <EventsGrid events={events} initialSavedIds={savedIds} />
     </div>
   );
 }

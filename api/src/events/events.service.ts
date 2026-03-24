@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { TicketCategory } from './entities/ticket-category.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 
@@ -11,6 +12,8 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private readonly repo: Repository<Event>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   findAll(): Promise<Event[]> {
@@ -57,5 +60,39 @@ export class EventsService {
   async remove(id: number): Promise<void> {
     const event = await this.findOne(id);
     await this.repo.remove(event);
+  }
+
+  async getSaved(userId: number): Promise<Event[]> {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['savedEvents', 'savedEvents.categories'],
+    });
+    return user?.savedEvents ?? [];
+  }
+
+  async saveEvent(eventId: number, userId: number): Promise<void> {
+    const [user, event] = await Promise.all([
+      this.userRepo.findOne({
+        where: { id: userId },
+        relations: ['savedEvents'],
+      }),
+      this.repo.findOne({ where: { id: eventId } }),
+    ]);
+    if (!user) throw new NotFoundException('User not found');
+    if (!event) throw new NotFoundException('Event not found');
+    if (!user.savedEvents.some((e) => e.id === eventId)) {
+      user.savedEvents.push(event);
+      await this.userRepo.save(user);
+    }
+  }
+
+  async unsaveEvent(eventId: number, userId: number): Promise<void> {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['savedEvents'],
+    });
+    if (!user) throw new NotFoundException('User not found');
+    user.savedEvents = user.savedEvents.filter((e) => e.id !== eventId);
+    await this.userRepo.save(user);
   }
 }

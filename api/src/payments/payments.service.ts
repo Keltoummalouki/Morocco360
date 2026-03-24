@@ -370,6 +370,36 @@ export class PaymentsService {
     };
   }
 
+  // ── Mes commandes (billets passés et futurs) ───────────────
+  async getMyOrders(userId: number) {
+    const orders = await this.orderRepo.find({
+      where: { user: { id: userId }, status: OrderStatus.PAID },
+      relations: ['tickets', 'tickets.category', 'tickets.category.event'],
+      order: { created_at: 'DESC' },
+    });
+
+    return orders.map((order) => ({
+      id: order.id,
+      created_at: order.created_at,
+      total_amount: order.total_amount,
+      tickets: (order.tickets ?? []).map((t) => ({
+        id: t.id,
+        qr_code: t.qr_code,
+        status: t.status,
+        category: t.category?.name ?? null,
+        event: {
+          id: t.category?.event?.id ?? null,
+          title: t.category?.event?.title ?? null,
+          date_start: t.category?.event?.date_start ?? null,
+          date_end: t.category?.event?.date_end ?? null,
+          location_name: t.category?.event?.location_name ?? null,
+          city: t.category?.event?.city ?? null,
+          image_url: t.category?.event?.image_url ?? null,
+        },
+      })),
+    }));
+  }
+
   private async sendTicketEmails(orderId: number): Promise<void> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },

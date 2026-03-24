@@ -28,9 +28,16 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   createCheckoutSession(
     @Body() dto: CreateCheckoutDto,
-    @Req() req: Request & { user: { sub: number } },
+    @Req() req: Request & { user: { id: number } },
   ) {
-    return this.paymentsService.createCheckoutSession(dto, req.user.sub);
+    return this.paymentsService.createCheckoutSession(dto, req.user.id);
+  }
+
+  /** Billets de l'utilisateur connecté (passés et futurs) */
+  @Get('my-orders')
+  @UseGuards(JwtAuthGuard)
+  getMyOrders(@Req() req: Request & { user: { id: number } }) {
+    return this.paymentsService.getMyOrders(req.user.id);
   }
 
   /** Get order info + QR codes for the success page */

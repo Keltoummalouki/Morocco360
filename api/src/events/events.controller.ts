@@ -7,10 +7,12 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -33,6 +35,12 @@ export class EventsController {
   @Roles('ADMIN')
   findAllAdmin() {
     return this.eventsService.findAllAdmin();
+  }
+
+  @Get('saved')
+  @UseGuards(JwtAuthGuard)
+  getSaved(@Req() req: Request & { user: { id: number } }) {
+    return this.eventsService.getSaved(req.user.id);
   }
 
   @Get(':id')
@@ -60,5 +68,25 @@ export class EventsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.remove(id);
+  }
+
+  @Post(':id/save')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  saveEvent(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: { id: number } },
+  ) {
+    return this.eventsService.saveEvent(id, req.user.id);
+  }
+
+  @Delete(':id/save')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unsaveEvent(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: { id: number } },
+  ) {
+    return this.eventsService.unsaveEvent(id, req.user.id);
   }
 }

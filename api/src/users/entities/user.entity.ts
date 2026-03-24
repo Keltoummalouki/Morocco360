@@ -2,6 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -51,4 +53,8 @@ export class User {
 
   @OneToMany(() => Event, (event) => event.organizer)
   events: Event[];
+
+  @ManyToMany(() => Event, (event) => event.savedByUsers, { cascade: false })
+  @JoinTable({ name: 'user_saved_events' })
+  savedEvents: Event[];
 }

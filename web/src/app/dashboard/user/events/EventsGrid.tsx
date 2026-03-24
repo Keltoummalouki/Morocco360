@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useLocale } from '@/components/LocaleProvider';
 import type { Translations } from '@/lib/i18n';
@@ -96,79 +96,105 @@ function ChipButton({
   );
 }
 
-function EventCard({ event }: { event: Event }) {
+function EventCard({
+  event,
+  isSaved,
+  onToggleSave,
+}: {
+  event: Event;
+  isSaved: boolean;
+  onToggleSave: (id: number) => void;
+}) {
   const { t, locale } = useLocale();
   const te = t.events;
   return (
-    <Link
-      href={`/dashboard/user/events/${event.id}`}
-      style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}
+    <div
+      className="card-hover"
+      style={{
+        border: '1px solid var(--border)',
+        background: 'var(--background)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        height: '100%',
+        position: 'relative',
+      }}
     >
-      <div
-        className="card-hover"
+      {/* Clickable overlay for navigation (below save button) */}
+      <Link
+        href={`/dashboard/user/events/${event.id}`}
         style={{
-          border: '1px solid var(--border)',
-          background: 'var(--background)',
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+        }}
+        aria-label={event.title}
+      />
+
+      {/* Image placeholder */}
+      <div
+        style={{
+          height: '140px',
+          background: 'var(--surface)',
           display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          position: 'relative',
+          zIndex: 1,
+          pointerEvents: 'none',
         }}
       >
-        {/* Image placeholder */}
-        <div
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', color: 'var(--border)' }}>◈</span>
+        {event.category && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '12px',
+              insetInlineStart: '12px',
+              fontSize: '0.625rem',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              color: ACCENT,
+              background: `${ACCENT}1A`,
+              padding: '3px 8px',
+            }}
+          >
+            {event.category}
+          </span>
+        )}
+        {/* Save button — above the link overlay */}
+        <button
+          type="button"
+          onClick={() => onToggleSave(event.id)}
+          title={isSaved ? 'Retirer des sauvegardés' : 'Sauvegarder'}
           style={{
-            height: '140px',
-            background: 'var(--surface)',
+            position: 'absolute',
+            top: '10px',
+            insetInlineEnd: '10px',
+            background: isSaved ? ACCENT : 'var(--background)',
+            border: `1px solid ${isSaved ? ACCENT : 'var(--border)'}`,
+            color: isSaved ? '#fff' : 'var(--muted)',
+            width: '28px',
+            height: '28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            flexShrink: 0,
-            position: 'relative',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            pointerEvents: 'auto',
+            zIndex: 2,
           }}
         >
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', color: 'var(--border)' }}>◈</span>
-          {event.category && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '12px',
-                insetInlineStart: '12px',
-                fontSize: '0.625rem',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                color: ACCENT,
-                background: `${ACCENT}1A`,
-                padding: '3px 8px',
-              }}
-            >
-              {event.category}
-            </span>
-          )}
-          {event.is_active && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '12px',
-                insetInlineEnd: '12px',
-                fontSize: '0.625rem',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                color: ACCENT,
-                background: `${ACCENT}1A`,
-                padding: '3px 8px',
-              }}
-            >
-              {te.available}
-            </span>
-          )}
-        </div>
+          <svg width="13" height="16" viewBox="0 0 13 16" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 1.75C1 1.336 1.336 1 1.75 1h9.5C11.664 1 12 1.336 12 1.75V15l-5.5-3L1 15V1.75z" />
+            </svg>
+        </button>
+      </div>
 
         {/* Content */}
-        <div style={{ padding: '20px 20px 0', flex: 1 }}>
+        <div style={{ padding: '20px 20px 0', flex: 1, position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', gap: '8px' }}>
             <span style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', lineHeight: 1.4 }}>
               {event.city ?? event.location_name}
@@ -188,7 +214,7 @@ function EventCard({ event }: { event: Event }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>{formatDate(event.date_start, locale)}</span>
             <span style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>— {formatDate(event.date_end, locale)}</span>
@@ -198,11 +224,16 @@ function EventCard({ event }: { event: Event }) {
           </span>
         </div>
       </div>
-    </Link>
   );
 }
 
-export default function EventsGrid({ events }: { events: Event[] }) {
+export default function EventsGrid({
+  events,
+  initialSavedIds = [],
+}: {
+  events: Event[];
+  initialSavedIds?: number[];
+}) {
   const { t, locale } = useLocale();
   const te = t.events;
   const td = t.dates;
@@ -212,6 +243,27 @@ export default function EventsGrid({ events }: { events: Event[] }) {
   const [activeCity, setActiveCity]         = useState('');
   const [activeDate, setActiveDate]         = useState('all');
   const [viewMode, setViewMode]             = useState<'grid' | 'map'>('grid');
+  const [savedIds, setSavedIds]             = useState<Set<number>>(() => new Set(initialSavedIds));
+
+  const toggleSave = useCallback(async (eventId: number) => {
+    const wasSaved = savedIds.has(eventId);
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(eventId); else next.add(eventId);
+      return next;
+    });
+    try {
+      await fetch(`/api/events/${eventId}/save`, {
+        method: wasSaved ? 'DELETE' : 'POST',
+      });
+    } catch {
+      setSavedIds((prev) => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(eventId); else next.delete(eventId);
+        return next;
+      });
+    }
+  }, [savedIds]);
 
   const dateOptions = [
     { label: td.all,         value: 'all'     },
@@ -388,7 +440,12 @@ export default function EventsGrid({ events }: { events: Event[] }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
             {filtered.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard
+                key={event.id}
+                event={event}
+                isSaved={savedIds.has(event.id)}
+                onToggleSave={toggleSave}
+              />
             ))}
           </div>
         )
