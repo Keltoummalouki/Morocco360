@@ -28,13 +28,17 @@ const mockEvent: Event = {
   date_start: new Date('2025-07-15'),
   date_end: new Date('2025-07-17'),
   location_name: 'Jemaa el-Fna, Marrakech',
+  city: 'Marrakech',
+  category: null as unknown as Event['category'],
   latitude: 31.6258,
   longitude: -7.9892,
   image_url: null as unknown as string,
   total_stock: 200,
   is_active: true,
+  is_sold_out: false,
   created_at: new Date(),
   organizer: null as unknown as User,
+  savedByUsers: [],
   categories: [mockCategory],
 };
 
@@ -54,6 +58,7 @@ describe('Events endpoints (e2e)', () => {
       providers: [
         EventsService,
         { provide: getRepositoryToken(Event), useValue: eventRepoMock },
+        { provide: getRepositoryToken(User), useValue: {} },
       ],
     }).compile();
 
