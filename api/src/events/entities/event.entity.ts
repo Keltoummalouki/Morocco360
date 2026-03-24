@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -68,6 +69,9 @@ export class Event {
 
   @ManyToOne(() => User, (user) => user.events, { nullable: true })
   organizer: User;
+
+  @ManyToMany(() => User, (user) => user.savedEvents)
+  savedByUsers: User[];
 
   @OneToMany(() => TicketCategory, (category) => category.event, {
     cascade: true,
