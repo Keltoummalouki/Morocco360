@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // ── JWT decode (Edge-compatible, no library needed) ────────
-interface JwtPayload { sub: number; email: string; role: string; exp: number; }
+interface JwtPayload { sub: number; email: string; role: string; status?: string; exp: number; }
 
 function decodeJwt(token: string): JwtPayload | null {
   try {
@@ -19,14 +19,16 @@ function decodeJwt(token: string): JwtPayload | null {
 // ── Route access rules (most-specific first) ──────────────
 const ROLE_ROUTES: { path: string; allowed: string[] }[] = [
   { path: '/dashboard/admin',     allowed: ['ADMIN'] },
+  { path: '/dashboard/scanner',   allowed: ['STAFF', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/organizer', allowed: ['ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/user',      allowed: ['USER', 'ORGANIZER', 'ADMIN'] },
-  { path: '/dashboard',           allowed: ['USER', 'ORGANIZER', 'ADMIN'] },
+  { path: '/dashboard',           allowed: ['USER', 'ORGANIZER', 'ADMIN', 'STAFF'] },
 ];
 
 const ROLE_HOME: Record<string, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
+  STAFF:     '/dashboard/scanner',
   USER:      '/dashboard/user',
 };
 
@@ -34,7 +36,7 @@ const ROLE_HOME: Record<string, string> = {
 const AUTH_ONLY_PATHS = ['/login', '/register'];
 
 // Prefixes that always bypass the middleware (Next.js internals + our auth API)
-const BYPASS_PREFIXES = ['/api/auth', '/_next', '/favicon.ico'];
+const BYPASS_PREFIXES = ['/api/auth', '/_next', '/favicon.ico', '/suspended'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -57,6 +59,11 @@ export function middleware(request: NextRequest) {
 
   const role            = payload?.role ?? null;
   const isAuthenticated = !!role;
+
+  // ── Redirect suspended users to /suspended ───────────────
+  if (payload && payload.status === 'SUSPENDED' && !pathname.startsWith('/suspended')) {
+    return NextResponse.redirect(new URL('/suspended', request.url));
+  }
 
   // ── Redirect authenticated users away from auth pages ───
   if (AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))) {

@@ -26,11 +26,13 @@ const mockUser = {
   full_name: null as unknown as string,
   phone_number: null as unknown as string,
   refresh_token_hash: null,
+  status: 'ACTIVE' as const,
   created_at: new Date(),
   updated_at: new Date(),
   role: mockRole,
   orders: [],
   events: [],
+  savedEvents: [],
 } as User;
 
 // ── Suite ─────────────────────────────────────────────────
@@ -140,6 +142,7 @@ describe('AuthService', () => {
         sub: mockUser.id,
         email: mockUser.email,
         role: mockRole.name,
+        status: mockUser.status,
       };
       expect(jwtService.signAsync).toHaveBeenCalledWith(
         expectedPayload,
@@ -174,6 +177,7 @@ describe('AuthService', () => {
     });
 
     it('creates the user and returns tokens', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await service.register(dto as any);
 
       expect(usersService.create).toHaveBeenCalledWith(dto);

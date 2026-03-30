@@ -15,8 +15,14 @@ const mockCategory: TicketCategory = {
   name: 'General',
   price: 50,
   stock_allocated: 100,
+  stock_remaining: 100,
   event: null as unknown as Event,
   tickets: [],
+  initStockRemaining(this: TicketCategory) {
+    if (!this.stock_remaining) {
+      this.stock_remaining = this.stock_allocated;
+    }
+  },
 };
 
 const mockEvent: Event = {

@@ -12,17 +12,13 @@ type NavItem = { key: NavKey; href: string; symbol: string };
 
 const NAV_ITEMS: Record<Role, NavItem[]> = {
   ADMIN: [
-    { key: 'overview',  href: '/dashboard/admin',          symbol: '◎' },
-    { key: 'events',    href: '/dashboard/admin/events',   symbol: '◆' },
-    { key: 'users',     href: '/dashboard/admin/users',    symbol: '◈' },
-    { key: 'content',   href: '/dashboard/admin/content',  symbol: '◇' },
-    { key: 'settings',  href: '/dashboard/admin/settings', symbol: '○' },
+    { key: 'overview',  href: '/dashboard/admin',        symbol: '◎' },
+    { key: 'events',    href: '/dashboard/admin/events', symbol: '◆' },
+    { key: 'users',     href: '/dashboard/admin/users',  symbol: '◈' },
   ],
   ORGANIZER: [
-    { key: 'overview',     href: '/dashboard/organizer',               symbol: '◎' },
-    { key: 'experiences',  href: '/dashboard/organizer/experiences',   symbol: '◈' },
-    { key: 'analytics',    href: '/dashboard/organizer/analytics',     symbol: '◇' },
-    { key: 'bookings',     href: '/dashboard/organizer/bookings',      symbol: '○' },
+    { key: 'overview',  href: '/dashboard/organizer',        symbol: '◎' },
+    { key: 'events',    href: '/dashboard/organizer/events', symbol: '◆' },
   ],
   USER: [
     { key: 'explore',  href: '/dashboard/user',          symbol: '◎' },

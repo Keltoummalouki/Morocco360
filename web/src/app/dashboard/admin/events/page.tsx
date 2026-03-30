@@ -19,6 +19,7 @@ interface Event {
   location_name: string;
   is_active: boolean;
   total_stock: number;
+  image_url: string | null;
   categories: TicketCategory[];
 }
 

@@ -32,6 +32,7 @@ interface Event {
   longitude: number | null;
   total_stock: number;
   is_active: boolean;
+  image_url: string | null;
   categories: TicketCategory[];
 }
 
@@ -131,21 +132,30 @@ function EventCard({
         aria-label={event.title}
       />
 
-      {/* Image placeholder */}
+      {/* Image */}
       <div
         style={{
           height: '140px',
           background: 'var(--surface)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           flexShrink: 0,
           position: 'relative',
+          overflow: 'hidden',
           zIndex: 1,
           pointerEvents: 'none',
         }}
       >
-        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', color: 'var(--border)' }}>◈</span>
+        {event.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={event.image_url}
+            alt={event.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', color: 'var(--border)' }}>◈</span>
+          </div>
+        )}
         {event.category && (
           <span
             style={{

@@ -96,27 +96,28 @@ export default async function EventDetailPage({
         ← Retour aux événements
       </Link>
 
-      {/* Hero image placeholder */}
+      {/* Hero image */}
       <div
         style={{
           height: '280px',
           background: 'var(--surface)',
           marginBottom: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '3rem',
-            color: 'var(--border)',
-          }}
-        >
-          ◈
-        </span>
+        {event.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={event.image_url}
+            alt={event.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '3rem', color: 'var(--border)' }}>◈</span>
+          </div>
+        )}
         {event.is_active && (
           <span
             style={{
