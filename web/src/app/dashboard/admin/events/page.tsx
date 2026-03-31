@@ -45,7 +45,7 @@ export default async function AdminEventsPage() {
   const events = await getAdminEvents();
 
   return (
-    <div className="dash-page" style={{ maxWidth: '1200px' }}>
+    <div className="dash-page">
       {/* Header */}
       <div className="flex flex-wrap gap-4 items-end justify-between" style={{ marginBottom: '36px' }}>
         <div>

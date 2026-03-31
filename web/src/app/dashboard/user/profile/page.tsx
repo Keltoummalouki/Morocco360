@@ -237,7 +237,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="dash-page" style={{ maxWidth: '680px' }}>
+    <div className="dash-page">
       {/* Header */}
       <div style={{ marginBottom: '40px' }}>
         <p

@@ -47,7 +47,7 @@ export default function OrganizerEventsPage() {
   const pageEvents = events.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="dash-page" style={{ maxWidth: '1100px' }}>
+    <div className="dash-page">
 
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>

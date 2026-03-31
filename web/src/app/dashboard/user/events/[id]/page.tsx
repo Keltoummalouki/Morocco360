@@ -78,7 +78,7 @@ export default async function EventDetailPage({
   const accent = '#4A7C6F';
 
   return (
-    <div className="dash-page" style={{ maxWidth: '900px' }}>
+    <div className="dash-page">
 
       {/* Back link */}
       <Link

@@ -292,7 +292,7 @@ body {
 
 .dash-page {
   padding: 24px 16px;
-  max-width: 1200px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {

@@ -229,7 +229,7 @@ export default function SavedPage() {
   }
 
   return (
-    <div className="dash-page" style={{ maxWidth: '900px' }}>
+    <div className="dash-page">
       {/* Header */}
       <div style={{ marginBottom: '36px' }}>
         <p

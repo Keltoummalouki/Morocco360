@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
   const activeList = tab === 'organizers' ? displayOrgs : displayUsers;
 
   return (
-    <div className="dash-page" style={{ maxWidth: '1200px' }}>
+    <div className="dash-page">
 
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
