@@ -20,6 +20,7 @@ interface Event {
   location_name: string;
   is_active: boolean;
   total_stock: number;
+  image_url: string | null;
   categories: TicketCategory[];
 }
 
@@ -31,6 +32,51 @@ function formatDate(iso: string) {
     month: 'short',
     year: 'numeric',
   });
+}
+
+function EventThumb({ src, title }: { src: string | null; title: string }) {
+  const [failed, setFailed] = useState(false);
+  const initial = title.trim().charAt(0).toUpperCase();
+
+  if (src && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={title}
+        onError={() => setFailed(true)}
+        style={{
+          width: '48px',
+          height: '48px',
+          objectFit: 'cover',
+          display: 'block',
+          flexShrink: 0,
+          border: '1px solid var(--border)',
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: '48px',
+        height: '48px',
+        flexShrink: 0,
+        background: `${accent}14`,
+        border: `1px solid ${accent}30`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '1.125rem',
+        fontWeight: 700,
+        color: accent,
+        fontFamily: 'var(--font-playfair)',
+      }}
+    >
+      {initial}
+    </div>
+  );
 }
 
 export default function EventsTable({ events }: { events: Event[] }) {
@@ -93,9 +139,9 @@ export default function EventsTable({ events }: { events: Event[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-              {['Titre', 'Lieu', 'Dates', 'Capacité', 'Statut', ''].map((col) => (
+              {['', 'Titre', 'Lieu', 'Dates', 'Capacité', 'Statut', ''].map((col, i) => (
                 <th
-                  key={col}
+                  key={i}
                   style={{
                     padding: '10px 16px',
                     textAlign: 'left',
@@ -115,22 +161,32 @@ export default function EventsTable({ events }: { events: Event[] }) {
           <tbody>
             {events.map((event) => (
               <tr key={event.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                {/* Thumbnail */}
+                <td style={{ padding: '10px 10px 10px 16px', width: '64px' }}>
+                  <EventThumb src={event.image_url} title={event.title} />
+                </td>
+
+                {/* Title */}
                 <td style={{ padding: '14px 16px' }}>
                   <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{event.title}</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
                     {event.categories.length} catégorie{event.categories.length !== 1 ? 's' : ''}
                   </p>
                 </td>
+
                 <td style={{ padding: '14px 16px', fontSize: '0.875rem', color: 'var(--muted)' }}>
                   {event.location_name}
                 </td>
+
                 <td style={{ padding: '14px 16px' }}>
                   <p style={{ fontSize: '0.8125rem' }}>{formatDate(event.date_start)}</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>→ {formatDate(event.date_end)}</p>
                 </td>
+
                 <td style={{ padding: '14px 16px', fontSize: '0.875rem', textAlign: 'right' }}>
                   {event.total_stock}
                 </td>
+
                 <td style={{ padding: '14px 16px' }}>
                   <span
                     style={{
@@ -146,6 +202,7 @@ export default function EventsTable({ events }: { events: Event[] }) {
                     {event.is_active ? 'Actif' : 'Inactif'}
                   </span>
                 </td>
+
                 <td style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                     <Link

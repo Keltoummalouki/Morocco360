@@ -44,6 +44,13 @@ Morocco360 est une plateforme web permettant aux utilisateurs (locaux et tourist
 - Historique complet des reservations
 - Parametres de securite
 
+### 5. Systeme de scanning QR
+- Scanning securise avec HMAC-SHA256
+- Gestion des roles (ORGANIZER, STAFF)
+- Audit trail complet de tous les scans
+- Interface mobile optimisee pour le scanning
+- **[Documentation complete du systeme QR →](docs/QR_SCANNING_SYSTEM.md)**
+
 ---
 
 ## Stack technologique
@@ -105,13 +112,15 @@ morocco360/
 
 | Entite           | Description                                            |
 |------------------|--------------------------------------------------------|
-| `User`           | Utilisateur avec role (ADMIN, ORGANIZER, USER)         |
+| `User`           | Utilisateur avec role (ADMIN, ORGANIZER, STAFF, USER)  |
 | `Role`           | Role systeme                                           |
 | `Event`          | Evenement avec categorie, dates, capacite, lieu        |
 | `TicketCategory` | Categories de billets par evenement (VIP, standard...) |
 | `Order`          | Commande d'un utilisateur                              |
-| `Ticket`         | Billet individuel avec QR code                         |
+| `Ticket`         | Billet individuel avec QR code signe                   |
 | `Payment`        | Transaction de paiement                                |
+| `EventStaff`     | Assignation de staff par evenement                     |
+| `QRScanLog`      | Journal d'audit de tous les scans                      |
 
 ### Relations cles
 - `User` N:1 `Role`
@@ -285,6 +294,22 @@ Fichier de configuration : `.github/workflows/ci.yml`
 ---
 
 ## Changelog
+
+### v0.3.0 (Mars 2026)
+- **Systeme de scanning QR complet**
+  - QR codes signes avec HMAC-SHA256 (prevention de la contrefacon)
+  - Verrouillage pessimiste (prevention des doubles scans)
+  - Role STAFF ajoute pour le personnel de scanning
+  - Assignation de staff par evenement (EventStaff)
+  - Journal d'audit complet (QRScanLog)
+  - Interface scanner mobile optimisee
+  - Dashboard organizer avec stats en temps reel
+  - Export CSV des participants
+  - Rate limiting (30 scans/minute)
+  - Health checks pour orchestration
+  - Documentation Swagger complete
+  - Validation de configuration au demarrage (Joi)
+  - Filtres d'exception TypeORM personnalises
 
 ### v0.2.0 (Mars 2026)
 - Authentification JWT (access token + refresh token avec rotation)

@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as crypto from 'crypto';
 import { Event, EventCategory } from '../../events/entities/event.entity';
 import { TicketCategory } from '../../events/entities/ticket-category.entity';
 import { User } from '../../users/entities/user.entity';
+import {
+  EventStaff,
+  EventStaffRole,
+} from '../../events/entities/event-staff.entity';
+import { Order, OrderStatus } from '../../orders/entities/order.entity';
+import { Ticket, TicketStatus } from '../../orders/entities/ticket.entity';
 
 interface SeedCategory {
   name: string;
@@ -229,6 +236,12 @@ export class EventSeeder {
     private readonly categoryRepo: Repository<TicketCategory>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(EventStaff)
+    private readonly staffRepo: Repository<EventStaff>,
+    @InjectRepository(Order)
+    private readonly orderRepo: Repository<Order>,
+    @InjectRepository(Ticket)
+    private readonly ticketRepo: Repository<Ticket>,
   ) {}
 
   async seed(): Promise<void> {
@@ -242,12 +255,19 @@ export class EventSeeder {
       return;
     }
 
+    const testUser = await this.userRepo.findOne({
+      where: { email: 'user@morocco360.ma' },
+    });
+
+    let firstEvent: Event | null = null;
+
     for (const data of SEED_EVENTS) {
       const exists = await this.eventRepo.findOne({
         where: { title: data.title },
       });
       if (exists) {
         console.log(`  [EventSeeder] Event already exists: ${data.title}`);
+        if (!firstEvent) firstEvent = exists;
         continue;
       }
 
@@ -268,16 +288,102 @@ export class EventSeeder {
       const savedEvent = await this.eventRepo.save(event);
 
       for (const cat of data.categories) {
-        const category = this.categoryRepo.create({
-          name: cat.name,
-          price: cat.price,
-          stock_allocated: cat.stock_allocated,
-          event: savedEvent,
-        });
-        await this.categoryRepo.save(category);
+        await this.categoryRepo.save(
+          this.categoryRepo.create({ ...cat, event: savedEvent }),
+        );
       }
 
+      if (!firstEvent) firstEvent = savedEvent;
       console.log(`  [EventSeeder] Created event: ${data.title}`);
     }
+
+    if (!firstEvent) return;
+
+    // Assign organizer as ORGANIZER for first event
+    await this.upsertStaff(
+      firstEvent,
+      organizer,
+      EventStaffRole.ORGANIZER,
+      organizer,
+    );
+
+    // Seed 10 VALID tickets with valid HMAC QR codes for the test user
+    if (testUser) await this.seedTickets(firstEvent, testUser);
+  }
+
+  private async upsertStaff(
+    event: Event,
+    user: User,
+    role: EventStaffRole,
+    by: User,
+  ) {
+    const exists = await this.staffRepo.findOne({
+      where: { event_id: event.id, user_id: user.id },
+    });
+    if (exists) {
+      console.log(`  [EventSeeder] Staff already assigned: ${user.email}`);
+      return;
+    }
+    await this.staffRepo.save(
+      this.staffRepo.create({
+        event,
+        event_id: event.id,
+        user,
+        user_id: user.id,
+        staff_role: role,
+        assigned_by: by,
+        assigned_by_user_id: by.id,
+      }),
+    );
+    console.log(
+      `  [EventSeeder] Assigned ${user.email} as ${role} for "${event.title}"`,
+    );
+  }
+
+  private async seedTickets(event: Event, user: User) {
+    const existing = await this.orderRepo.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (existing) {
+      console.log('  [EventSeeder] Sample order already exists');
+      return;
+    }
+
+    const category = await this.categoryRepo.findOne({
+      where: { event: { id: event.id } },
+    });
+    if (!category) return;
+
+    const order = await this.orderRepo.save(
+      this.orderRepo.create({
+        user,
+        total_amount: category.price * 10,
+        status: OrderStatus.PAID,
+      }),
+    );
+
+    const secret = process.env.QR_HMAC_SECRET ?? 'dev-seed-secret';
+
+    for (let i = 0; i < 10; i++) {
+      const saved = await this.ticketRepo.save(
+        this.ticketRepo.create({
+          order,
+          category,
+          event,
+          event_id: event.id,
+          status: TicketStatus.VALID,
+          qr_code: `PLACEHOLDER-${Date.now()}-${i}`,
+        }),
+      );
+      const raw = JSON.stringify({ t: String(saved.id), e: String(event.id) });
+      const sig = crypto.createHmac('sha256', secret).update(raw).digest('hex');
+      const qr = Buffer.from(
+        JSON.stringify({ t: String(saved.id), e: String(event.id), sig }),
+      ).toString('base64url');
+      await this.ticketRepo.update(saved.id, { qr_code: qr });
+    }
+    console.log(
+      `  [EventSeeder] Created 10 sample VALID tickets for "${event.title}"`,
+    );
   }
 }

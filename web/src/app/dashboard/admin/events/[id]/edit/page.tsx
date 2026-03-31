@@ -25,6 +25,7 @@ interface Event {
   longitude: number | null;
   total_stock: number;
   is_active: boolean;
+  image_url: string | null;
   categories: TicketCategory[];
 }
 
@@ -67,6 +68,7 @@ export default async function EditEventPage({
     longitude: event.longitude?.toString() ?? '',
     total_stock: event.total_stock.toString(),
     is_active: event.is_active,
+    image_url: event.image_url ?? '',
     categories: event.categories.map((c) => ({
       name: c.name,
       price: Number(c.price),

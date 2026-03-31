@@ -14,6 +14,11 @@ import { Role } from './role.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { Event } from '../../events/entities/event.entity';
 
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
@@ -38,6 +43,9 @@ export class User {
   @Exclude()
   @Column({ type: 'text', nullable: true })
   refresh_token_hash: string | null;
+
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
+  status: UserStatus;
 
   @CreateDateColumn()
   created_at: Date;

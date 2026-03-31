@@ -25,11 +25,13 @@ const mockUser = {
   full_name: null as unknown as string,
   phone_number: null as unknown as string,
   refresh_token_hash: null,
+  status: 'ACTIVE' as const,
   created_at: new Date(),
   updated_at: new Date(),
   role: mockRole,
   orders: [],
   events: [],
+  savedEvents: [],
 } as User;
 
 // ── Suite ─────────────────────────────────────────────────
@@ -121,6 +123,7 @@ describe('UsersService', () => {
       userRepo.create.mockReturnValue(saved);
       userRepo.save.mockResolvedValue(saved);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await service.create(dto as any);
 
       expect(roleRepo.findOne).toHaveBeenCalledWith({
@@ -143,6 +146,7 @@ describe('UsersService', () => {
       userRepo.create.mockReturnValue(mockUser);
       userRepo.save.mockResolvedValue(mockUser);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await service.create(dto as any);
 
       expect(bcrypt.hash).toHaveBeenCalledWith(dto.password, 12);
@@ -155,12 +159,14 @@ describe('UsersService', () => {
       userRepo.create.mockReturnValue(mockUser);
       userRepo.save.mockResolvedValue(mockUser);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await expect(service.create(dto as any)).resolves.toBeDefined();
     });
 
     it('throws ConflictException when the email is already in use', async () => {
       userRepo.findOne.mockResolvedValue(mockUser);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await expect(service.create(dto as any)).rejects.toThrow(
         ConflictException,
       );
@@ -172,6 +178,7 @@ describe('UsersService', () => {
   describe('updateRefreshToken', () => {
     it('hashes and stores the token', async () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_rt');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       userRepo.update.mockResolvedValue({ affected: 1 } as any);
 
       await service.updateRefreshToken(1, 'raw_refresh_token');
@@ -183,6 +190,7 @@ describe('UsersService', () => {
     });
 
     it('stores null on logout (token = null)', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       userRepo.update.mockResolvedValue({ affected: 1 } as any);
 
       await service.updateRefreshToken(1, null);

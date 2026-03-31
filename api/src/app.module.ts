@@ -9,10 +9,22 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { PaymentsModule } from './payments/payments.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { ScannerModule } from './scanner/scanner.module';
+import { OrganizerModule } from './organizer/organizer.module';
+import { AdminModule } from './admin/admin.module';
+import { HealthModule } from './health/health.module';
+import { configValidationSchema } from './config/config.schema';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: configValidationSchema,
+      validationOptions: {
+        abortEarly: true, // Stop on first error
+      },
+    }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -26,12 +38,19 @@ import { PaymentsModule } from './payments/payments.module';
         database: config.get<string>('DB_NAME', 'morocco360'),
         autoLoadEntities: true,
         synchronize: config.get<string>('NODE_ENV') !== 'production',
+        migrations: [__dirname + '/database/migrations/*.{ts,js}'],
+        migrationsRun: true,
       }),
     }),
     AuthModule,
     UsersModule,
     EventsModule,
     PaymentsModule,
+    TicketsModule,
+    ScannerModule,
+    OrganizerModule,
+    AdminModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -23,6 +23,7 @@ interface Event {
   longitude: number | null;
   total_stock: number;
   is_active: boolean;
+  image_url: string | null;
   categories: TicketCategory[];
 }
 

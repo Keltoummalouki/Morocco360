@@ -32,14 +32,16 @@ async function buildMockUser(): Promise<User> {
     username: 'testuser',
     email: 'test@example.com',
     password,
-    full_name: null,
-    phone_number: null,
+    full_name: null as unknown as string,
+    phone_number: null as unknown as string,
     refresh_token_hash: null,
+    status: 'ACTIVE' as const,
     created_at: new Date(),
     updated_at: new Date(),
     role: mockRole,
     orders: [],
     events: [],
+    savedEvents: [],
   } as User;
 }
 

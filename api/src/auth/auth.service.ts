@@ -51,6 +51,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role?.name ?? null,
+      status: user.status,
     };
 
     const accessSecret = this.config.getOrThrow<string>('JWT_ACCESS_SECRET');

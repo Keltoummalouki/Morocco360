@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, dev, MR-17-Intégration-Stripe]
+    branches: [main, dev]
   pull_request:
     branches: [main, dev]
 

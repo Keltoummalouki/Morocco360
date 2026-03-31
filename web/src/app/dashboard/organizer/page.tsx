@@ -1,196 +1,156 @@
-const STATS = [
-  { label: 'My Experiences', value: '14',    delta: '+2 this month'   },
-  { label: 'Total Views',    value: '9.3K',  delta: '+18% vs last'    },
-  { label: 'Bookings',       value: '87',    delta: 'This month'      },
-  { label: 'Avg. Rating',    value: '4.8',   delta: 'Out of 5.0'      },
-];
+'use client';
 
-const EXPERIENCES = [
-  { title: 'Marrakech Medina at Dusk',  views: '2 104', status: 'Published', updated: '2 days ago'   },
-  { title: 'Fez Tanneries Panorama',    views: '1 867', status: 'Published', updated: '1 week ago'   },
-  { title: 'Sahara Sunrise 360°',       views: '3 291', status: 'Published', updated: '3 days ago'   },
-  { title: 'Blue City Chefchaouen',     views: '988',   status: 'Draft',     updated: 'Just now'     },
-  { title: 'Atlas Mountain Pass',       views: '–',     status: 'Review',    updated: '5 hours ago'  },
-];
+import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 
-const STATUS_COLOR: Record<string, string> = {
-  Published: '#4A7C6F',
-  Draft:     '#B8862D',
-  Review:    '#6B7280',
-};
+interface EventStats { totalTickets: number; checkedIn: number; pending: number; cancelled: number; }
+interface EventSummary {
+  id: number;
+  title: string;
+  date_start: string;
+  date_end: string;
+  city: string;
+  location_name: string;
+  stats: EventStats;
+}
+
+function pct(ev: EventSummary) {
+  const t = ev.stats?.totalTickets ?? 0;
+  return t > 0 ? Math.round(((ev.stats?.checkedIn ?? 0) / t) * 100) : 0;
+}
+
+function EventCard({ ev }: { ev: EventSummary }) {
+  const p = pct(ev);
+  const t = ev.stats?.totalTickets ?? 0;
+  const c = ev.stats?.checkedIn ?? 0;
+  return (
+    <Link href={`/dashboard/organizer/${ev.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div style={{ border: '1px solid var(--border)', padding: '20px 24px', cursor: 'pointer', background: 'var(--background)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: '16px' }}>
+            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', fontWeight: 600, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {ev.title}
+            </p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>
+              {ev.city} · {new Date(ev.date_start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+          </div>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : 'var(--muted)' }}>
+            {p}%
+          </span>
+        </div>
+        <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden', marginBottom: '10px' }}>
+          <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : '#6B7280', transition: 'width 0.5s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{c} / {t} enregistrés</p>
+          <span style={{ fontSize: '0.8125rem', color: '#B8862D', fontWeight: 500 }}>Gérer →</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function OrganizerDashboard() {
+  const [events, setEvents] = useState<EventSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/organizer/events');
+      if (!res.ok) throw new Error();
+      setEvents(await res.json() as EventSummary[]);
+      setError(null);
+    } catch {
+      setError('Impossible de charger les événements.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const iv = setInterval(() => void load(), 30_000);
+    return () => clearInterval(iv);
+  }, [load]);
+
+  const totalTickets = events.reduce((s, e) => s + (e.stats?.totalTickets ?? 0), 0);
+  const totalChecked = events.reduce((s, e) => s + (e.stats?.checkedIn ?? 0), 0);
+  const overallRate  = totalTickets > 0 ? Math.round((totalChecked / totalTickets) * 100) : 0;
+  const recent       = [...events].sort((a, b) => new Date(b.date_start).getTime() - new Date(a.date_start).getTime()).slice(0, 3);
+
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: '40px' }}>
-        <p
-          style={{
-            fontSize: '0.6875rem',
-            letterSpacing: '0.2em',
-            color: '#B8862D',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            marginBottom: '8px',
-          }}
-        >
-          Organizer Panel
+      <div style={{ marginBottom: '36px' }}>
+        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+          Espace Organisateur
         </p>
-        <h1
-          style={{
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '2.25rem',
-            fontWeight: 700,
-            marginBottom: '6px',
-          }}
-        >
-          My Experiences
+        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: 700, marginBottom: '6px' }}>
+          Tableau de bord
         </h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>
-          Manage your panoramas, track views, and handle bookings.
+          Vue d&apos;ensemble de vos événements en temps réel.
         </p>
       </div>
 
-      {/* Stats */}
-      <div
-        className="grid grid-cols-2 md:grid-cols-4"
-        style={{ gap: '1px', background: 'var(--border)', marginBottom: '40px' }}
-      >
-        {STATS.map((s) => (
-          <div key={s.label} style={{ background: 'var(--background)', padding: '28px 24px' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
-              {s.label}
-            </p>
-            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: 700, marginBottom: '4px' }}>
-              {s.value}
-            </p>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>{s.delta}</p>
-          </div>
-        ))}
-      </div>
+      {/* Stat cards */}
+      {!loading && events.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: '1px', background: 'var(--border)', marginBottom: '40px' }}>
+          {[
+            { label: 'Événements',       value: String(events.length)  },
+            { label: 'Billets vendus',   value: String(totalTickets)   },
+            { label: 'Enregistrements', value: String(totalChecked)   },
+            { label: 'Taux global',      value: `${overallRate}%`      },
+          ].map((s) => (
+            <div key={s.label} style={{ background: 'var(--background)', padding: '24px' }}>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</p>
+              <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '2rem', fontWeight: 700 }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Experiences table + Upload CTA */}
-      <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: '24px' }}>
+      {/* Loading skeleton */}
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+          {[1, 2, 3].map((i) => <div key={i} style={{ height: '100px', background: 'var(--border)', opacity: 0.4 }} />)}
+        </div>
+      )}
 
-        <div className="md:col-span-2" style={{ border: '1px solid var(--border)' }}>
-          <div
-            style={{
-              padding: '20px 24px',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 600 }}>
-              My panoramas
+      {/* Error */}
+      {error && (
+        <div style={{ padding: '16px', border: '1px solid #dc262630', background: '#dc262608', color: '#dc2626', fontSize: '0.875rem', marginBottom: '24px' }}>
+          {error}
+        </div>
+      )}
+
+      {/* Recent events */}
+      {!loading && !error && events.length > 0 && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 600 }}>
+              Événements récents
             </h2>
-            <span style={{ fontSize: '0.8125rem', color: '#B8862D', cursor: 'pointer' }}>
-              + Upload new
-            </span>
+            <Link href="/dashboard/organizer/events" style={{ fontSize: '0.875rem', color: '#B8862D', textDecoration: 'none', fontWeight: 500 }}>
+              Voir tous ({events.length}) →
+            </Link>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Title', 'Views', 'Status', 'Updated'].map((col) => (
-                  <th
-                    key={col}
-                    style={{
-                      padding: '10px 24px',
-                      textAlign: 'left',
-                      fontSize: '0.75rem',
-                      color: 'var(--muted)',
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {EXPERIENCES.map((exp) => (
-                <tr key={exp.title} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '14px 24px' }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{exp.title}</p>
-                  </td>
-                  <td style={{ padding: '14px 24px', fontSize: '0.875rem', color: 'var(--muted)' }}>
-                    {exp.views}
-                  </td>
-                  <td style={{ padding: '14px 24px' }}>
-                    <span
-                      style={{
-                        fontSize: '0.6875rem',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        fontWeight: 600,
-                        color: STATUS_COLOR[exp.status] ?? 'var(--muted)',
-                      }}
-                    >
-                      {exp.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 24px', fontSize: '0.8125rem', color: 'var(--muted)' }}>
-                    {exp.updated}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recent.map((ev) => <EventCard key={ev.id} ev={ev} />)}
+          </div>
+        </>
+      )}
 
-        {/* Sidebar actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ border: '1px solid var(--border)', padding: '24px' }}>
-            <h3 style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-              Upcoming sessions
-            </h3>
-            {[
-              { title: 'Fez Live Tour',      date: 'Mar 10, 14:00' },
-              { title: 'Sahara Night Sky',   date: 'Mar 14, 20:00' },
-              { title: 'Essaouira Coastal',  date: 'Mar 19, 10:00' },
-            ].map((session) => (
-              <div
-                key={session.title}
-                style={{
-                  padding: '10px 0',
-                  borderBottom: '1px solid var(--border)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{session.title}</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{session.date}</p>
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              background: 'var(--foreground)',
-              color: 'var(--background)',
-              padding: '28px 24px',
-            }}
-          >
-            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 600, marginBottom: '10px' }}>
-              Upload a new panorama
-            </p>
-            <p style={{ fontSize: '0.8125rem', color: '#A8A29E', marginBottom: '20px', lineHeight: 1.7 }}>
-              Share your 360° captures with thousands of explorers.
-            </p>
-            <button
-              className="btn-primary"
-              style={{ background: '#B8862D', display: 'block', width: '100%', textAlign: 'center' }}
-            >
-              Upload
-            </button>
-          </div>
+      {/* Empty state */}
+      {!loading && !error && events.length === 0 && (
+        <div style={{ padding: '48px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
+          <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 600, marginBottom: '8px' }}>Aucun événement</p>
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucun événement ne vous a encore été assigné par l&apos;administrateur.</p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

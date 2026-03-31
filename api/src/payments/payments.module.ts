@@ -9,6 +9,7 @@ import { TicketCategory } from '../events/entities/ticket-category.entity';
 import { Event } from '../events/entities/event.entity';
 import { User } from '../users/entities/user.entity';
 import { MailModule } from '../mail/mail.module';
+import { TicketsModule } from '../tickets/tickets.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MailModule } from '../mail/mail.module';
       User,
     ]),
     MailModule,
+    TicketsModule,
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService],
