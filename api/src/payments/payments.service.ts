@@ -70,7 +70,7 @@ export class PaymentsService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
 
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-    
+
     const unitPrice = Number(category.price);
     const totalAmount = unitPrice * dto.quantity;
 
@@ -356,14 +356,18 @@ export class PaymentsService {
         .addSelect('ticket.qr_code')
         .leftJoinAndSelect('ticket.category', 'category')
         .leftJoinAndSelect('category.event', 'event')
-        .where('order.payment_gateway_ref = :sessionId', { sessionId: params.sessionId })
+        .where('order.payment_gateway_ref = :sessionId', {
+          sessionId: params.sessionId,
+        })
         .getOne();
 
       // Webhook fallback: if order exists but has no tickets, the webhook hasn't
       // fired yet. Verify directly with Stripe and process it now.
       if (order && (!order.tickets || order.tickets.length === 0)) {
         try {
-          const session = await this.stripe.checkout.sessions.retrieve(params.sessionId);
+          const session = await this.stripe.checkout.sessions.retrieve(
+            params.sessionId,
+          );
           if (session.payment_status === 'paid') {
             await this.handleSessionCompleted(session);
             // Re-fetch with tickets now created
@@ -373,7 +377,9 @@ export class PaymentsService {
               .addSelect('ticket.qr_code')
               .leftJoinAndSelect('ticket.category', 'category')
               .leftJoinAndSelect('category.event', 'event')
-              .where('order.payment_gateway_ref = :sessionId', { sessionId: params.sessionId })
+              .where('order.payment_gateway_ref = :sessionId', {
+                sessionId: params.sessionId,
+              })
               .getOne();
           }
         } catch {

@@ -135,8 +135,8 @@ export default function EventsTable({ events }: { events: Event[] }) {
         <p style={{ fontSize: '0.875rem', color: accent, marginBottom: '12px' }}>{error}</p>
       )}
 
-      <div style={{ border: '1px solid var(--border)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="table-responsive" style={{ border: '1px solid var(--border)', overflow: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
               {['', 'Titre', 'Lieu', 'Dates', 'Capacité', 'Statut', ''].map((col, i) => (

@@ -72,7 +72,7 @@ export default async function EventsPage() {
   const t           = getTranslations(locale);
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1200px' }}>
+    <div className="dash-page" style={{ maxWidth: '1200px' }}>
       {/* Header */}
       <div style={{ marginBottom: '36px' }}>
         <p

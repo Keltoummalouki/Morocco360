@@ -82,14 +82,14 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
   ] : [];
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
+    <div className="dash-page" style={{ maxWidth: '1100px' }}>
 
       {/* Breadcrumb + title */}
       <div style={{ marginBottom: '28px' }}>
         <Link href="/dashboard/organizer/events" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
           ← Tous les événements
         </Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+        <div className="flex flex-wrap gap-3 items-end justify-between">
           <div>
             <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
               Gestion événement
@@ -102,12 +102,8 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
           {/* Scan button */}
           <Link
             href={`/dashboard/scanner/${eventId}`}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '11px 24px', background: '#4A7C6F', color: '#fff',
-              fontSize: '0.9375rem', fontWeight: 600, textDecoration: 'none',
-              flexShrink: 0, marginTop: '28px',
-            }}
+            className="btn-primary btn-action shrink-0"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4A7C6F' }}
           >
             ◎ Scanner les billets
           </Link>
@@ -250,7 +246,8 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             <a
               href={`/api/organizer/events/${eventId}/attendees/export`}
               download
-              style={{ padding: '10px 24px', background: '#B8862D', color: '#fff', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', marginLeft: '24px' }}
+              className="btn-primary btn-action shrink-0"
+              style={{ background: '#B8862D', marginLeft: '0' }}
             >
               Exporter CSV
             </a>

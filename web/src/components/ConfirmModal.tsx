@@ -32,7 +32,7 @@ export default function ConfirmModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(28, 25, 23, 0.5)',
+        background: 'rgba(0, 0, 0, 0.55)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -48,7 +48,7 @@ export default function ConfirmModal({
           padding: '36px 40px',
           maxWidth: '440px',
           width: '100%',
-          boxShadow: '0 24px 64px -12px rgba(28, 25, 23, 0.18)',
+          boxShadow: '0 24px 64px -12px var(--shadow)',
         }}
       >
         {/* Icon */}

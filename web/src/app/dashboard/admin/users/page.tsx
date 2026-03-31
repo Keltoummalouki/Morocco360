@@ -29,8 +29,10 @@ const STATUS_COLOR = { ACTIVE: '#4A7C6F', SUSPENDED: '#C2533A' } as const;
 const STATUS_BG    = { ACTIVE: '#4A7C6F18', SUSPENDED: '#C2533A14' } as const;
 
 // ── Column templates ───────────────────────────────────────────────────────
-const COLS_ORG  = '1fr 1.6fr 110px 300px';
-const COLS_USER = '1fr 1.6fr 110px 140px';
+const COLS_ORG      = '2fr 3.2fr 180px 440px';
+const COLS_USER     = '2fr 3.2fr 180px 240px';
+const MIN_W_ORG     = '1200px';
+const MIN_W_USER    = '840px';
 
 // ── Shared UI pieces ───────────────────────────────────────────────────────
 function Overlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
@@ -46,8 +48,8 @@ function Overlay({ onClose, children }: { onClose: () => void; children: ReactNo
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--background)', width: '100%', maxWidth: '560px',
-          padding: '36px 40px', position: 'relative', maxHeight: '90vh', overflowY: 'auto',
+          background: 'var(--background)', border: '1px solid var(--border)', width: '100%', maxWidth: '560px',
+          padding: '24px 28px', position: 'relative', maxHeight: '90vh', overflowY: 'auto',
         }}
       >
         {children}
@@ -199,24 +201,25 @@ export default function AdminUsersPage() {
   }
 
   const cols      = tab === 'organizers' ? COLS_ORG : COLS_USER;
+  const minW      = tab === 'organizers' ? MIN_W_ORG : MIN_W_USER;
   const activeList = tab === 'organizers' ? displayOrgs : displayUsers;
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1200px' }}>
+    <div className="dash-page" style={{ maxWidth: '1200px' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#C2533A', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
           Administration
         </p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div className="flex flex-wrap gap-3 items-end justify-between">
           <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2rem', fontWeight: 700 }}>
             Gestion des utilisateurs
           </h1>
           {tab === 'organizers' && (
             <button
               onClick={() => setModal({ type: 'create' })}
-              style={{ padding: '10px 22px', background: '#C2533A', color: '#fff', border: 'none', fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}
+              className="btn-primary btn-action shrink-0"
             >
               + Créer un organisateur
             </button>
@@ -279,11 +282,12 @@ export default function AdminUsersPage() {
 
       {/* Table */}
       {!loading && activeList.length > 0 && (
-        <div style={{ border: '1px solid var(--border)' }}>
+        <div className="table-responsive" style={{ border: '1px solid var(--border)' }}>
+          <div style={{ minWidth: minW }}>
           {/* Header */}
           <div style={{
-            display: 'grid', gridTemplateColumns: cols, gap: '0 16px',
-            padding: '10px 20px', borderBottom: '1px solid var(--border)',
+            display: 'grid', gridTemplateColumns: cols, gap: '0 12px',
+            padding: '10px 16px', borderBottom: '1px solid var(--border)',
             background: 'var(--surface)',
           }}>
             {['Utilisateur', 'Email', 'Statut', 'Actions'].map((h, i) => (
@@ -301,8 +305,8 @@ export default function AdminUsersPage() {
             <div
               key={u.id}
               style={{
-                display: 'grid', gridTemplateColumns: cols, gap: '0 16px',
-                padding: '14px 20px', borderBottom: '1px solid var(--border)', alignItems: 'center',
+                display: 'grid', gridTemplateColumns: cols, gap: '0 12px',
+                padding: '12px 16px', borderBottom: '1px solid var(--border)', alignItems: 'center',
               }}
             >
               {/* Name */}
@@ -345,6 +349,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 

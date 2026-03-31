@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import './globals.css';
 
 import { LocaleProvider } from '@/components/LocaleProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import type { Locale } from '@/lib/i18n';
 import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE, isRTL } from '@/lib/i18n';
 
@@ -43,11 +44,22 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
-      <body suppressHydrationWarning
+      <head>
+        {/* Prevent flash of wrong theme on load */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}`,
+          }}
+        />
+      </head>
+      <body
+        suppressHydrationWarning
         className={`${inter.variable} ${playfair.variable} ${notoArabic.variable} antialiased`}
         style={locale === 'ar' ? { fontFamily: 'var(--font-arabic), system-ui' } : undefined}
       >
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        <ThemeProvider>
+          <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

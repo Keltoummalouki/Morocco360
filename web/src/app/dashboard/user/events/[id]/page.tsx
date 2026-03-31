@@ -78,7 +78,7 @@ export default async function EventDetailPage({
   const accent = '#4A7C6F';
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '900px' }}>
+    <div className="dash-page" style={{ maxWidth: '900px' }}>
 
       {/* Back link */}
       <Link
@@ -139,7 +139,7 @@ export default async function EventDetailPage({
       </div>
 
       {/* Main layout: content + sidebar */}
-      <div style={{ display: 'flex', gap: '48px', alignItems: 'flex-start' }}>
+      <div className="flex flex-col lg:flex-row" style={{ gap: '32px', alignItems: 'flex-start' }}>
 
         {/* Left — main content */}
         <div style={{ flex: 1, minWidth: 0 }}>

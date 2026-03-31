@@ -47,24 +47,22 @@ export default function OrganizerEventsPage() {
   const pageEvents = events.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
+    <div className="dash-page" style={{ maxWidth: '1100px' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <Link href="/dashboard/organizer" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
           ← Tableau de bord
         </Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
-              Espace Organisateur
-            </p>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2rem', fontWeight: 700 }}>
-              Tous les événements
-            </h1>
-          </div>
+        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+          Espace Organisateur
+        </p>
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, lineHeight: 1.2 }}>
+            Tous les événements
+          </h1>
           {!loading && (
-            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
               {events.length} événement{events.length !== 1 ? 's' : ''}
             </p>
           )}
@@ -101,53 +99,58 @@ export default function OrganizerEventsPage() {
               const p = pct(ev);
               const t = ev.stats?.totalTickets ?? 0;
               const c = ev.stats?.checkedIn ?? 0;
+              const pColor = p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : 'var(--muted)';
+              const barColor = p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : '#6B7280';
               return (
-                <div key={ev.id} style={{ background: 'var(--background)', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '24px' }}>
+                <div key={ev.id} style={{ background: 'var(--background)', padding: '16px' }}>
 
-                  {/* Date block */}
-                  <div style={{ textAlign: 'center', minWidth: '52px' }}>
-                    <p style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-playfair)', lineHeight: 1 }}>
-                      {new Date(ev.date_start).getDate()}
-                    </p>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                      {new Date(ev.date_start).toLocaleDateString('fr-FR', { month: 'short' })}
-                    </p>
+                  {/* Top row: date | info | button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+                    {/* Date block */}
+                    <div style={{ textAlign: 'center', minWidth: '44px', flexShrink: 0 }}>
+                      <p style={{ fontSize: '1.125rem', fontWeight: 700, fontFamily: 'var(--font-playfair)', lineHeight: 1 }}>
+                        {new Date(ev.date_start).getDate()}
+                      </p>
+                      <p style={{ fontSize: '0.625rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        {new Date(ev.date_start).toLocaleDateString('fr-FR', { month: 'short' })}
+                      </p>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ width: '1px', height: '36px', background: 'var(--border)', flexShrink: 0 }} />
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ev.title}
+                      </p>
+                      <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ev.city}{ev.location_name ? ` · ${ev.location_name}` : ''}
+                      </p>
+                    </div>
+
+                    {/* Action */}
+                    <Link
+                      href={`/dashboard/organizer/${ev.id}`}
+                      className="btn-primary btn-action"
+                      style={{ flexShrink: 0 }}
+                    >
+                      Gérer
+                    </Link>
                   </div>
 
-                  {/* Divider */}
-                  <div style={{ width: '1px', height: '40px', background: 'var(--border)', flexShrink: 0 }} />
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {ev.title}
-                    </p>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>
-                      {ev.city}{ev.location_name ? ` · ${ev.location_name}` : ''}
-                    </p>
-                  </div>
-
-                  {/* Progress */}
-                  <div style={{ minWidth: '140px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{c} / {t}</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : 'var(--muted)' }}>{p}%</span>
+                  {/* Bottom row: progress bar (full width) */}
+                  <div style={{ marginTop: '12px', paddingLeft: '56px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{c} / {t} enregistrés</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: pColor }}>{p}%</span>
                     </div>
                     <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : '#6B7280' }} />
+                      <div style={{ height: '100%', width: `${p}%`, background: barColor, transition: 'width 0.5s ease' }} />
                     </div>
                   </div>
 
-                  {/* Action */}
-                  <Link
-                    href={`/dashboard/organizer/${ev.id}`}
-                    style={{
-                      padding: '7px 18px', background: 'var(--foreground)', color: 'var(--background)',
-                      fontSize: '0.8125rem', fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
-                    }}
-                  >
-                    Gérer
-                  </Link>
                 </div>
               );
             })}

@@ -31,7 +31,7 @@ export default function LoginPage() {
           >
             &ldquo;Every corner of Morocco tells a story a thousand years old.&rdquo;
           </blockquote>
-          <p style={{ color: '#78716C', fontSize: '0.875rem' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
             — Begin your panoramic journey
           </p>
         </div>

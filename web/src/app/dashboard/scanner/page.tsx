@@ -26,7 +26,7 @@ export default function ScannerHomePage() {
   }, []);
 
   return (
-    <div style={{ padding: '32px 24px', maxWidth: '600px', margin: '0 auto' }}>
+    <div className="dash-page" style={{ maxWidth: '600px', margin: '0 auto' }}>
       <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
         Scanner
       </p>

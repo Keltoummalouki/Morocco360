@@ -45,9 +45,9 @@ export default async function AdminEventsPage() {
   const events = await getAdminEvents();
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1200px' }}>
+    <div className="dash-page" style={{ maxWidth: '1200px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '36px' }}>
+      <div className="flex flex-wrap gap-4 items-end justify-between" style={{ marginBottom: '36px' }}>
         <div>
           <p
             style={{
@@ -75,7 +75,7 @@ export default async function AdminEventsPage() {
             {events.length} événement{events.length !== 1 ? 's' : ''} au total
           </p>
         </div>
-        <Link href="/dashboard/admin/events/new" className="btn-primary">
+        <Link href="/dashboard/admin/events/new" className="btn-primary btn-action shrink-0">
           + Créer un événement
         </Link>
       </div>

@@ -209,7 +209,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px 48px' }}>
+      <div className="dash-page">
         <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>Chargement…</p>
       </div>
     );
@@ -217,7 +217,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div style={{ padding: '40px 48px' }}>
+      <div className="dash-page">
         <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>Impossible de charger le profil.</p>
       </div>
     );
@@ -237,7 +237,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '680px' }}>
+    <div className="dash-page" style={{ maxWidth: '680px' }}>
       {/* Header */}
       <div style={{ marginBottom: '40px' }}>
         <p

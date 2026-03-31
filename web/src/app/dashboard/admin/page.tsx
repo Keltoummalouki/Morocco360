@@ -94,7 +94,7 @@ export default async function AdminDashboard() {
     : null;
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
+    <div className="dash-page" style={{ maxWidth: '1100px' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '40px' }}>
@@ -111,7 +111,7 @@ export default async function AdminDashboard() {
 
       {/* Stats */}
       {statCards ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'var(--border)', marginBottom: '40px' }}>
+        <div className="stat-grid-4" style={{ marginBottom: '40px' }}>
           {statCards.map((s) => (
             <div key={s.label} style={{ background: 'var(--background)', padding: '28px 24px' }}>
               <p style={{ fontSize: '0.75rem', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
@@ -125,7 +125,7 @@ export default async function AdminDashboard() {
           ))}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'var(--border)', marginBottom: '40px' }}>
+        <div className="stat-grid-4" style={{ marginBottom: '40px' }}>
           {[0,1,2,3].map((i) => (
             <div key={i} style={{ background: 'var(--background)', padding: '28px 24px', opacity: 0.4 }}>
               <div style={{ height: '12px', background: 'var(--border)', marginBottom: '14px', width: '60%' }} />
@@ -137,7 +137,7 @@ export default async function AdminDashboard() {
       )}
 
       {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px' }}>
+      <div className="admin-two-col">
 
         {/* Recent users */}
         <div style={{ border: '1px solid var(--border)' }}>
@@ -151,7 +151,7 @@ export default async function AdminDashboard() {
           </div>
 
           {stats && stats.recentUsers.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {['Utilisateur', 'Rôle', 'Statut', 'Inscription'].map((col) => (
@@ -193,7 +193,7 @@ export default async function AdminDashboard() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           ) : (
             <div style={{ padding: '32px', textAlign: 'center' }}>
               <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
