@@ -41,7 +41,7 @@ export class PaymentsService {
     private readonly qrCodeService: QRCodeService,
   ) {
     this.stripe = new Stripe(
-      configService.getOrThrow<string>('STRIPE_SECRET_KEY'),
+      configService.get<string>('STRIPE_SECRET_KEY', ''),
     );
     this.frontendUrl = configService.get<string>(
       'FRONTEND_URL',
