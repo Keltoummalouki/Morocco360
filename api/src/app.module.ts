@@ -38,6 +38,7 @@ import { configValidationSchema } from './config/config.schema';
         database: config.get<string>('DB_NAME', 'morocco360'),
         autoLoadEntities: true,
         synchronize: config.get<string>('NODE_ENV') !== 'production',
+        ssl: config.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
         migrations: [__dirname + '/database/migrations/*.{ts,js}'],
         migrationsRun: true,
       }),
