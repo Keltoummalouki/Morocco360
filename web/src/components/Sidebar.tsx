@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ROLE_LABEL, apiLogout, type Role } from '@/lib/auth';
 import { useLocale } from './LocaleProvider';
 import LocaleSwitcher from './LocaleSwitcher';
+import ThemeToggle from './ThemeToggle';
 import type { Translations } from '@/lib/i18n';
 
 type NavKey = keyof Translations['nav'];
@@ -38,14 +39,16 @@ const ROLE_ACCENT: Record<Role, string> = {
 interface SidebarProps {
   role: Role;
   name: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function Sidebar({ role, name }: SidebarProps) {
-  const pathname  = usePathname();
-  const router    = useRouter();
-  const { t }     = useLocale();
-  const items     = NAV_ITEMS[role] ?? [];
-  const accent    = ROLE_ACCENT[role];
+export default function Sidebar({ role, name, isOpen, onClose }: SidebarProps) {
+  const pathname = usePathname();
+  const router   = useRouter();
+  const { t }    = useLocale();
+  const items    = NAV_ITEMS[role] ?? [];
+  const accent   = ROLE_ACCENT[role];
 
   async function logout() {
     await apiLogout();
@@ -53,26 +56,47 @@ export default function Sidebar({ role, name }: SidebarProps) {
     router.refresh();
   }
 
-  return (
+  const sidebarContent = (
     <aside
       style={{
         width: '240px',
         minHeight: '100vh',
+        height: '100%',
         borderInlineEnd: '1px solid var(--border)',
         background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
+        overflowY: 'auto',
       }}
     >
       {/* Logo */}
-      <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link
           href="/"
           style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 700 }}
+          onClick={onClose}
         >
           Morocco<span style={{ color: 'var(--primary)' }}>360</span>
         </Link>
+        {/* Close button — mobile only */}
+        <button
+          onClick={onClose}
+          aria-label="Close menu"
+          style={{
+            display: 'none',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--muted)',
+            fontSize: '1.25rem',
+            padding: '4px',
+            lineHeight: 1,
+          }}
+          className="sidebar-close-btn"
+        >
+          ✕
+        </button>
       </div>
 
       {/* Role badge */}
@@ -101,6 +125,7 @@ export default function Sidebar({ role, name }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -122,14 +147,15 @@ export default function Sidebar({ role, name }: SidebarProps) {
         })}
       </nav>
 
-      {/* Language switcher */}
-      <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)' }}>
+      {/* Bottom controls */}
+      <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
         <LocaleSwitcher />
+        <ThemeToggle />
       </div>
 
       {/* User info + logout */}
       <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)' }}>
-        <p style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '2px' }}>
+        <p style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {decodeURIComponent(name)}
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '12px' }}>
@@ -150,5 +176,39 @@ export default function Sidebar({ role, name }: SidebarProps) {
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <div className="hidden lg:block" style={{ flexShrink: 0 }}>
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar — drawer overlay */}
+      {isOpen && (
+        <>
+          <div
+            className="sidebar-overlay lg:hidden"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <div
+            className="lg:hidden"
+            style={{
+              position: 'fixed',
+              top: 0,
+              insetInlineStart: 0,
+              bottom: 0,
+              zIndex: 50,
+              animation: 'fadeIn 0.2s ease forwards',
+            }}
+          >
+            <style>{`.sidebar-close-btn { display: flex !important; }`}</style>
+            {sidebarContent}
+          </div>
+        </>
+      )}
+    </>
   );
 }

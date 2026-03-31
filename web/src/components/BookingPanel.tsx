@@ -75,8 +75,8 @@ export default function BookingPanel({
 
   return (
     <div
+      className="w-full lg:w-72"
       style={{
-        width: '280px',
         flexShrink: 0,
         border: '1px solid var(--border)',
         padding: '24px',

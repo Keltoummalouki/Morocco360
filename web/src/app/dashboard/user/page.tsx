@@ -147,7 +147,7 @@ export default async function UserDashboard() {
   const recentOrders = orders.slice(0, 3);
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
+    <div className="dash-page" style={{ maxWidth: '1100px' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '40px' }}>
@@ -164,8 +164,8 @@ export default async function UserDashboard() {
 
       {/* Stats strip */}
       <div
-        className="grid grid-cols-3"
-        style={{ gap: '1px', background: 'var(--border)', marginBottom: '40px', border: '1px solid var(--border)' }}
+        className="stat-grid-3"
+        style={{ marginBottom: '40px', border: '1px solid var(--border)' }}
       >
         {[
           { label: 'Billets achetés',         value: totalTickets },

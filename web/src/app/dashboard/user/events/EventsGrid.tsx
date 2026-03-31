@@ -318,7 +318,7 @@ export default function EventsGrid({
 
   const selectStyle: React.CSSProperties = {
     border: '1.5px solid var(--border)',
-    background: 'var(--background)',
+    background: 'var(--input-bg)',
     padding: '8px 12px',
     fontSize: '0.875rem',
     color: 'var(--foreground)',
@@ -349,7 +349,7 @@ export default function EventsGrid({
           placeholder={te.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: '420px' }}
+          style={{ maxWidth: '100%' }}
         />
       </div>
 

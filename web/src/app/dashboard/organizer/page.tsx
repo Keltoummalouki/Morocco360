@@ -81,7 +81,7 @@ export default function OrganizerDashboard() {
   const recent       = [...events].sort((a, b) => new Date(b.date_start).getTime() - new Date(a.date_start).getTime()).slice(0, 3);
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
+    <div className="dash-page" style={{ maxWidth: '1100px' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '36px' }}>

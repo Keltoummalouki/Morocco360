@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ── Color tokens — Light mode ─────────────────────── */
 :root {
   --background: #FAFAF8;
   --foreground: #1C1917;
@@ -8,6 +9,27 @@
   --muted: #78716C;
   --surface: #F0EBE3;
   --border: #E5DDD4;
+  --shadow: rgba(28, 25, 23, 0.08);
+  --input-bg: #FFFFFF;
+  --card-inverted-bg: #1C1917;
+  --card-inverted-text: #FAFAF8;
+  --card-inverted-muted: #A8A29E;
+}
+
+/* ── Color tokens — Dark mode ──────────────────────── */
+[data-theme="dark"] {
+  --background: #131110;
+  --foreground: #F2EDE8;
+  --primary: #D4614A;
+  --accent: #C99A3D;
+  --muted: #9D938D;
+  --surface: #1D1A17;
+  --border: #2C2925;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --input-bg: #1A1714;
+  --card-inverted-bg: #F2EDE8;
+  --card-inverted-text: #131110;
+  --card-inverted-muted: #6B6560;
 }
 
 @theme inline {
@@ -26,23 +48,28 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 /* ── Keyframes ─────────────────────────────────────── */
 
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
@@ -51,14 +78,8 @@ body {
 }
 
 @keyframes slideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(36px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(36px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes marquee {
@@ -111,7 +132,7 @@ body {
 
 .card-hover:hover {
   transform: translateY(-5px);
-  box-shadow: 0 24px 48px -8px rgba(28, 25, 23, 0.12);
+  box-shadow: 0 24px 48px -8px var(--shadow);
 }
 
 /* ── Underline link ────────────────────────────────── */
@@ -150,12 +171,13 @@ body {
   text-transform: uppercase;
   border: none;
   cursor: pointer;
-  transition: background 0.25s ease, transform 0.25s ease;
+  transition: background 0.25s ease, transform 0.25s ease, color 0.25s ease;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .btn-primary:hover {
   background: var(--primary);
+  color: #FAFAF8;
   transform: translateY(-2px);
 }
 
@@ -170,7 +192,7 @@ body {
   text-transform: uppercase;
   border: 1.5px solid var(--foreground);
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
@@ -212,6 +234,10 @@ body {
   backdrop-filter: blur(12px);
 }
 
+[data-theme="dark"] .nav-bar {
+  background: rgba(19, 17, 16, 0.94);
+}
+
 .nav-link {
   font-size: 0.8125rem;
   color: var(--muted);
@@ -222,8 +248,21 @@ body {
   padding: 9px 22px;
 }
 
+/* Compact action button for page headers */
+.btn-action {
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 .btn-cta {
   background: var(--primary);
+  color: #FAFAF8;
+}
+
+.btn-cta:hover {
+  background: var(--foreground);
 }
 
 /* ── Form inputs ───────────────────────────────────── */
@@ -231,12 +270,12 @@ body {
 .input-field {
   width: 100%;
   border: 1.5px solid var(--border);
-  background: transparent;
+  background: var(--input-bg);
   padding: 13px 16px;
   font-size: 0.9375rem;
   color: var(--foreground);
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-appearance: none;
 }
@@ -247,4 +286,137 @@ body {
 
 .input-field:focus {
   border-color: var(--foreground);
+}
+
+/* ── Dash page responsive container ────────────────── */
+
+.dash-page {
+  padding: 24px 16px;
+  max-width: 1200px;
+}
+
+@media (min-width: 640px) {
+  .dash-page {
+    padding: 32px 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-page {
+    padding: 40px 48px;
+  }
+}
+
+/* ── Responsive stat grid ───────────────────────────── */
+
+.stat-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+@media (min-width: 480px) {
+  .stat-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stat-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+
+@media (min-width: 768px) {
+  .stat-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── Admin two-col layout ───────────────────────────── */
+
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .admin-two-col {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+/* ── Theme toggle button ─────────────────────────────  */
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  border-color: var(--foreground);
+  color: var(--foreground);
+}
+
+/* ── Mobile sidebar overlay ─────────────────────────── */
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+[data-theme="dark"] .sidebar-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ── Mobile nav menu ─────────────────────────────────── */
+
+.mobile-menu {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px 24px;
+  z-index: 49;
+  animation: fadeUp 0.2s ease forwards;
+}
+
+/* ── Table responsive ────────────────────────────────── */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Focus visible ───────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Selection ───────────────────────────────────────── */
+
+::selection {
+  background: var(--primary);
+  color: #FAFAF8;
 }

@@ -57,17 +57,6 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-const STATUS_LABEL: Record<Ticket['status'], string> = {
-  VALID: 'Valide',
-  USED: 'Utilisé',
-  CANCELLED: 'Annulé',
-};
-
-const STATUS_COLOR: Record<Ticket['status'], string> = {
-  VALID: '#4A7C6F',
-  USED: '#888',
-  CANCELLED: '#c0392b',
-};
 
 export default async function HistoryPage() {
   const cookieStore = await cookies();
@@ -99,7 +88,7 @@ export default async function HistoryPage() {
   const accent = '#4A7C6F';
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '900px' }}>
+    <div className="dash-page" style={{ maxWidth: '900px' }}>
       {/* Header */}
       <div style={{ marginBottom: '36px' }}>
         <p
@@ -282,43 +271,6 @@ function OrderCard({ order, accent }: { order: Order; accent: string }) {
         </span>
       </div>
 
-      {/* Tickets list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-        {order.tickets.map((ticket) => (
-          <div
-            key={ticket.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '0.8125rem',
-              padding: '8px 12px',
-              background: 'var(--surface, #f8f8f8)',
-              gap: '8px',
-            }}
-          >
-            <span style={{ color: 'var(--muted)', fontFamily: 'monospace', fontSize: '0.75rem' }}>
-              {ticket.qr_code}
-            </span>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
-              {ticket.category && (
-                <span style={{ color: 'var(--muted)' }}>{ticket.category}</span>
-              )}
-              <span
-                style={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: STATUS_COLOR[ticket.status],
-                }}
-              >
-                {STATUS_LABEL[ticket.status]}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import Sidebar from '@/components/Sidebar';
+import DashboardShell from '@/components/DashboardShell';
 import { decodeJwt } from '@/lib/auth-server';
 import type { Role } from '@/lib/auth';
 
@@ -17,13 +17,11 @@ export default async function DashboardLayout({
   if (!payload?.role) redirect('/login');
 
   const role = payload.role as Role;
-  // Use the email username as the display name
   const name = payload.email.split('@')[0] ?? payload.email;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
-      <Sidebar role={role} name={name} />
-      <main style={{ flex: 1, overflow: 'auto' }}>{children}</main>
-    </div>
+    <DashboardShell role={role} name={name}>
+      {children}
+    </DashboardShell>
   );
 }

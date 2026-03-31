@@ -3,7 +3,7 @@ import EventForm from '@/components/EventForm';
 
 export default function NewEventPage() {
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '800px' }}>
+    <div className="dash-page" style={{ maxWidth: '800px' }}>
       <Link
         href="/dashboard/admin/events"
         style={{ fontSize: '0.8125rem', color: 'var(--muted)', display: 'inline-block', marginBottom: '32px' }}
