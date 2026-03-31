@@ -78,6 +78,10 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrCode, eventId }),
       });
+      if (res.status === 401) {
+        window.location.href = `/login?redirect=/dashboard/scanner/${eventId}`;
+        return;
+      }
       const data = await res.json() as ScanResponse;
       setScanResult(data);
       playBeep(audioCtxRef.current, data.result === 'SUCCESS');

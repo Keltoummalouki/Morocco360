@@ -62,11 +62,13 @@ export class ScannerService {
     await qr.startTransaction();
 
     try {
-      // 4. Load with FOR UPDATE to prevent concurrent double-scan
+      // 4. Load with FOR UPDATE OF tickets to prevent concurrent double-scan.
+      // Specifying tables: ['tickets'] avoids the PostgreSQL restriction that
+      // FOR UPDATE cannot be applied to the nullable side of an outer join.
       const ticket = await qr.manager.findOne(Ticket, {
         where: { id: ticketId },
         relations: ['order', 'order.user', 'category', 'category.event'],
-        lock: { mode: 'pessimistic_write' },
+        lock: { mode: 'pessimistic_write', tables: ['tickets'] },
       });
 
       if (!ticket) {

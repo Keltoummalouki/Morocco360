@@ -22,6 +22,7 @@ import { User } from '../users/entities/user.entity';
 import * as QRCode from 'qrcode';
 import { CreateCheckoutDto } from './dto/create-checkout.dto.js';
 import { MailService } from '../mail/mail.service';
+import { QRCodeService } from '../tickets/qr-code.service';
 
 @Injectable()
 export class PaymentsService {
@@ -37,6 +38,7 @@ export class PaymentsService {
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
+    private readonly qrCodeService: QRCodeService,
   ) {
     this.stripe = new Stripe(
       configService.getOrThrow<string>('STRIPE_SECRET_KEY'),
@@ -66,8 +68,9 @@ export class PaymentsService {
     }
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
 
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    
     const unitPrice = Number(category.price);
     const totalAmount = unitPrice * dto.quantity;
 
@@ -297,23 +300,22 @@ export class PaymentsService {
     category: TicketCategory,
     quantity: number,
   ) {
+    const eventId = category.event.id;
     for (let i = 0; i < quantity; i++) {
-      const qrCode = [
-        'TKT',
-        order.id,
-        category.id,
-        i,
-        Date.now().toString(36).toUpperCase(),
-        Math.random().toString(36).slice(2, 7).toUpperCase(),
-      ].join('-');
-
-      const ticket = em.create(Ticket, {
-        qr_code: qrCode,
-        status: TicketStatus.VALID,
-        order,
-        category,
-      });
-      await em.save(ticket);
+      // Save first to get the ticket ID, then generate the HMAC-signed QR payload
+      const ticket = await em.save(
+        em.create(Ticket, {
+          status: TicketStatus.VALID,
+          event_id: eventId,
+          order,
+          category,
+        }),
+      );
+      const qrCode = this.qrCodeService.generateQRPayload(
+        String(ticket.id),
+        String(eventId),
+      );
+      await em.update(Ticket, ticket.id, { qr_code: qrCode });
     }
   }
 
@@ -322,15 +324,15 @@ export class PaymentsService {
    * Si oui, marque l'événement comme sold_out.
    */
   async getOrderPdf(orderId: number): Promise<Buffer | null> {
-    const order = await this.orderRepo.findOne({
-      where: { id: orderId },
-      relations: [
-        'user',
-        'tickets',
-        'tickets.category',
-        'tickets.category.event',
-      ],
-    });
+    const order = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.tickets', 'ticket')
+      .addSelect('ticket.qr_code')
+      .leftJoinAndSelect('ticket.category', 'category')
+      .leftJoinAndSelect('category.event', 'event')
+      .where('order.id = :id', { id: orderId })
+      .getOne();
     if (!order || !order.tickets?.length) return null;
     return this.mailService.generateOrderPdf(order, order.user, order.tickets);
   }
@@ -339,15 +341,45 @@ export class PaymentsService {
     let order: Order | null = null;
 
     if (params.orderId) {
-      order = await this.orderRepo.findOne({
-        where: { id: Number(params.orderId) },
-        relations: ['tickets', 'tickets.category', 'tickets.category.event'],
-      });
+      order = await this.orderRepo
+        .createQueryBuilder('order')
+        .leftJoinAndSelect('order.tickets', 'ticket')
+        .addSelect('ticket.qr_code')
+        .leftJoinAndSelect('ticket.category', 'category')
+        .leftJoinAndSelect('category.event', 'event')
+        .where('order.id = :id', { id: Number(params.orderId) })
+        .getOne();
     } else if (params.sessionId) {
-      order = await this.orderRepo.findOne({
-        where: { payment_gateway_ref: params.sessionId },
-        relations: ['tickets', 'tickets.category', 'tickets.category.event'],
-      });
+      order = await this.orderRepo
+        .createQueryBuilder('order')
+        .leftJoinAndSelect('order.tickets', 'ticket')
+        .addSelect('ticket.qr_code')
+        .leftJoinAndSelect('ticket.category', 'category')
+        .leftJoinAndSelect('category.event', 'event')
+        .where('order.payment_gateway_ref = :sessionId', { sessionId: params.sessionId })
+        .getOne();
+
+      // Webhook fallback: if order exists but has no tickets, the webhook hasn't
+      // fired yet. Verify directly with Stripe and process it now.
+      if (order && (!order.tickets || order.tickets.length === 0)) {
+        try {
+          const session = await this.stripe.checkout.sessions.retrieve(params.sessionId);
+          if (session.payment_status === 'paid') {
+            await this.handleSessionCompleted(session);
+            // Re-fetch with tickets now created
+            order = await this.orderRepo
+              .createQueryBuilder('order')
+              .leftJoinAndSelect('order.tickets', 'ticket')
+              .addSelect('ticket.qr_code')
+              .leftJoinAndSelect('ticket.category', 'category')
+              .leftJoinAndSelect('category.event', 'event')
+              .where('order.payment_gateway_ref = :sessionId', { sessionId: params.sessionId })
+              .getOne();
+          }
+        } catch {
+          // Stripe unreachable — polling will catch it when webhook eventually fires
+        }
+      }
     }
 
     if (!order) return null;
@@ -372,11 +404,16 @@ export class PaymentsService {
 
   // ── Mes commandes (billets passés et futurs) ───────────────
   async getMyOrders(userId: number) {
-    const orders = await this.orderRepo.find({
-      where: { user: { id: userId }, status: OrderStatus.PAID },
-      relations: ['tickets', 'tickets.category', 'tickets.category.event'],
-      order: { created_at: 'DESC' },
-    });
+    const orders = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.tickets', 'ticket')
+      .addSelect('ticket.qr_code')
+      .leftJoinAndSelect('ticket.category', 'category')
+      .leftJoinAndSelect('category.event', 'event')
+      .where('order.user = :userId', { userId })
+      .andWhere('order.status = :status', { status: OrderStatus.PAID })
+      .orderBy('order.created_at', 'DESC')
+      .getMany();
 
     return orders.map((order) => ({
       id: order.id,
@@ -401,15 +438,15 @@ export class PaymentsService {
   }
 
   private async sendTicketEmails(orderId: number): Promise<void> {
-    const order = await this.orderRepo.findOne({
-      where: { id: orderId },
-      relations: [
-        'user',
-        'tickets',
-        'tickets.category',
-        'tickets.category.event',
-      ],
-    });
+    const order = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.tickets', 'ticket')
+      .addSelect('ticket.qr_code')
+      .leftJoinAndSelect('ticket.category', 'category')
+      .leftJoinAndSelect('category.event', 'event')
+      .where('order.id = :id', { id: orderId })
+      .getOne();
     if (order?.user && order.tickets?.length) {
       await this.mailService.sendTickets(order.user, order, order.tickets);
     }
