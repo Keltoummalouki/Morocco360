@@ -82,7 +82,7 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
   ] : [];
 
   return (
-    <div className="dash-page" style={{ maxWidth: '1100px' }}>
+    <div className="dash-page">
 
       {/* Breadcrumb + title */}
       <div style={{ marginBottom: '28px' }}>

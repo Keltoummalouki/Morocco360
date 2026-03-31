@@ -94,7 +94,7 @@ export default async function AdminDashboard() {
     : null;
 
   return (
-    <div className="dash-page" style={{ maxWidth: '1100px' }}>
+    <div className="dash-page">
 
       {/* Header */}
       <div style={{ marginBottom: '40px' }}>

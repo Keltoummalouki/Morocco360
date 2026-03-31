@@ -10,8 +10,9 @@ export default function ThemeToggle() {
       className="theme-toggle"
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      suppressHydrationWarning
     >
-      {theme === 'dark' ? '☀' : '☽'}
+      <span suppressHydrationWarning>{theme === 'dark' ? '☀' : '☽'}</span>
     </button>
   );
 }
