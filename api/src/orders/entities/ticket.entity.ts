@@ -60,6 +60,7 @@ export class Ticket {
 
   @ManyToOne(() => TicketCategory, (category) => category.tickets, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   category: TicketCategory;
 }
