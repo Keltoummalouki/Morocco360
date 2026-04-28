@@ -1,541 +1,330 @@
-# Morocco360 🎪🎭🏟️
+# Morocco360
 
-**Plateforme centralisée pour tous les événements au Maroc**
-
----
-
-## 📋 Vue d'ensemble
-
-Morocco360 est une plateforme web et mobile permettant aux utilisateurs (locaux et touristes) de découvrir, réserver et gérer des événements au Maroc. Intégration complète avec restaurants, activités et équipements basés sur la géolocalisation.
-
-**Objectif principal** : Simplifier l'accès aux événements au Maroc tout en offrant une expérience utilisateur fluide et sécurisée.
+**Plateforme centralisee pour tous les evenements au Maroc**
 
 ---
 
-## 👥 Public cible
+## Vue d'ensemble
 
-- **Locaux** : Cherchant des événements près de chez eux
+Morocco360 est une plateforme web permettant aux utilisateurs (locaux et touristes) de decouvrir, reserver et gerer des evenements au Maroc.
+
+**Objectif principal** : Simplifier l'acces aux evenements au Maroc tout en offrant une experience utilisateur fluide et securisee.
+
+---
+
+## Public cible
+
+- **Locaux** : Cherchant des evenements pres de chez eux
 - **Touristes internationaux** : Explorant la culture, musique, sports au Maroc
-- **Fans d'événements** : Musique, sports, festivals, conférences, expositions
-- **Voyageurs** : Voulant organiser une expérience complète autour d'un événement
+- **Fans d'evenements** : Musique, sports, festivals, conferences, expositions
 
 ---
 
-## 🎯 Fonctionnalités principales
+## Fonctionnalites principales
 
-### 1. **Système de tickets & événements**
-- Consultation d'événements filtrés par : type, date, ville, prix, popularité
-- Recherche avancée avec autocomplete
-- Affichage détaillé : description, localisation, horaires, capacité
-- Réservation multi-tickets en un clic
-- Gestion des billets : téléchargement PDF + QR code scannable
-- Historique des réservations avec détails et statut
+### 1. Authentification et Comptes
+- Inscription et connexion par email/password
+- JWT access token (15 min) + refresh token (7 jours) avec rotation
+- Hachage bcrypt (cost factor 12) pour les mots de passe et les refresh tokens
+- Rate limiting sur les routes sensibles
 
-### 2. **Découverte d'activités & restaurants**
-- Carte interactive avec filtres (type, prix, avis, distance)
-- Suggestions intelligentes basées sur :
-  - Localisation de l'utilisateur
-  - Préférences sauvegardées
-  - Historique de consultation
-- Avis et notes utilisateurs (1-5 étoiles)
-- Affichage du menu, horaires, photos
-- Intégration avec Google Maps pour itinéraires
+### 2. Systeme de tickets et evenements
+- Consultation d'evenements filtres par type, date, ville, prix
+- Reservation multi-tickets
+- Gestion des billets avec QR code scannable
+- Historique des reservations
 
-### 3. **Profil utilisateur**
-- Création compte via email/Google/Apple
-- Gestion des préférences : langues, devises, catégories favorites
-- Favoris (événements, restaurants, activités)
-- Historique complet des réservations
-- Wishlist avec notifications de prix/disponibilité
-- Paramètres de confidentialité et sécurité
+### 3. Paiement securise
+- Integration Stripe, PayPal, cartes bancaires locales
+- Recus emailes et telechargeables
+- Gestion des remboursements
 
-### 4. **Paiement sécurisé**
-- Intégration multi-fournisseurs :
-  - **Stripe** (cartes internationales)
-  - **PayPal** (transfert sécurisé)
-  - **Cartes bancaires locales** (Maroc)
-- Stockage sécurisé des moyens de paiement (PCI-DSS compliant)
-- Gestion des erreurs et retries automatiques
-- Reçus emailés et téléchargeables
-- Support des remboursements et modifications
+### 4. Profil utilisateur
+- Gestion des preferences
+- Historique complet des reservations
+- Parametres de securite
 
-### 5. **Expérience multilingue & responsive**
-- Langues : Arabe (darija), Français, Anglais
-- Interface entièrement traduite + contenu utilisateur
-- Responsive design : mobile, tablette, desktop
-- Progressive Web App (PWA) pour offline partiel
-- Dark mode / Light mode
-
-### 6. **Fonctionnalités avancées**
-- Système de notifications : push, email, SMS
-- Partage d'événements sur réseaux sociaux
-- Système de points de fidélité (optionnel)
-- Reviews et photos utilisateurs
-- Chat support en temps réel
-- Analytics pour événementiel (dashboard organisateurs)
+### 5. Systeme de scanning QR
+- Scanning securise avec HMAC-SHA256
+- Gestion des roles (ORGANIZER, STAFF)
+- Audit trail complet de tous les scans
+- Interface mobile optimisee pour le scanning
+- **[Documentation complete du systeme QR →](docs/QR_SCANNING_SYSTEM.md)**
 
 ---
 
-## 🛠️ Stack technologique
+## Stack technologique
 
-| Couche | Technologies |
-|--------|-------------|
-| **Frontend** | Next.js 14+ (React, TypeScript) |
-| **Backend** | Node.js + NestJS (TypeScript) |
-| **Database** | MySQL 8.0+ (avec Redis pour cache) |
-| **Cartographie** | Google Maps API (primary) + OpenStreetMap fallback |
-| **Paiement** | Stripe API, PayPal SDK |
-| **Authentification** | JWT + OAuth2 (Google, Apple) |
-| **Hosting** | AWS (EC2 + RDS + S3) |
-| **CI/CD** | GitHub Actions |
-| **Monitoring** | Sentry + CloudWatch |
-| **Cache** | Redis |
-| **Storage fichiers** | AWS S3 (images, PDF tickets) |
-
-### Dépendances clés
-
-**Frontend** :
-- `next.js`, `react`, `typescript`
-- `tailwindcss` (styling)
-- `zustand` ou `redux-toolkit` (state management)
-- `react-query` (data fetching)
-- `leaflet` + `leaflet-react` (maps)
-- `stripe-js`, `@paypal/checkout-server-sdk`
-- `axios` (HTTP client)
-- `date-fns` (gestion dates)
-
-**Backend** :
-- `@nestjs/core`, `@nestjs/jwt`, `@nestjs/passport`
-- `mysql2`, `typeorm` (ORM)
-- `stripe`, `paypal-rest-sdk`
-- `class-validator`, `class-transformer`
-- `dotenv` (config)
-- `jest` (tests)
+| Couche        | Technologies                          |
+|---------------|---------------------------------------|
+| **Frontend**  | Next.js 14+ (React, TypeScript)       |
+| **Backend**   | Node.js + NestJS 11 (TypeScript)      |
+| **Database**  | PostgreSQL 16 (Docker)                |
+| **ORM**       | TypeORM 0.3                           |
+| **Auth**      | JWT (access + refresh) + Passport.js  |
+| **CI/CD**     | GitHub Actions                        |
+| **Container** | Docker + Docker Compose               |
 
 ---
 
-## 📁 Structure du projet
+## Structure du projet
 
 ```
 morocco360/
-├── frontend/
-│   ├── app/                 # Next.js app router
-│   │   ├── (auth)/         # Routes auth
-│   │   ├── events/         # Pages événements
-│   │   ├── activities/     # Pages activités/restaurants
-│   │   ├── profile/        # Profil utilisateur
-│   │   └── checkout/       # Processus paiement
-│   ├── components/          # Composants réutilisables
-│   ├── lib/                # Utilitaires, API calls
-│   ├── styles/             # Tailwind config
-│   ├── public/             # Assets statiques
-│   └── package.json
-│
-├── backend/
+├── api/                        # Backend NestJS
 │   ├── src/
-│   │   ├── auth/           # Module authentification
-│   │   ├── events/         # Module événements
-│   │   ├── activities/     # Module activités/restaurants
-│   │   ├── users/          # Module utilisateurs
-│   │   ├── payments/       # Module paiements
-│   │   ├── tickets/        # Module tickets
-│   │   ├── common/         # Filters, guards, interceptors
-│   │   └── main.ts         # Entry point
-│   ├── test/               # Tests (unit + integration)
-│   ├── .env.example        # Variables d'env
+│   │   ├── auth/               # Module authentification
+│   │   │   ├── dto/            # RegisterDto, LoginDto
+│   │   │   ├── guards/         # JwtAuthGuard, LocalAuthGuard, JwtRefreshGuard
+│   │   │   ├── strategies/     # local, jwt, jwt-refresh
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.service.ts
+│   │   │   └── auth.module.ts
+│   │   ├── users/
+│   │   │   ├── entities/       # User, Role
+│   │   │   ├── users.service.ts
+│   │   │   └── users.module.ts
+│   │   ├── events/
+│   │   │   └── entities/       # Event, TicketCategory
+│   │   ├── orders/
+│   │   │   └── entities/       # Order, Ticket
+│   │   ├── payments/
+│   │   │   └── entities/       # Payment
+│   │   ├── database/
+│   │   │   └── seeds/          # Seeders roles et utilisateurs
+│   │   └── app.module.ts
+│   ├── test/
+│   ├── .env.example
 │   └── package.json
-│
-├── database/
-│   ├── migrations/         # DB migrations (TypeORM)
-│   └── seeds/              # Données initiales
-│
+├── web/                        # Frontend Next.js
 ├── docs/
-│   ├── API.md              # Documentation API REST
-│   ├── ARCHITECTURE.md     # Architecture système
-│   └── DEPLOYMENT.md       # Guide déploiement
-│
+│   └── conception/             # Diagrammes UML (draw.io)
+├── docker-compose.yml          # PostgreSQL local
 └── .github/
-    └── workflows/          # CI/CD (GitHub Actions)
+    └── workflows/              # CI/CD
 ```
 
 ---
 
-## ⚙️ Configuration & Installation
+## Modele de donnees
 
-### Prérequis
+### Entites
+
+| Entite           | Description                                            |
+|------------------|--------------------------------------------------------|
+| `User`           | Utilisateur avec role (ADMIN, ORGANIZER, STAFF, USER)  |
+| `Role`           | Role systeme                                           |
+| `Event`          | Evenement avec categorie, dates, capacite, lieu        |
+| `TicketCategory` | Categories de billets par evenement (VIP, standard...) |
+| `Order`          | Commande d'un utilisateur                              |
+| `Ticket`         | Billet individuel avec QR code signe                   |
+| `Payment`        | Transaction de paiement                                |
+| `EventStaff`     | Assignation de staff par evenement                     |
+| `QRScanLog`      | Journal d'audit de tous les scans                      |
+
+### Relations cles
+- `User` N:1 `Role`
+- `User` 1:N `Order`
+- `User` (organizer) 1:N `Event`
+- `Event` 1:N `TicketCategory`
+- `Order` N:1 `User`, N:1 `Event`
+- `Order` 1:N `Ticket`
+- `Order` 1:1 `Payment`
+
+---
+
+## Configuration et Installation
+
+### Prerequis
 - Node.js 18+
-- MySQL 8.0+
+- Docker + Docker Compose
 - Git
-- Compte AWS, Stripe, Google Maps
 
-### 1. **Frontend**
+### 1. Cloner et configurer
 
 ```bash
-cd frontend
+git clone https://github.com/Keltoummalouki/Morocco360.git
+cd Morocco360
+```
+
+### 2. Demarrer la base de donnees
+
+```bash
+cp api/.env.example api/.env
+docker compose up -d
+docker compose ps
+```
+
+Variables a renseigner dans `api/.env` :
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=morocco360_user
+DB_PASS=morocco360_pass
+DB_NAME=morocco360
+
+NODE_ENV=development
+
+JWT_ACCESS_SECRET=change_this_to_a_long_random_secret
+JWT_REFRESH_SECRET=change_this_to_another_long_random_secret
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+### 3. Installer et lancer le backend
+
+```bash
+cd api
 npm install
-cp .env.example .env.local
-
-# Variables d'env requises
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_GOOGLE_MAPS_KEY=xxx
-NEXT_PUBLIC_STRIPE_KEY=pk_test_xxx
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=xxx
-```
-
-Lancer en dev :
-```bash
-npm run dev
-# → http://localhost:3000
-```
-
-### 2. **Backend**
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-
-# Variables d'env requises
-DATABASE_HOST=localhost
-DATABASE_PORT=3306
-DATABASE_USER=root
-DATABASE_PASSWORD=xxx
-DATABASE_NAME=morocco360
-
-JWT_SECRET=your_jwt_secret_key
-STRIPE_SECRET_KEY=sk_test_xxx
-PAYPAL_MODE=sandbox
-PAYPAL_CLIENT_ID=xxx
-PAYPAL_SECRET=xxx
-
-GOOGLE_MAPS_API_KEY=xxx
-```
-
-Migrations DB :
-```bash
-npm run typeorm migration:run
-npm run seed  # Données initiales
-```
-
-Lancer en dev :
-```bash
 npm run start:dev
-# → http://localhost:3001
+# Serveur disponible sur http://localhost:3001
 ```
 
-### 3. **Base de données**
+### 4. Seeder la base de donnees
 
 ```bash
-# Créer DB
-mysql -u root -p
-CREATE DATABASE morocco360;
-CREATE USER 'morocco360_user'@'localhost' IDENTIFIED BY 'secure_password';
-GRANT ALL PRIVILEGES ON morocco360.* TO 'morocco360_user'@'localhost';
-FLUSH PRIVILEGES;
+cd api
+npm run seed
+```
+
+Comptes crees par le seeder :
+
+| Email                   | Mot de passe  | Role      |
+|-------------------------|---------------|-----------|
+| admin@morocco360.ma     | Admin1234     | ADMIN     |
+| organizer@morocco360.ma | Organizer1234 | ORGANIZER |
+| user@morocco360.ma      | User1234      | USER      |
+
+---
+
+## API REST - Authentification
+
+### Endpoints
+
+| Methode | Route               | Description           | Auth             |
+|---------|---------------------|-----------------------|------------------|
+| POST    | `/auth/register`    | Inscription           | Public           |
+| POST    | `/auth/login`       | Connexion             | Public           |
+| POST    | `/auth/logout`      | Deconnexion           | Bearer (access)  |
+| POST    | `/auth/refresh`     | Renouveler les tokens | Bearer (refresh) |
+
+### Inscription
+
+```json
+POST /auth/register
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "Password1",
+  "full_name": "John Doe",
+  "phone_number": "+212600000000"
+}
+```
+
+Reponse 201 :
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Regles de validation du mot de passe :
+- 8 a 100 caracteres
+- Au moins une majuscule
+- Au moins une minuscule
+- Au moins un chiffre
+
+### Connexion
+
+```json
+POST /auth/login
+{
+  "email": "john@example.com",
+  "password": "Password1"
+}
 ```
 
 ---
 
-## 🗄️ Modèle de données simplifié
+## Securite
 
-### Users
-```sql
-- id (PK)
-- email (UNIQUE)
-- password_hash
-- first_name, last_name
-- phone
-- language (ar, fr, en)
-- currency (MAD, EUR, USD)
-- created_at, updated_at
-```
-
-### Events
-```sql
-- id (PK)
-- title, description
-- category (music, sports, culture, conference)
-- start_date, end_date
-- location, latitude, longitude
-- capacity, available_tickets
-- price_min, price_max
-- image_url
-- organizer_id (FK → Users)
-- created_at
-```
-
-### Reservations
-```sql
-- id (PK)
-- user_id (FK → Users)
-- event_id (FK → Events)
-- quantity
-- total_price
-- status (pending, confirmed, cancelled)
-- created_at
-```
-
-### Tickets
-```sql
-- id (PK)
-- reservation_id (FK → Reservations)
-- qr_code (UNIQUE)
-- pdf_url
-- is_scanned
-- scanned_at
-```
-
-### Payments
-```sql
-- id (PK)
-- reservation_id (FK → Reservations)
-- provider (stripe, paypal, bank_card)
-- amount, currency
-- status (pending, completed, failed, refunded)
-- transaction_id
-- created_at
-```
-
-### Activities
-```sql
-- id (PK)
-- name, description, type (restaurant, activity)
-- latitude, longitude
-- price_range (€, €€, €€€)
-- rating (0-5)
-- image_url
-- category
-```
+- **JWT** : access token 15 min + refresh token 7 jours avec rotation
+- **Refresh token** : seul le hash bcrypt est stocke en base (jamais le token brut)
+- **Rotation** : chaque `/auth/refresh` invalide l'ancien refresh token et en cree un nouveau
+- **Rate limiting** : 5 req/min sur `/auth/register`, 10 req/min sur `/auth/login`
+- **Validation** : whitelist stricte sur tous les DTOs (class-validator)
+- **Hachage passwords** : bcrypt cost factor 12
+- **Variables sensibles** : uniquement en variables d'environnement (jamais en Git)
 
 ---
 
-## 🔐 Sécurité
-
-### Mesures implémentées
-- **HTTPS/TLS** obligatoire en production
-- **JWT** avec expiration (1h access, 7j refresh)
-- **Hachage passwords** (bcrypt avec 10 rounds min)
-- **CORS** restrictif : domaines approuvés seulement
-- **Rate limiting** : 100 req/min par IP
-- **SQL injection protection** : parameterized queries (TypeORM)
-- **XSS protection** : sanitization HTML + CSP headers
-- **CSRF tokens** pour formulaires critiques
-- **PCI-DSS compliance** : pas de stockage données cartes
-- **GDPR compliance** : export/suppression données utilisateur
-- **Audit logging** : toutes actions sensibles enregistrées
-
-### Variables sensibles
-Utiliser uniquement des **environment variables** sécurisées (jamais en Git).
+## Tests
 
 ```bash
-# .env (à l'écart du contrôle de version)
-STRIPE_SECRET_KEY=sk_test_xxx
-JWT_SECRET=super_secret_key_min_32_chars
-DATABASE_PASSWORD=xxx
+cd api
+npm run test        # Tests unitaires
+npm run test:cov    # Tests avec couverture
+npm run test:e2e    # Tests E2E
 ```
 
 ---
 
-## 📊 API REST - Endpoints clés
+## CI/CD
 
-### Authentication
-```
-POST   /api/auth/register           # Création compte
-POST   /api/auth/login              # Connexion
-POST   /api/auth/refresh            # Refresh token
-POST   /api/auth/logout             # Déconnexion
-```
+GitHub Actions execute automatiquement :
+1. Linting ESLint
+2. Build TypeScript
+3. Tests unitaires
+4. Tests E2E (avec service PostgreSQL)
 
-### Events
-```
-GET    /api/events                  # Liste (avec filtres)
-GET    /api/events/:id              # Détails
-POST   /api/events                  # Créer (admin)
-PUT    /api/events/:id              # Modifier (admin)
-DELETE /api/events/:id              # Supprimer (admin)
-```
-
-### Reservations
-```
-POST   /api/reservations            # Créer réservation
-GET    /api/reservations/:id        # Détails
-GET    /api/users/me/reservations   # Mes réservations
-PUT    /api/reservations/:id/cancel # Annuler
-```
-
-### Payments
-```
-POST   /api/payments/stripe/intent  # Create payment intent
-POST   /api/payments/paypal/order   # Create PayPal order
-POST   /api/payments/confirm        # Confirmer paiement
-```
-
-### Activities
-```
-GET    /api/activities              # Liste (avec filtres géo)
-GET    /api/activities/:id          # Détails
-GET    /api/activities/nearby        # À proximité
-```
-
-### Profile
-```
-GET    /api/users/me                # Mon profil
-PUT    /api/users/me                # Modifier profil
-GET    /api/users/me/favorites      # Favoris
-POST   /api/users/me/favorites/:id  # Ajouter favoris
-```
-
-**Documentation complète** : `docs/API.md`
+Fichier de configuration : `.github/workflows/ci.yml`
 
 ---
 
-## 🧪 Tests
+## Contribution
 
-### Frontend
-```bash
-cd frontend
-npm run test                # Jest
-npm run test:coverage       # Couverture
-npm run test:e2e            # Cypress E2E
-```
-
-### Backend
-```bash
-cd backend
-npm run test                # Jest
-npm run test:coverage
-npm run test:e2e            # Tests intégration DB
-```
-
-Objectif couverture : **≥ 80%**
-
----
-
-## 🚀 Déploiement
-
-### Environment
-- **Dev** : http://localhost:3000 (frontend)
-- **Staging** : AWS EC2 (test avant prod)
-- **Production** : AWS ECS + CloudFront CDN
-
-### Processus CI/CD (GitHub Actions)
-
-```yaml
-1. Push sur main
-2. Linter + tests auto
-3. Build Docker images
-4. Push vers ECR (AWS)
-5. Deploy vers ECS
-6. Health checks + rollback si erreurs
-```
-
-### Commandes manuelles (si nécessaire)
-
-```bash
-# Build images
-docker build -t morocco360-frontend ./frontend
-docker build -t morocco360-backend ./backend
-
-# Deploy AWS ECS
-aws ecs update-service --cluster morocco360 --service frontend --force-new-deployment
-
-# Vérifier logs
-aws logs tail /ecs/morocco360-backend --follow
-```
-
-**Détails complets** : `docs/DEPLOYMENT.md`
-
----
-
-## 📈 Performance & Scalabilité
-
-### Optimisations frontend
-- **Code splitting** (Next.js automatic)
-- **Image optimization** (next/image)
-- **Caching** : Service Worker (PWA)
-- **Lazy loading** : composants + images
-- **Compression** : Gzip + Brotli
-
-### Optimisations backend
-- **Database indexing** : sur colonnes frecquentes (email, event_id, date)
-- **Query optimization** : N+1 prevention, eager loading
-- **Caching** : Redis pour data fréquentes (événements populaires)
-- **Pagination** : 20-50 items par page
-- **Gestion des fichiers** : S3 avec CloudFront CDN
-
-### Capacité prévue
-- **500K users** simultanés sans dégradation
-- **5M événements** indexés
-- **100K réservations/jour** en pic
-- **Response time** < 200ms (p95)
-
----
-
-## 🔄 Maintenance & Évolutivité
-
-### Monitoring
-- **Sentry** : error tracking
-- **CloudWatch** : logs + metrics
-- **DataDog** (optional) : APM
-- **Uptime Robot** : alertes down
-
-### Backup
-- **DB** : snapshots journaliers RDS AWS
-- **S3 images** : versioning + replication
-- **Code** : git + GitHub
-
-### Roadmap v2.0
-- [ ] System notifs temps réel (WebSockets)
-- [ ] Intégration paiement crypto (Bitcoin, USDC)
-- [ ] Système de fidélité avancé (points, cashback)
-- [ ] Dashboard analytics pour organisateurs
-- [ ] App mobile native (React Native)
-- [ ] Live streaming intégré (pour événements)
-
----
-
-## 📞 Support & Contribution
-
-### Contacter l'équipe
-- **Issues** : GitHub Issues
-- **Support utilisateurs** : keltoummalouki@gmail.com
-- **Bugs critiques** : keltoummalouki@gmail.com
-
-### Contribution
 1. Fork le repo
-2. Branch feature (`git checkout -b feature/xyz`)
-3. Commit messages clairs
-4. Tests + linting passants
-5. Pull Request vers `develop`
+2. Creer une branche (`git checkout -b feature/ma-feature`)
+3. Commiter avec des messages clairs
+4. Ouvrir une Pull Request vers `main`
 
 ---
 
-## 📜 License & Legals
+## Changelog
 
-**License** : MIT (voir LICENSE)  
+### v0.3.0 (Mars 2026)
+- **Systeme de scanning QR complet**
+  - QR codes signes avec HMAC-SHA256 (prevention de la contrefacon)
+  - Verrouillage pessimiste (prevention des doubles scans)
+  - Role STAFF ajoute pour le personnel de scanning
+  - Assignation de staff par evenement (EventStaff)
+  - Journal d'audit complet (QRScanLog)
+  - Interface scanner mobile optimisee
+  - Dashboard organizer avec stats en temps reel
+  - Export CSV des participants
+  - Rate limiting (30 scans/minute)
+  - Health checks pour orchestration
+  - Documentation Swagger complete
+  - Validation de configuration au demarrage (Joi)
+  - Filtres d'exception TypeORM personnalises
+
+### v0.2.0 (Mars 2026)
+- Authentification JWT (access token + refresh token avec rotation)
+- Strategies Passport : local, jwt, jwt-refresh
+- Rate limiting sur les routes d'auth
+- Seeders pour les roles et utilisateurs
+- Validation globale des DTOs
+
+### v0.1.0 (Fevrier 2026)
+- Mise en place du monorepo (api/ + web/)
+- Configuration NestJS + TypeORM + PostgreSQL via Docker
+- Modelisation BDD : 7 entites (User, Role, Event, TicketCategory, Order, Ticket, Payment)
+- Pipeline CI/CD GitHub Actions
 
 ---
 
-## 👨‍💻 Équipe & Attribution
-
-**Morocco360** - Développé avec ❤️ pour les événements au Maroc
-
-Maintainers : [keltoum malouki], [Emaikeltoummalouki@gmail.coml]
-
----
-
-## 📝 Changelog
-
-### v1.0.0 (Janvier 2026)
-- ✅ Réservation d'événements
-- ✅ Système de tickets avec QR codes
-- ✅ Paiement sécurisé (Stripe + PayPal)
-- ✅ Découverte activités/restaurants
-- ✅ Profil utilisateur + favoris
-- ✅ Support 3 langues (AR, FR, EN)
-- ✅ Design responsive (mobile-first)
-
----
-
-**Last updated** : February 2026  
-**Status** : 🟢 Active Development
+**Status** : Active Development
+**Derniere mise a jour** : Mars 2026

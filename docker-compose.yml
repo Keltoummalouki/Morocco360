@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: morocco360_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: morocco360_api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      NODE_ENV: ${NODE_ENV}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      QR_HMAC_SECRET: ${QR_HMAC_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+      MAIL_FROM: ${MAIL_FROM}
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./api/src:/app/src
+      - api_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: morocco360_web
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      # Server-side calls go through the Docker network
+      API_URL: http://api:4000
+      # Enable file polling for hot reload on Windows host
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./web/src:/app/src
+      - ./web/next.config.ts:/app/next.config.ts
+      - ./web/public:/app/public
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  api_node_modules:
+  web_node_modules:
