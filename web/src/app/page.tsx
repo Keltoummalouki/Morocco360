@@ -1,14 +1,16 @@
 import Link from "next/link";
-import MobileNav from "@/components/MobileNav";
-import ThemeToggle from "@/components/ThemeToggle";
+import PremiumNav    from "@/components/PremiumNav";
+import HeroSection   from "@/components/HeroSection";
+import PremiumSearch from "@/components/PremiumSearch";
+import CursorGlow    from "@/components/CursorGlow";
+import ScrollProgress from "@/components/ScrollProgress";
+import BottomNav     from "@/components/BottomNav";
+import RevealSection from "@/components/RevealSection";
+import SpotlightCard from "@/components/SpotlightCard";
+import StaggerReveal from "@/components/StaggerReveal";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
-const DESTINATIONS = [
-  { city: "Marrakech",   region: "South",     num: "01", dark: true  },
-  { city: "Chefchaouen", region: "North",     num: "02", dark: false },
-  { city: "Sahara",      region: "Southeast", num: "03", dark: false },
-  { city: "Fez",         region: "Central",   num: "04", dark: true  },
-];
-
+/* ── Static data ────────────────────────────────────────── */
 const FEATURES = [
   {
     symbol: "◎",
@@ -33,213 +35,251 @@ const MARQUEE_CITIES = [
   "MEKNES", "AGADIR", "OUARZAZATE", "TANGIER",
 ];
 
+const DESTINATIONS = [
+  { name: "Marrakech",  count: "240 panoramas", desc: "The Red City"          },
+  { name: "Fez Medina", count: "118 panoramas", desc: "Ancient Imperial City" },
+  { name: "Sahara Erg", count: "96 panoramas",  desc: "Golden Dunes"          },
+  { name: "Essaouira",  count: "74 panoramas",  desc: "Wind City of Africa"   },
+];
+
+const STATS = [
+  { to: 240, suffix: '+',  label: 'Panoramas', desc: 'Across Morocco'      },
+  { to: 18,  suffix: '',   label: 'Cities',    desc: 'Fully mapped'        },
+  { to: 50,  suffix: 'K+', label: 'Explorers', desc: 'From 80 countries'   },
+  { to: 4.9, suffix: '',   label: 'Rating',    desc: 'App store average', decimals: 1 },
+];
+
+/* ── Page ───────────────────────────────────────────────── */
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-
-      {/* ── Navbar ─────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border" aria-label="Main navigation">
-        <div className="nav-bar max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="font-playfair text-xl font-bold shrink-0">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-10">
-            {["Experiences", "Destinations", "Gallery", "About"].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">
-                {item}
-              </Link>
-            ))}
-          </div>
-
-          {/* Desktop right actions */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
-            <Link href="/login" className="link-underline nav-link">Sign in</Link>
-            <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
-          </div>
-
-          {/* Mobile right actions */}
-          <div className="flex md:hidden items-center gap-3">
-            <ThemeToggle />
-            <MobileNav />
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero ───────────────────────────────────────── */}
-      <section className="min-h-screen pt-16 flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 items-center">
-
-            {/* Left content */}
-            <div className="lg:col-span-3">
-              <p className="anim-fade-up label-caps text-primary mb-5 sm:mb-7">
-                Panoramic Experiences
-              </p>
-
-              <h1 className="anim-fade-up delay-100 font-playfair leading-[1.03]">
-                <span className="block text-[clamp(2.25rem,6vw,6.5rem)]">Discover</span>
-                <span className="block text-[clamp(2.75rem,10vw,9.5rem)] text-primary leading-[0.95]">
-                  Morocco
-                </span>
-                <span className="block text-[clamp(1.5rem,4vw,4rem)] font-normal mt-2">
-                  through 360°
-                </span>
-              </h1>
-
-              <p className="anim-fade-up delay-300 text-muted text-[1rem] sm:text-[1.0625rem] leading-[1.8] max-w-[460px] mt-6 mb-8 sm:mt-7 sm:mb-10">
-                Step inside the ancient medinas, golden deserts, and coastal cities
-                of Morocco. Immersive panoramic journeys, from anywhere in the world.
-              </p>
-
-              <div className="anim-fade-up delay-400 flex flex-wrap gap-3 sm:gap-4">
-                <Link href="/register" className="btn-primary">Start Exploring</Link>
-                <Link href="#experiences" className="btn-outline">View Experiences</Link>
-              </div>
-
-              {/* Stats */}
-              <div className="anim-fade-up delay-500 flex gap-8 sm:gap-12 mt-12 sm:mt-16 pt-8 sm:pt-10 border-t border-border flex-wrap">
-                {[["240+", "Panoramas"], ["18", "Cities"], ["50K+", "Explorers"]].map(
-                  ([num, label]) => (
-                    <div key={label}>
-                      <p className="font-playfair text-[1.875rem] sm:text-[2.25rem] font-bold">{num}</p>
-                      <p className="label-small text-muted mt-1">{label}</p>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Right — destination tiles */}
-            <div className="lg:col-span-2 anim-slide-left delay-200">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-sm mx-auto lg:max-w-none">
-                {DESTINATIONS.map((dest) => (
-                  <div
-                    key={dest.city}
-                    className={`card-hover p-4 sm:p-6 aspect-square flex flex-col justify-between ${
-                      dest.dark
-                        ? "bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)]"
-                        : "bg-surface text-foreground"
-                    }`}
-                  >
-                    <span className="text-[0.5625rem] sm:text-[0.625rem] tracking-[0.18em] opacity-45 uppercase">
-                      {dest.region}
-                    </span>
-                    <div>
-                      <span className="font-playfair text-[2rem] sm:text-[2.75rem] opacity-[0.08] font-extrabold block leading-none">
-                        {dest.num}
-                      </span>
-                      <p className="font-playfair text-[0.9375rem] sm:text-[1.125rem] font-semibold mt-1.5">
-                        {dest.city}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CursorGlow />
+      <ScrollProgress />
+      <PremiumNav />
+      <HeroSection />
 
       {/* ── Marquee strip ──────────────────────────────── */}
-      <div className="border-y border-border py-3.5 overflow-hidden">
+      <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden', background: 'var(--surface)' }}>
         <div className="marquee-track flex whitespace-nowrap w-max">
           {[...MARQUEE_CITIES, ...MARQUEE_CITIES].map((city, i) => (
             <span key={i} className="marquee-item">
               {city}
-              <span className="text-primary ml-6">·</span>
+              <span style={{ color: 'var(--primary)', marginLeft: '24px' }}>·</span>
             </span>
           ))}
         </div>
       </div>
 
-      {/* ── Features ───────────────────────────────────── */}
-      <section id="experiences" className="py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-12 sm:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6 sm:gap-8">
-            <div>
-              <p className="label-caps text-primary mb-3">Why Morocco360</p>
-              <h2 className="font-playfair text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.15] max-w-[420px]">
-                A new way to experience the kingdom
+      {/* ── Search ─────────────────────────────────────── */}
+      <RevealSection variant="blurUp">
+        <section style={{ padding: 'clamp(48px,7vw,80px) 16px', background: 'var(--background)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <p style={{ fontSize: '0.6875rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600, marginBottom: '12px' }}>
+                Find Your Journey
+              </p>
+              <h2 className="font-playfair" style={{ fontSize: 'clamp(1.5rem,3vw,2.5rem)', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                Where do you want to explore?
               </h2>
             </div>
-            <Link href="/register" className="link-underline nav-link whitespace-nowrap self-start">
-              See all experiences
-            </Link>
+            <PremiumSearch />
           </div>
+        </section>
+      </RevealSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
-            {FEATURES.map((feat) => (
-              <div key={feat.title} className="card-hover bg-background px-6 sm:px-10 py-10 sm:py-12">
-                <span className="text-[1.375rem] block mb-6 sm:mb-7 text-primary">{feat.symbol}</span>
-                <h3 className="font-playfair text-[1.25rem] sm:text-[1.375rem] font-semibold mb-3">{feat.title}</h3>
-                <p className="text-muted leading-[1.8] text-[0.9375rem]">{feat.desc}</p>
+      {/* ── Features ───────────────────────────────────── */}
+      <RevealSection variant="fadeUp">
+        <section id="experiences" style={{ padding: 'clamp(64px,8vw,128px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <RevealSection variant="fadeUp">
+              <div style={{ marginBottom: 'clamp(48px,6vw,64px)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="section-divider" />
+                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600 }}>
+                  Why Morocco360
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h2 className="font-playfair" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', lineHeight: 1.15, letterSpacing: '-0.02em', maxWidth: '420px' }}>
+                    A new way to experience the kingdom
+                  </h2>
+                  <Link href="/register" className="nav-link-premium" style={{ fontSize: '0.8125rem', color: 'var(--muted)', alignSelf: 'flex-start' }}>
+                    See all experiences
+                  </Link>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </RevealSection>
 
-      {/* ── Destinations grid ──────────────────────────── */}
-      <section className="bg-surface py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 sm:mb-12">
-            <h2 className="font-playfair text-[clamp(1.5rem,3vw,2.75rem)] leading-[1.2]">
-              Popular destinations
-            </h2>
-            <Link href="/register" className="btn-outline self-start">Explore All</Link>
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '1px', background: 'var(--border)' }}
+              stagger={0.1}
+              fromY={36}
+            >
+              {FEATURES.map((feat) => (
+                <FeatureCard key={feat.title} feat={feat} />
+              ))}
+            </StaggerReveal>
           </div>
+        </section>
+      </RevealSection>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {[
-              ["Marrakech",  "240 panoramas"],
-              ["Fez Medina", "118 panoramas"],
-              ["Sahara Erg", "96 panoramas" ],
-              ["Essaouira",  "74 panoramas" ],
-            ].map(([name, count]) => (
-              <div key={name} className="card-hover border border-border bg-background px-5 sm:px-6 py-7 sm:py-8">
-                <p className="font-playfair text-[1.125rem] sm:text-[1.25rem] font-semibold mb-2">{name}</p>
-                <p className="text-[0.8125rem] text-muted">{count}</p>
+      {/* ── Destinations ───────────────────────────────── */}
+      <RevealSection variant="fadeUp">
+        <section style={{ background: 'var(--surface)', padding: 'clamp(64px,8vw,96px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <RevealSection variant="fadeUp">
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: 'clamp(40px,5vw,56px)' }}>
+                <div>
+                  <div className="section-divider" />
+                  <h2 className="font-playfair" style={{ fontSize: 'clamp(1.5rem,3vw,2.75rem)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                    Popular destinations
+                  </h2>
+                </div>
+                <Link href="/register" className="btn-premium-outline" style={{ padding: '10px 24px' }}>
+                  <span>Explore All</span>
+                </Link>
               </div>
-            ))}
+            </RevealSection>
+
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '12px' }}
+              stagger={0.08}
+              fromScale={0.95}
+            >
+              {DESTINATIONS.map((dest) => (
+                <DestCard key={dest.name} dest={dest} />
+              ))}
+            </StaggerReveal>
           </div>
-        </div>
-      </section>
+        </section>
+      </RevealSection>
+
+      {/* ── Stats ribbon — animated counters ───────────── */}
+      <RevealSection variant="fadeUp">
+        <section style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: 'clamp(40px,5vw,64px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '32px', textAlign: 'center' }}
+              stagger={0.1}
+              fromY={24}
+            >
+              {STATS.map(({ to, suffix, label, desc, decimals }) => (
+                <div key={label}>
+                  <AnimatedCounter
+                    to={to}
+                    suffix={suffix}
+                    decimals={decimals}
+                    duration={1.6}
+                    className="font-playfair"
+                    style={{ fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--primary)' }}
+                  />
+                  <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, marginTop: '6px' }}>
+                    {label}
+                  </p>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '4px' }}>
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+      </RevealSection>
 
       {/* ── CTA ────────────────────────────────────────── */}
-      <section className="bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)] py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
-          <p className="label-caps text-primary mb-4 sm:mb-5">Begin your journey</p>
-          <h2 className="font-playfair text-[clamp(2rem,5vw,4rem)] leading-[1.12] mb-5 sm:mb-6">
-            Morocco awaits you
-          </h2>
-          <p className="text-[var(--card-inverted-muted)] text-[1rem] sm:text-[1.0625rem] max-w-[440px] mx-auto mb-10 sm:mb-12 leading-[1.8]">
-            Create a free account and unlock hundreds of panoramic experiences across the Kingdom of Morocco.
-          </p>
-          <Link href="/register" className="btn-primary btn-cta">Create Free Account</Link>
-        </div>
-      </section>
+      <RevealSection variant="scaleUp">
+        <section className="cta-luxury" style={{ padding: 'clamp(80px,10vw,128px) 0', position: 'relative' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10" style={{ textAlign: 'center' }}>
+            <RevealSection variant="fadeUp">
+              <div className="hero-eyebrow" style={{ justifyContent: 'center', marginBottom: '24px' }}>
+                Begin your journey
+              </div>
+              <h2 className="font-playfair" style={{ fontSize: 'clamp(2rem,6vw,5rem)', lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.03em', color: 'var(--card-inverted-text)' }}>
+                Morocco awaits you
+              </h2>
+              <p style={{ color: 'var(--card-inverted-muted)', fontSize: 'clamp(1rem,2vw,1.125rem)', maxWidth: '440px', margin: '0 auto 48px', lineHeight: 1.8, fontWeight: 300 }}>
+                Create a free account and unlock hundreds of panoramic experiences across the Kingdom of Morocco.
+              </p>
+              <Link href="/register" className="btn-premium" style={{ display: 'inline-block', fontSize: '0.875rem', padding: '18px 48px', letterSpacing: '0.15em' }}>
+                Create Free Account
+              </Link>
+            </RevealSection>
+          </div>
+        </section>
+      </RevealSection>
 
       {/* ── Footer ─────────────────────────────────────── */}
-      <footer className="border-t border-border py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
-          <Link href="/" className="font-playfair text-[1.125rem] font-bold">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-          <p className="text-[0.8125rem] text-muted text-center sm:text-left">
-            2026 Morocco360. All rights reserved.
-          </p>
-          <div className="flex gap-6 sm:gap-8 flex-wrap justify-center">
-            {["Privacy", "Terms", "Contact"].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">
-                {item}
+      <footer style={{ borderTop: '1px solid var(--border)', padding: 'clamp(40px,5vw,48px) 0', paddingBottom: '80px' }} className="md:pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '40px', marginBottom: '48px' }}>
+            <div>
+              <Link href="/" className="font-playfair" style={{ fontSize: '1.25rem', fontWeight: 700, display: 'block', marginBottom: '12px' }}>
+                Morocco<span style={{ color: 'var(--primary)' }}>360</span>
               </Link>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '240px' }}>
+                Immersive panoramic journeys through the Kingdom of Morocco.
+              </p>
+            </div>
+            {[
+              { title: 'Product', links: ['Experiences', 'Destinations', 'Gallery', 'Live Tours'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press']                   },
+              { title: 'Legal',   links: ['Privacy', 'Terms', 'Cookies', 'Contact']               },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '16px' }}>
+                  {title}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {links.map((link) => (
+                    <Link key={link} href="#" className="nav-link-premium" style={{ fontSize: '0.875rem' }}>
+                      {link}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
+          </div>
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>© 2026 Morocco360. All rights reserved.</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>Made with care in Morocco 🇲🇦</p>
           </div>
         </div>
       </footer>
+
+      <BottomNav />
+    </div>
+  );
+}
+
+/* ── Inline sub-components ──────────────────────────────── */
+
+function FeatureCard({ feat }: { feat: typeof FEATURES[0] }) {
+  return (
+    <SpotlightCard style={{ padding: 'clamp(32px,4vw,48px) clamp(24px,3vw,40px)' }}>
+      <span style={{ fontSize: '1.375rem', display: 'block', marginBottom: 'clamp(24px,3vw,28px)', color: 'var(--primary)', position: 'relative', zIndex: 1 }}>
+        {feat.symbol}
+      </span>
+      <h3 className="font-playfair" style={{ fontSize: 'clamp(1.125rem,2vw,1.375rem)', fontWeight: 600, marginBottom: '12px', position: 'relative', zIndex: 1, letterSpacing: '-0.01em' }}>
+        {feat.title}
+      </h3>
+      <p style={{ color: 'var(--muted)', lineHeight: 1.8, fontSize: '0.9375rem', position: 'relative', zIndex: 1 }}>
+        {feat.desc}
+      </p>
+    </SpotlightCard>
+  );
+}
+
+function DestCard({ dest }: { dest: typeof DESTINATIONS[0] }) {
+  return (
+    <div className="glass-card" style={{ padding: 'clamp(20px,3vw,28px) clamp(20px,3vw,24px)', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <p className="font-playfair" style={{ fontSize: 'clamp(1rem,2vw,1.25rem)', fontWeight: 600, letterSpacing: '-0.01em' }}>
+          {dest.name}
+        </p>
+        <span className="live-pulse" aria-hidden="true" />
+      </div>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginBottom: '4px' }}>{dest.desc}</p>
+      <p style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600 }}>
+        {dest.count}
+      </p>
     </div>
   );
 }
