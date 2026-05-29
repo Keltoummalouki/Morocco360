@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeJwt, setCookiesFromTokens, clearAuthCookies } from '@/lib/auth-server';
 
-const API_URL = process.env.API_URL ?? 'http://localhost:3001';
+const API_URL = process.env.API_URL;
 
 /**
  * GET /api/auth/refresh?redirect=<path>
