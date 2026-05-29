@@ -33,12 +33,7 @@ export default function AnimatedCounter({
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-
-    if (prefersReducedMotion()) {
-      setDisplay(`${prefix}${to.toFixed(decimals)}${suffix}`);
-      return;
-    }
+    if (!el || prefersReducedMotion()) return;
 
     const obj = { val: 0 };
     let tween: gsap.core.Tween | null = null;
@@ -65,9 +60,13 @@ export default function AnimatedCounter({
     };
   }, [to, prefix, suffix, duration, decimals]);
 
+  const renderedDisplay = prefersReducedMotion()
+    ? `${prefix}${to.toFixed(decimals)}${suffix}`
+    : display;
+
   return (
     <span ref={ref} className={className} style={style}>
-      {display}
+      {renderedDisplay}
     </span>
   );
 }

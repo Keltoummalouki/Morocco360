@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { gsap, ScrollTrigger, EASE, DUR, splitChars, prefersReducedMotion } from '@/lib/gsap';
+import { gsap, EASE, DUR, splitChars, prefersReducedMotion } from '@/lib/gsap';
 
 /* ── Static data ──────────────────────────────────────── */
 const STATS    = [
