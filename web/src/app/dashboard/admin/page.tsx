@@ -147,10 +147,7 @@ export default async function AdminDashboard() {
                     const st = STATUS_STYLE[u.status] ?? STATUS_STYLE.ACTIVE;
                     const rc = u.role ? (ROLE_COLORS[u.role] ?? ROLE_COLORS.USER) : null;
                     return (
-                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s ease' }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                      >
+                      <tr key={u.id} className="hover-row" style={{ borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '14px 20px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{
@@ -220,13 +217,11 @@ export default async function AdminDashboard() {
               {stats.upcomingEvents.map((ev, idx) => (
                 <Link key={ev.id} href={`/dashboard/admin/events/${ev.id}/edit`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                   <div
+                    className="hover-row"
                     style={{
                       padding: '16px 20px',
                       borderBottom: idx < stats.upcomingEvents.length - 1 ? '1px solid var(--border)' : 'none',
-                      transition: 'background 0.15s ease',
                     }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                       <div style={{ minWidth: 0, flex: 1 }}>

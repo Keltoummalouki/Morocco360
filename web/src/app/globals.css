@@ -1136,3 +1136,10 @@ body {
   transform-origin: left;
 }
 .link-underline:hover::after { width: 100%; }
+
+
+/* ══════════════════════════════════════════════════════════
+   HOVER ROW UTILITY
+   ══════════════════════════════════════════════════════════ */
+.hover-row { transition: background 0.15s ease; }
+.hover-row:hover { background: var(--surface-2) !important; }
