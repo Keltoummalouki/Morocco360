@@ -102,6 +102,7 @@ export default function PremiumSearch() {
           aria-expanded={focused}
           role="combobox"
           aria-autocomplete="list"
+          aria-controls="search-listbox"
         />
 
         {/* Keyboard shortcut badge */}
@@ -128,6 +129,7 @@ export default function PremiumSearch() {
         {/* Suggestions dropdown */}
         {focused && (
           <div
+            id="search-listbox"
             role="listbox"
             style={{
               position: 'absolute',
