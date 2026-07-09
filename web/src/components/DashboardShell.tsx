@@ -12,6 +12,7 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ role, name, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const displayName = decodeURIComponent(name).split(' ')[0];
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
@@ -29,11 +30,13 @@ export default function DashboardShell({ role, name, children }: DashboardShellP
           style={{
             height: '56px',
             borderBottom: '1px solid var(--border)',
-            background: 'var(--background)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 16px',
+            padding: '0 20px',
             flexShrink: 0,
             position: 'sticky',
             top: 0,
@@ -45,27 +48,37 @@ export default function DashboardShell({ role, name, children }: DashboardShellP
             aria-label="Open menu"
             style={{
               background: 'none',
-              border: '1.5px solid var(--border)',
+              border: '1px solid var(--border)',
               cursor: 'pointer',
               color: 'var(--foreground)',
-              padding: '6px 10px',
+              padding: '7px 11px',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
-              borderRadius: '2px',
+              borderRadius: '6px',
+              transition: 'border-color 0.2s ease',
             }}
           >
-            <span style={{ display: 'block', width: '18px', height: '1.5px', background: 'currentColor' }} />
-            <span style={{ display: 'block', width: '14px', height: '1.5px', background: 'currentColor' }} />
-            <span style={{ display: 'block', width: '18px', height: '1.5px', background: 'currentColor' }} />
+            <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'currentColor' }} />
+            <span style={{ display: 'block', width: '12px', height: '1.5px', background: 'currentColor' }} />
+            <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'currentColor' }} />
           </button>
 
           <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', fontWeight: 700 }}>
             Morocco<span style={{ color: 'var(--primary)' }}>360</span>
           </span>
 
-          {/* Spacer to centre logo */}
-          <div style={{ width: '38px' }} />
+          {/* Avatar */}
+          <div style={{
+            width: '32px', height: '32px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.75rem', fontWeight: 700, color: '#FAFAF8',
+            flexShrink: 0,
+          }}>
+            {displayName.charAt(0).toUpperCase()}
+          </div>
         </header>
 
         <main style={{ flex: 1, overflow: 'auto' }}>

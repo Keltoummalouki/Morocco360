@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { clearAuthCookies } from '@/lib/auth-server';
 
-const API_URL = process.env.API_URL ?? 'http://localhost:3001';
+const API_URL = process.env.API_URL;
 
 export async function POST(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')?.value;

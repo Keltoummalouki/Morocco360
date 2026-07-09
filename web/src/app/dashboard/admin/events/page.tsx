@@ -27,7 +27,7 @@ async function getAdminEvents(): Promise<Event[]> {
   try {
     const cookieStore = await cookies();
     const headerStore = await headers();
-    const host = headerStore.get('host') ?? 'localhost:3000';
+    const host = headerStore.get('host') ;
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
     const res = await fetch(`${protocol}://${host}/api/events/admin`, {

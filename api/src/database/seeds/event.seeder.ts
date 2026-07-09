@@ -359,7 +359,7 @@ export class EventSeeder {
       }),
     );
 
-    const secret = process.env.QR_HMAC_SECRET ?? 'dev-seed-secret';
+    const secret = process.env.QR_HMAC_SECRET ?? 'd66f6f5142f36085aa6f1652f8cff1e029e28de90c8f1c64fcd551788c972168';
 
     for (let i = 0; i < 10; i++) {
       const saved = await this.ticketRepo.save(

@@ -1,602 +1,285 @@
-import { cookies } from 'next/headers';
-import Link from 'next/link';
-import MobileNav from '@/components/MobileNav';
-import ThemeToggle from '@/components/ThemeToggle';
-import { decodeJwt } from '@/lib/auth-server';
+import Link from "next/link";
+import PremiumNav    from "@/components/PremiumNav";
+import HeroSection   from "@/components/HeroSection";
+import PremiumSearch from "@/components/PremiumSearch";
+import CursorGlow    from "@/components/CursorGlow";
+import ScrollProgress from "@/components/ScrollProgress";
+import BottomNav     from "@/components/BottomNav";
+import RevealSection from "@/components/RevealSection";
+import SpotlightCard from "@/components/SpotlightCard";
+import StaggerReveal from "@/components/StaggerReveal";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
-// ── Static data ────────────────────────────────────────────────────────────────
-
-const DESTINATIONS = [
-  { city: 'Marrakech',   region: 'South',     num: '01', dark: true  },
-  { city: 'Chefchaouen', region: 'North',     num: '02', dark: false },
-  { city: 'Sahara',      region: 'Southeast', num: '03', dark: false },
-  { city: 'Fez',         region: 'Central',   num: '04', dark: true  },
-];
-
+/* ── Static data ────────────────────────────────────────── */
 const FEATURES = [
   {
-    symbol: '◎',
-    title: 'Immersive 360°',
-    desc: 'Full spherical panoramas captured with professional equipment across Morocco\'s most breathtaking locations.',
+    symbol: "◎",
+    title: "Immersive 360°",
+    desc: "Full spherical panoramas captured with professional equipment across Morocco's most breathtaking locations.",
   },
   {
-    symbol: '◈',
-    title: 'Live Events',
-    desc: 'Attend cultural festivals, music concerts, art exhibitions and guided tours across Morocco\'s most iconic cities.',
+    symbol: "◈",
+    title: "Curated Routes",
+    desc: "Expert-designed virtual tours connecting medinas, kasbahs, and natural landscapes in meaningful sequences.",
   },
   {
-    symbol: '◇',
-    title: 'Digital Tickets',
-    desc: 'Book online and receive a secure QR-code ticket instantly — valid for seamless entry at any event.',
-  },
-  {
-    symbol: '◉',
-    title: 'Curated Routes',
-    desc: 'Expert-designed virtual tours connecting medinas, kasbahs, and natural landscapes in meaningful sequences.',
-  },
-  {
-    symbol: '◆',
-    title: 'Secure Payments',
-    desc: 'Complete your booking with confidence using Stripe-powered payments supporting major cards.',
-  },
-  {
-    symbol: '◐',
-    title: 'Local Guides',
-    desc: 'Join live sessions with local Moroccan guides who share stories, history, and hidden secrets of each place.',
+    symbol: "◇",
+    title: "Live Guides",
+    desc: "Join live sessions with local Moroccan guides who share stories, history, and hidden secrets of each place.",
   },
 ];
 
 const MARQUEE_CITIES = [
-  'MARRAKECH', 'FEZ', 'CHEFCHAOUEN', 'SAHARA DESERT',
-  'ATLAS MOUNTAINS', 'ESSAOUIRA', 'CASABLANCA', 'RABAT',
-  'MEKNES', 'AGADIR', 'OUARZAZATE', 'TANGIER',
+  "MARRAKECH", "FEZ", "CHEFCHAOUEN", "SAHARA DESERT",
+  "ATLAS MOUNTAINS", "ESSAOUIRA", "CASABLANCA", "RABAT",
+  "MEKNES", "AGADIR", "OUARZAZATE", "TANGIER",
 ];
 
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Discover',
-    desc: 'Browse curated events, panoramic experiences, and guided tours across the Kingdom of Morocco.',
-  },
-  {
-    step: '02',
-    title: 'Book',
-    desc: 'Select your ticket category, choose your quantity, and complete a secure payment in a few clicks.',
-  },
-  {
-    step: '03',
-    title: 'Experience',
-    desc: 'Receive your digital QR ticket instantly. Scan at the entrance and immerse yourself in Morocco.',
-  },
+const DESTINATIONS = [
+  { name: "Marrakech",  count: "240 panoramas", desc: "The Red City"          },
+  { name: "Fez Medina", count: "118 panoramas", desc: "Ancient Imperial City" },
+  { name: "Sahara Erg", count: "96 panoramas",  desc: "Golden Dunes"          },
+  { name: "Essaouira",  count: "74 panoramas",  desc: "Wind City of Africa"   },
 ];
 
-const ROLE_HOME: Record<string, string> = {
-  ADMIN:     '/dashboard/admin',
-  ORGANIZER: '/dashboard/organizer',
-  STAFF:     '/dashboard/staff',
-  USER:      '/dashboard/user',
-};
+const STATS = [
+  { to: 240, suffix: '+',  label: 'Panoramas', desc: 'Across Morocco'      },
+  { to: 18,  suffix: '',   label: 'Cities',    desc: 'Fully mapped'        },
+  { to: 50,  suffix: 'K+', label: 'Explorers', desc: 'From 80 countries'   },
+  { to: 4.9, suffix: '',   label: 'Rating',    desc: 'App store average', decimals: 1 },
+];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  MUSIQUE: 'Music', SPORT: 'Sport', CULTURE: 'Culture',
-  CINEMA: 'Cinema', HUMOUR: 'Comedy', ART: 'Art', AUTRE: 'Other',
-};
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-interface TicketCategory {
-  id: number;
-  name: string;
-  price: string;
-  stock_remaining: number;
-  stock_allocated: number;
-}
-
-interface Event {
-  id: number;
-  title: string;
-  description: string;
-  date_start: string;
-  date_end: string;
-  location_name: string;
-  city: string | null;
-  category: string;
-  image_url: string | null;
-  total_stock: number;
-  is_active: boolean;
-  is_sold_out: boolean;
-  categories: TicketCategory[];
-}
-
-// ── Data fetching ──────────────────────────────────────────────────────────────
-
-async function getUpcomingEvents(): Promise<Event[]> {
-  try {
-    const API_URL = process.env.API_URL ?? 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/events`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const data = (await res.json()) as Event[];
-    const now = new Date();
-    return data
-      .filter((e) => e.is_active && new Date(e.date_end) >= now)
-      .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime())
-      .slice(0, 6);
-  } catch {
-    return [];
-  }
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function formatDateShort(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
-
-function getMinPrice(categories: TicketCategory[]) {
-  if (!categories?.length) return null;
-  const min = Math.min(...categories.map((c) => Number(c.price)));
-  return min === 0 ? 'Free' : `From ${min.toFixed(0)} MAD`;
-}
-
-// ── Page ───────────────────────────────────────────────────────────────────────
-
-export default async function Home() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value ?? null;
-  const payload = token ? decodeJwt(token) : null;
-  const isAuthenticated = !!payload && payload.exp * 1000 > Date.now();
-  const userRole = payload?.role ?? null;
-  const dashboardHref = userRole ? (ROLE_HOME[userRole] ?? '/dashboard/user') : '/dashboard/user';
-  const eventsBrowseHref = isAuthenticated
-    ? (userRole === 'STAFF' ? dashboardHref : '/dashboard/user/events')
-    : '/events';
-
-  const events = await getUpcomingEvents();
-
+/* ── Page ───────────────────────────────────────────────── */
+export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <CursorGlow />
+      <ScrollProgress />
+      <PremiumNav />
+      <HeroSection />
 
-      {/* ── Navbar ──────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border" aria-label="Main navigation">
-        <div className="nav-bar max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="font-playfair text-xl font-bold shrink-0">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-10">
-            {['Experiences', 'Destinations', 'Gallery', 'About'].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">{item}</Link>
-            ))}
-          </div>
-
-          {/* Desktop right — auth-aware */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
-            {isAuthenticated ? (
-              <Link href={dashboardHref} className="btn-primary btn-sm">My Dashboard</Link>
-            ) : (
-              <>
-                <Link href="/login" className="link-underline nav-link">Sign in</Link>
-                <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile */}
-          <div className="flex md:hidden items-center gap-3">
-            <ThemeToggle />
-            <MobileNav isAuthenticated={isAuthenticated} dashboardHref={dashboardHref} />
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="min-h-screen pt-16 flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 items-center">
-
-            {/* Left */}
-            <div className="lg:col-span-3">
-              <p className="anim-fade-up label-caps text-primary mb-5 sm:mb-7">
-                Panoramic Experiences
-              </p>
-
-              <h1 className="anim-fade-up delay-100 font-playfair leading-[1.03]">
-                <span className="block text-[clamp(2.25rem,6vw,6.5rem)]">Discover</span>
-                <span className="block text-[clamp(2.75rem,10vw,9.5rem)] text-primary leading-[0.95]">
-                  Morocco
-                </span>
-                <span className="block text-[clamp(1.5rem,4vw,4rem)] font-normal mt-2">
-                  through 360°
-                </span>
-              </h1>
-
-              <p className="anim-fade-up delay-300 text-muted text-[1rem] sm:text-[1.0625rem] leading-[1.8] max-w-[460px] mt-6 mb-8 sm:mt-7 sm:mb-10">
-                Step inside the ancient medinas, golden deserts, and coastal cities of Morocco.
-                Book live events, virtual tours, and panoramic journeys — from anywhere in the world.
-              </p>
-
-              <div className="anim-fade-up delay-400 flex flex-wrap gap-3 sm:gap-4">
-                {isAuthenticated ? (
-                  <>
-                    <Link href={dashboardHref} className="btn-primary">Go to Dashboard</Link>
-                    <Link href="#events" className="btn-outline">View Events</Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/register" className="btn-primary">Start Exploring</Link>
-                    <Link href="/events" className="btn-outline">View Events</Link>
-                  </>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="anim-fade-up delay-500 flex gap-8 sm:gap-12 mt-12 sm:mt-16 pt-8 sm:pt-10 border-t border-border flex-wrap">
-                {[['240+', 'Panoramas'], ['18', 'Cities'], ['50K+', 'Explorers']].map(([num, label]) => (
-                  <div key={label}>
-                    <p className="font-playfair text-[1.875rem] sm:text-[2.25rem] font-bold">{num}</p>
-                    <p className="label-small text-muted mt-1">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — destination tiles */}
-            <div className="lg:col-span-2 anim-slide-left delay-200">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-sm mx-auto lg:max-w-none">
-                {DESTINATIONS.map((dest) => (
-                  <div
-                    key={dest.city}
-                    className={`card-hover p-4 sm:p-6 aspect-square flex flex-col justify-between ${
-                      dest.dark
-                        ? 'bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)]'
-                        : 'bg-surface text-foreground'
-                    }`}
-                  >
-                    <span className="text-[0.5625rem] sm:text-[0.625rem] tracking-[0.18em] opacity-45 uppercase">
-                      {dest.region}
-                    </span>
-                    <div>
-                      <span className="font-playfair text-[2rem] sm:text-[2.75rem] opacity-[0.08] font-extrabold block leading-none">
-                        {dest.num}
-                      </span>
-                      <p className="font-playfair text-[0.9375rem] sm:text-[1.125rem] font-semibold mt-1.5">
-                        {dest.city}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Marquee strip ───────────────────────────────────────────────── */}
-      <div className="border-y border-border py-3.5 overflow-hidden">
+      {/* ── Marquee strip ──────────────────────────────── */}
+      <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden', background: 'var(--surface)' }}>
         <div className="marquee-track flex whitespace-nowrap w-max">
           {[...MARQUEE_CITIES, ...MARQUEE_CITIES].map((city, i) => (
             <span key={i} className="marquee-item">
               {city}
-              <span className="text-primary ml-6">·</span>
+              <span style={{ color: 'var(--primary)', marginLeft: '24px' }}>·</span>
             </span>
           ))}
         </div>
       </div>
 
-      {/* ── How it works ────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-14 sm:mb-20 text-center">
-            <p className="label-caps text-primary mb-3">Simple Process</p>
-            <h2 className="font-playfair text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.15]">
-              How it works
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16">
-            {HOW_IT_WORKS.map((s) => (
-              <div key={s.step}>
-                <span className="font-playfair text-[4.5rem] font-extrabold opacity-[0.06] leading-none block mb-4">
-                  {s.step}
-                </span>
-                <h3 className="font-playfair text-[1.25rem] sm:text-[1.5rem] font-semibold mb-3">{s.title}</h3>
-                <p className="text-muted leading-[1.8] text-[0.9375rem]">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Upcoming Events ─────────────────────────────────────────────── */}
-      <section id="events" className="bg-surface py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10 sm:mb-12">
-            <div>
-              <p className="label-caps text-primary mb-3">Live &amp; Upcoming</p>
-              <h2 className="font-playfair text-[clamp(1.5rem,3vw,2.75rem)] leading-[1.2]">
-                Upcoming Events
+      {/* ── Search ─────────────────────────────────────── */}
+      <RevealSection variant="blurUp">
+        <section style={{ padding: 'clamp(48px,7vw,80px) 16px', background: 'var(--background)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <p style={{ fontSize: '0.6875rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600, marginBottom: '12px' }}>
+                Find Your Journey
+              </p>
+              <h2 className="font-playfair" style={{ fontSize: 'clamp(1.5rem,3vw,2.5rem)', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                Where do you want to explore?
               </h2>
             </div>
-            <Link href={eventsBrowseHref} className="link-underline nav-link whitespace-nowrap self-start">
-              Browse all events →
-            </Link>
+            <PremiumSearch />
           </div>
+        </section>
+      </RevealSection>
 
-          {events.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {events.map((event) => {
-                  const minPrice = getMinPrice(event.categories);
-                  const reserveHref = isAuthenticated
-                    ? `/dashboard/user/events/${event.id}`
-                    : `/login?redirect=/dashboard/user/events/${event.id}`;
-
-                  return (
-                    <div
-                      key={event.id}
-                      className="card-hover bg-background border border-border flex flex-col overflow-hidden"
-                    >
-                      {/* Image */}
-                      <div
-                        className="relative overflow-hidden"
-                        style={{ height: '176px', background: 'var(--surface)' }}
-                      >
-                        {event.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={event.image_url}
-                            alt={event.title}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <span
-                              className="font-playfair"
-                              style={{ fontSize: '3rem', opacity: 0.07 }}
-                            >
-                              M
-                            </span>
-                          </div>
-                        )}
-                        {/* Category badge */}
-                        <span
-                          className="label-caps"
-                          style={{
-                            position: 'absolute',
-                            top: '10px',
-                            left: '10px',
-                            background: 'var(--background)',
-                            color: 'var(--primary)',
-                            padding: '3px 8px',
-                            fontSize: '0.5625rem',
-                          }}
-                        >
-                          {CATEGORY_LABELS[event.category] ?? event.category}
-                        </span>
-                        {event.is_sold_out && (
-                          <span
-                            className="label-caps"
-                            style={{
-                              position: 'absolute',
-                              top: '10px',
-                              right: '10px',
-                              background: 'var(--foreground)',
-                              color: 'var(--background)',
-                              padding: '3px 8px',
-                              fontSize: '0.5625rem',
-                            }}
-                          >
-                            Sold Out
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5 sm:p-6 flex flex-col flex-1">
-                        <p className="text-muted mb-2" style={{ fontSize: '0.75rem', letterSpacing: '0.04em' }}>
-                          {event.city ?? event.location_name} · {formatDateShort(event.date_start)}
-                        </p>
-                        <h3
-                          className="font-playfair font-semibold mb-2"
-                          style={{
-                            fontSize: '1.0625rem',
-                            lineHeight: 1.35,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {event.title}
-                        </h3>
-                        <p
-                          className="text-muted flex-1"
-                          style={{
-                            fontSize: '0.875rem',
-                            lineHeight: 1.7,
-                            marginBottom: '20px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {event.description}
-                        </p>
-
-                        <div
-                          className="border-t border-border"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            paddingTop: '16px',
-                          }}
-                        >
-                          <span className="font-playfair font-semibold" style={{ fontSize: '1rem' }}>
-                            {minPrice ?? '—'}
-                          </span>
-                          {event.is_sold_out ? (
-                            <span
-                              className="btn-outline btn-sm"
-                              style={{ opacity: 0.4, cursor: 'default' }}
-                            >
-                              Sold Out
-                            </span>
-                          ) : (
-                            <Link href={reserveHref} className="btn-primary btn-sm">
-                              {isAuthenticated ? 'Reserve' : 'Sign in to Reserve'}
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {!isAuthenticated && (
-                <p
-                  className="text-muted text-center"
-                  style={{ fontSize: '0.875rem', marginTop: '32px' }}
-                >
-                  <Link href="/login" style={{ color: 'var(--primary)' }}>Sign in</Link>
-                  {' '}or{' '}
-                  <Link href="/register" style={{ color: 'var(--primary)' }}>create an account</Link>
-                  {' '}to reserve tickets for these events.
+      {/* ── Features ───────────────────────────────────── */}
+      <RevealSection variant="fadeUp">
+        <section id="experiences" style={{ padding: 'clamp(64px,8vw,128px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <RevealSection variant="fadeUp">
+              <div style={{ marginBottom: 'clamp(48px,6vw,64px)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="section-divider" />
+                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600 }}>
+                  Why Morocco360
                 </p>
-              )}
-            </>
-          ) : (
-            /* Empty state */
-            <div
-              className="border border-border"
-              style={{ padding: '64px 24px', textAlign: 'center' }}
-            >
-              <p className="font-playfair" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
-                No upcoming events
-              </p>
-              <p className="text-muted" style={{ fontSize: '0.9375rem' }}>
-                Check back soon — new events are added regularly.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h2 className="font-playfair" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', lineHeight: 1.15, letterSpacing: '-0.02em', maxWidth: '420px' }}>
+                    A new way to experience the kingdom
+                  </h2>
+                  <Link href="/register" className="nav-link-premium" style={{ fontSize: '0.8125rem', color: 'var(--muted)', alignSelf: 'flex-start' }}>
+                    See all experiences
+                  </Link>
+                </div>
+              </div>
+            </RevealSection>
 
-      {/* ── Features / Why Morocco360 ────────────────────────────────────── */}
-      <section id="experiences" className="py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-12 sm:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6 sm:gap-8">
-            <div>
-              <p className="label-caps text-primary mb-3">Why Morocco360</p>
-              <h2 className="font-playfair text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.15] max-w-[420px]">
-                A new way to experience the kingdom
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '1px', background: 'var(--border)' }}
+              stagger={0.1}
+              fromY={36}
+            >
+              {FEATURES.map((feat) => (
+                <FeatureCard key={feat.title} feat={feat} />
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+      </RevealSection>
+
+      {/* ── Destinations ───────────────────────────────── */}
+      <RevealSection variant="fadeUp">
+        <section style={{ background: 'var(--surface)', padding: 'clamp(64px,8vw,96px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <RevealSection variant="fadeUp">
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: 'clamp(40px,5vw,56px)' }}>
+                <div>
+                  <div className="section-divider" />
+                  <h2 className="font-playfair" style={{ fontSize: 'clamp(1.5rem,3vw,2.75rem)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                    Popular destinations
+                  </h2>
+                </div>
+                <Link href="/register" className="btn-premium-outline" style={{ padding: '10px 24px' }}>
+                  <span>Explore All</span>
+                </Link>
+              </div>
+            </RevealSection>
+
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '12px' }}
+              stagger={0.08}
+              fromScale={0.95}
+            >
+              {DESTINATIONS.map((dest) => (
+                <DestCard key={dest.name} dest={dest} />
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+      </RevealSection>
+
+      {/* ── Stats ribbon — animated counters ───────────── */}
+      <RevealSection variant="fadeUp">
+        <section style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: 'clamp(40px,5vw,64px) 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <StaggerReveal
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '32px', textAlign: 'center' }}
+              stagger={0.1}
+              fromY={24}
+            >
+              {STATS.map(({ to, suffix, label, desc, decimals }) => (
+                <div key={label}>
+                  <AnimatedCounter
+                    to={to}
+                    suffix={suffix}
+                    decimals={decimals}
+                    duration={1.6}
+                    className="font-playfair"
+                    style={{ fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--primary)' }}
+                  />
+                  <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, marginTop: '6px' }}>
+                    {label}
+                  </p>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '4px' }}>
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+      </RevealSection>
+
+      {/* ── CTA ────────────────────────────────────────── */}
+      <RevealSection variant="scaleUp">
+        <section className="cta-luxury" style={{ padding: 'clamp(80px,10vw,128px) 0', position: 'relative' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10" style={{ textAlign: 'center' }}>
+            <RevealSection variant="fadeUp">
+              <div className="hero-eyebrow" style={{ justifyContent: 'center', marginBottom: '24px' }}>
+                Begin your journey
+              </div>
+              <h2 className="font-playfair" style={{ fontSize: 'clamp(2rem,6vw,5rem)', lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.03em', color: 'var(--card-inverted-text)' }}>
+                Morocco awaits you
               </h2>
-            </div>
-            <Link
-              href={isAuthenticated ? eventsBrowseHref : '/register'}
-              className="link-underline nav-link whitespace-nowrap self-start"
-            >
-              See all experiences
-            </Link>
+              <p style={{ color: 'var(--card-inverted-muted)', fontSize: 'clamp(1rem,2vw,1.125rem)', maxWidth: '440px', margin: '0 auto 48px', lineHeight: 1.8, fontWeight: 300 }}>
+                Create a free account and unlock hundreds of panoramic experiences across the Kingdom of Morocco.
+              </p>
+              <Link href="/register" className="btn-premium" style={{ display: 'inline-block', fontSize: '0.875rem', padding: '18px 48px', letterSpacing: '0.15em' }}>
+                Create Free Account
+              </Link>
+            </RevealSection>
           </div>
+        </section>
+      </RevealSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
-            {FEATURES.map((feat) => (
-              <div key={feat.title} className="card-hover bg-background px-6 sm:px-10 py-10 sm:py-12">
-                <span className="text-[1.375rem] block mb-6 sm:mb-7 text-primary">{feat.symbol}</span>
-                <h3 className="font-playfair text-[1.25rem] sm:text-[1.375rem] font-semibold mb-3">{feat.title}</h3>
-                <p className="text-muted leading-[1.8] text-[0.9375rem]">{feat.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Popular Destinations ─────────────────────────────────────────── */}
-      <section className="bg-surface py-16 sm:py-24">
+      {/* ── Footer ─────────────────────────────────────── */}
+      <footer style={{ borderTop: '1px solid var(--border)', padding: 'clamp(40px,5vw,48px) 0', paddingBottom: '80px' }} className="md:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 sm:mb-12">
-            <h2 className="font-playfair text-[clamp(1.5rem,3vw,2.75rem)] leading-[1.2]">
-              Popular destinations
-            </h2>
-            <Link
-              href={isAuthenticated ? dashboardHref : '/register'}
-              className="btn-outline self-start"
-            >
-              Explore All
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '40px', marginBottom: '48px' }}>
+            <div>
+              <Link href="/" className="font-playfair" style={{ fontSize: '1.25rem', fontWeight: 700, display: 'block', marginBottom: '12px' }}>
+                Morocco<span style={{ color: 'var(--primary)' }}>360</span>
+              </Link>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '240px' }}>
+                Immersive panoramic journeys through the Kingdom of Morocco.
+              </p>
+            </div>
             {[
-              ['Marrakech',  '240 panoramas'],
-              ['Fez Medina', '118 panoramas'],
-              ['Sahara Erg', '96 panoramas' ],
-              ['Essaouira',  '74 panoramas' ],
-            ].map(([name, count]) => (
-              <div key={name} className="card-hover border border-border bg-background px-5 sm:px-6 py-7 sm:py-8">
-                <p className="font-playfair text-[1.125rem] sm:text-[1.25rem] font-semibold mb-2">{name}</p>
-                <p className="text-[0.8125rem] text-muted">{count}</p>
+              { title: 'Product', links: ['Experiences', 'Destinations', 'Gallery', 'Live Tours'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press']                   },
+              { title: 'Legal',   links: ['Privacy', 'Terms', 'Cookies', 'Contact']               },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '16px' }}>
+                  {title}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {links.map((link) => (
+                    <Link key={link} href="#" className="nav-link-premium" style={{ fontSize: '0.875rem' }}>
+                      {link}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── CTA ─────────────────────────────────────────────────────────── */}
-      <section className="bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)] py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
-          <p className="label-caps text-primary mb-4 sm:mb-5">
-            {isAuthenticated ? 'Continue your journey' : 'Begin your journey'}
-          </p>
-          <h2 className="font-playfair text-[clamp(2rem,5vw,4rem)] leading-[1.12] mb-5 sm:mb-6">
-            Morocco awaits you
-          </h2>
-          <p
-            className="text-[var(--card-inverted-muted)] mx-auto mb-10 sm:mb-12 leading-[1.8]"
-            style={{ fontSize: '1rem', maxWidth: '440px' }}
-          >
-            {isAuthenticated
-              ? 'Discover upcoming events, book your tickets, and explore Morocco through immersive panoramic experiences.'
-              : 'Create a free account and unlock hundreds of panoramic experiences and live events across the Kingdom of Morocco.'}
-          </p>
-          {isAuthenticated ? (
-            <Link href={eventsBrowseHref} className="btn-primary btn-cta">Explore Events</Link>
-          ) : (
-            <Link href="/register" className="btn-primary btn-cta">Create Free Account</Link>
-          )}
-        </div>
-      </section>
-
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
-          <Link href="/" className="font-playfair text-[1.125rem] font-bold">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-          <p className="text-[0.8125rem] text-muted text-center sm:text-left">
-            2026 Morocco360. All rights reserved.
-          </p>
-          <div className="flex gap-6 sm:gap-8 flex-wrap justify-center">
-            {['Privacy', 'Terms', 'Contact'].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">{item}</Link>
-            ))}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>© 2026 Morocco360. All rights reserved.</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>Made with care in Morocco 🇲🇦</p>
           </div>
         </div>
       </footer>
+
+      <BottomNav />
+    </div>
+  );
+}
+
+/* ── Inline sub-components ──────────────────────────────── */
+
+function FeatureCard({ feat }: { feat: typeof FEATURES[0] }) {
+  return (
+    <SpotlightCard style={{ padding: 'clamp(32px,4vw,48px) clamp(24px,3vw,40px)' }}>
+      <span style={{ fontSize: '1.375rem', display: 'block', marginBottom: 'clamp(24px,3vw,28px)', color: 'var(--primary)', position: 'relative', zIndex: 1 }}>
+        {feat.symbol}
+      </span>
+      <h3 className="font-playfair" style={{ fontSize: 'clamp(1.125rem,2vw,1.375rem)', fontWeight: 600, marginBottom: '12px', position: 'relative', zIndex: 1, letterSpacing: '-0.01em' }}>
+        {feat.title}
+      </h3>
+      <p style={{ color: 'var(--muted)', lineHeight: 1.8, fontSize: '0.9375rem', position: 'relative', zIndex: 1 }}>
+        {feat.desc}
+      </p>
+    </SpotlightCard>
+  );
+}
+
+function DestCard({ dest }: { dest: typeof DESTINATIONS[0] }) {
+  return (
+    <div className="glass-card" style={{ padding: 'clamp(20px,3vw,28px) clamp(20px,3vw,24px)', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <p className="font-playfair" style={{ fontSize: 'clamp(1rem,2vw,1.25rem)', fontWeight: 600, letterSpacing: '-0.01em' }}>
+          {dest.name}
+        </p>
+        <span className="live-pulse" aria-hidden="true" />
+      </div>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginBottom: '4px' }}>{dest.desc}</p>
+      <p style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--primary)', fontWeight: 600 }}>
+        {dest.count}
+      </p>
     </div>
   );
 }
