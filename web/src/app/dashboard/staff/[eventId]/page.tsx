@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
 
@@ -13,11 +13,10 @@ interface EventStats {
   cancelled: number;
   remaining: number;
   checkInRate: number;
-  isOwner?: boolean;
-  byCategory: { id: number; name: string; total: number; checked: number; remaining: number }[];
+  byCategory: { name: string; total: number; checked: number; remaining: number }[];
 }
 
-type Tab = 'overview' | 'participants' | 'staff';
+type Tab = 'overview' | 'participants';
 
 function DonutChart({ pct, size = 148 }: { pct: number; size?: number }) {
   const r = (size / 2) * 0.74;
@@ -42,22 +41,19 @@ function DonutChart({ pct, size = 148 }: { pct: number; size?: number }) {
   );
 }
 
-export default function ManageEventPage({ params }: { params: Promise<{ eventId: string }> }) {
+export default function StaffEventPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
-  const [tab, setTab]           = useState<Tab>('overview');
-  const [stats, setStats]       = useState<EventStats | null>(null);
-  const [error, setError]       = useState<string | null>(null);
+  const [tab, setTab]               = useState<Tab>('overview');
+  const [stats, setStats]           = useState<EventStats | null>(null);
+  const [error, setError]           = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [isOwner, setIsOwner]   = useState(false);
 
   const loadStats = useCallback(async () => {
     if (!/^\d+$/.test(eventId)) { setError(`ID invalide : "${eventId}"`); return; }
     try {
       const res = await fetch(`/api/organizer/events/${eventId}/stats`);
       if (!res.ok) throw new Error();
-      const data = await res.json() as EventStats;
-      setStats(data);
-      setIsOwner(data.isOwner ?? false);
+      setStats(await res.json() as EventStats);
       setLastRefresh(new Date());
       setError(null);
     } catch {
@@ -90,12 +86,12 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
 
       {/* Breadcrumb + title */}
       <div style={{ marginBottom: '28px' }}>
-        <Link href="/dashboard/organizer/events" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+        <Link href="/dashboard/staff/events" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
           ← Tous les événements
         </Link>
         <div className="flex flex-wrap gap-3 items-end justify-between">
           <div>
-            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
               Gestion événement
             </p>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2rem', fontWeight: 700 }}>
@@ -103,24 +99,14 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             </h1>
           </div>
 
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-            {isOwner && (
-              <Link
-                href={`/dashboard/organizer/events/${eventId}/edit`}
-                className="btn-outline btn-action"
-              >
-                ✎ Modifier
-              </Link>
-            )}
-            <Link
-              href={`/dashboard/scanner/${eventId}`}
-              className="btn-primary btn-action"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4A7C6F' }}
-            >
-              ◎ Scanner les billets
-            </Link>
-          </div>
+          {/* Scan button */}
+          <Link
+            href={`/dashboard/scanner/${eventId}`}
+            className="btn-primary btn-action shrink-0"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4A7C6F' }}
+          >
+            ◎ Scanner les billets
+          </Link>
         </div>
 
         {lastRefresh && (
@@ -140,9 +126,8 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '28px' }}>
         {([
-          { key: 'overview' as Tab,      label: 'Statistiques'  },
-          { key: 'participants' as Tab,  label: 'Participants'  },
-          ...(isOwner ? [{ key: 'staff' as Tab, label: 'Staff' }] : []),
+          { key: 'overview' as Tab,     label: 'Statistiques' },
+          { key: 'participants' as Tab, label: 'Participants'  },
         ]).map(({ key, label }) => (
           <button
             key={key}
@@ -164,20 +149,14 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
       {/* ── STATISTICS TAB ── */}
       {tab === 'overview' && stats && (
         <>
-          {/* Donut + breakdown side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '1px', background: 'var(--border)', marginBottom: '20px' }}>
-
-            {/* Donut */}
             <div style={{ background: 'var(--background)', padding: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <DonutChart pct={p} size={148} />
             </div>
-
-            {/* Breakdown */}
             <div style={{ background: 'var(--background)', padding: '28px 32px' }}>
               <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '18px' }}>
                 Répartition des billets
               </p>
-              {/* Stacked bar */}
               {total > 0 && (
                 <div style={{ display: 'flex', height: '7px', borderRadius: '4px', overflow: 'hidden', marginBottom: '20px' }}>
                   {breakdown.filter((s) => s.count > 0).map((s) => (
@@ -185,7 +164,6 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
                   ))}
                 </div>
               )}
-              {/* Legend */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
                 {breakdown.map((s) => (
                   <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -205,13 +183,12 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             </div>
           </div>
 
-          {/* Stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: '1px', background: 'var(--border)' }}>
             {[
-              { label: 'Billets vendus',   value: total,      accent: false },
-              { label: 'Enregistrés',     value: checkedIn,  accent: true  },
-              { label: 'En attente',      value: pending,    accent: false },
-              { label: 'Annulés',         value: cancelled,  accent: false },
+              { label: 'Billets vendus', value: total,      accent: false },
+              { label: 'Enregistrés',   value: checkedIn,  accent: true  },
+              { label: 'En attente',    value: pending,    accent: false },
+              { label: 'Annulés',       value: cancelled,  accent: false },
             ].map((s) => (
               <div key={s.label} style={{ background: 'var(--background)', padding: '22px 24px' }}>
                 <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</p>
@@ -222,7 +199,6 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             ))}
           </div>
 
-          {/* By category */}
           {stats.byCategory && stats.byCategory.length > 0 && (
             <div style={{ marginTop: '20px', border: '1px solid var(--border)' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
@@ -231,7 +207,7 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
               {stats.byCategory.map((cat) => {
                 const catPct = cat.total > 0 ? Math.round((cat.checked / cat.total) * 100) : 0;
                 return (
-                  <div key={cat.id} style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <div key={cat.name} style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <p style={{ flex: 1, fontSize: '0.875rem', fontWeight: 500 }}>{cat.name || '—'}</p>
                     <p style={{ fontSize: '0.875rem', color: 'var(--muted)', minWidth: '80px', textAlign: 'right' }}>{cat.checked} / {cat.total}</p>
                     <div style={{ width: '100px', height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -244,11 +220,6 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             </div>
           )}
         </>
-      )}
-
-      {/* ── STAFF TAB ── */}
-      {tab === 'staff' && isOwner && (
-        <StaffPanel eventId={eventId} />
       )}
 
       {/* ── PARTICIPANTS TAB ── */}
@@ -289,166 +260,6 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-// ── Staff management panel ─────────────────────────────────────────────────
-interface StaffEntry {
-  id: number;
-  staffRole: string;
-  user: { id: number; username: string; email: string; full_name: string | null };
-}
-interface UserSearchResult { id: number; username: string; email: string; full_name: string | null; }
-
-function StaffPanel({ eventId }: { eventId: string }) {
-  const [staffList, setStaffList]       = useState<StaffEntry[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [query, setQuery]               = useState('');
-  const [results, setResults]           = useState<UserSearchResult[]>([]);
-  const [searching, setSearching]       = useState(false);
-  const [assigning, setAssigning]       = useState<number | null>(null);
-  const [err, setErr]                   = useState<string | null>(null);
-  const debounceRef                     = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const loadStaff = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/organizer/events/${eventId}/staff`);
-      if (res.ok) setStaffList(await res.json() as StaffEntry[]);
-    } finally { setLoading(false); }
-  }, [eventId]);
-
-  useEffect(() => { void loadStaff(); }, [loadStaff]);
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (query.trim().length < 2) { setResults([]); return; }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const res = await fetch(`/api/organizer/users/search?role=STAFF&username=${encodeURIComponent(query.trim())}`);
-        if (res.ok) setResults(await res.json() as UserSearchResult[]);
-      } finally { setSearching(false); }
-    }, 300);
-  }, [query]);
-
-  const assignedUserIds = new Set(staffList.map((s) => s.user.id));
-
-  async function assign(userId: number) {
-    setAssigning(userId); setErr(null);
-    const res = await fetch(`/api/organizer/events/${eventId}/staff`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    });
-    setAssigning(null);
-    if (res.ok) { setQuery(''); setResults([]); void loadStaff(); }
-    else {
-      const data = await res.json() as { message?: string };
-      setErr(data.message ?? "Erreur lors de l'assignation.");
-    }
-  }
-
-  async function remove(userId: number) {
-    const res = await fetch(`/api/organizer/events/${eventId}/staff/${userId}`, { method: 'DELETE' });
-    if (res.ok || res.status === 204) void loadStaff();
-    else setErr('Impossible de retirer ce membre du staff.');
-  }
-
-  return (
-    <div>
-      {/* Search box */}
-      <div style={{ border: '1px solid var(--border)', padding: '24px 28px', marginBottom: '16px' }}>
-        <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, marginBottom: '10px' }}>
-          Assigner un membre du staff
-        </p>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher par nom d'utilisateur…"
-          style={{
-            width: '100%', padding: '10px 14px', fontSize: '0.875rem',
-            border: '1px solid var(--border)', background: 'var(--background)',
-            color: 'var(--foreground)', outline: 'none', boxSizing: 'border-box',
-          }}
-        />
-        {searching && (
-          <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '8px' }}>Recherche…</p>
-        )}
-        {results.length > 0 && (
-          <div style={{ border: '1px solid var(--border)', marginTop: '4px' }}>
-            {results.map((u) => {
-              const already = assignedUserIds.has(u.id);
-              return (
-                <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{u.full_name || u.username}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{u.email}</p>
-                  </div>
-                  <button
-                    onClick={() => void assign(u.id)}
-                    disabled={already || assigning === u.id}
-                    style={{
-                      padding: '6px 14px', fontSize: '0.8125rem', fontWeight: 600,
-                      background: already ? 'var(--border)' : '#4A7C6F', color: already ? 'var(--muted)' : '#fff',
-                      border: 'none', cursor: already ? 'not-allowed' : 'pointer', flexShrink: 0,
-                    }}
-                  >
-                    {already ? 'Déjà assigné' : assigning === u.id ? '…' : 'Assigner'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {err && (
-          <div style={{ marginTop: '10px', padding: '10px 14px', background: '#dc262608', border: '1px solid #dc262630', color: '#dc2626', fontSize: '0.875rem' }}>
-            {err}
-          </div>
-        )}
-      </div>
-
-      {/* Assigned staff list */}
-      <div style={{ border: '1px solid var(--border)' }}>
-        <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)' }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-            Staff assigné ({loading ? '…' : staffList.length})
-          </p>
-        </div>
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--border)' }}>
-            {[1, 2].map((i) => <div key={i} style={{ height: '56px', background: 'var(--background)', opacity: 0.4 }} />)}
-          </div>
-        ) : staffList.length === 0 ? (
-          <div style={{ padding: '32px', textAlign: 'center' }}>
-            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucun membre du staff assigné.</p>
-          </div>
-        ) : (
-          staffList.map((s, idx) => (
-            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px', borderBottom: idx < staffList.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <div>
-                <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{s.user.full_name || s.user.username}</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{s.user.email}</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '0.6875rem', padding: '2px 8px', background: '#6B728014', color: '#6B7280', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  {s.staffRole === 'ORGANIZER' ? 'Organisateur' : 'Staff'}
-                </span>
-                {s.staffRole !== 'ORGANIZER' && (
-                  <button
-                    onClick={() => void remove(s.user.id)}
-                    style={{ padding: '5px 12px', fontSize: '0.8125rem', color: '#C2533A', border: '1px solid #C2533A40', background: '#C2533A0d', cursor: 'pointer' }}
-                  >
-                    Retirer
-                  </button>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

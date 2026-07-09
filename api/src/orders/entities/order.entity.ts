@@ -22,25 +22,25 @@ export enum OrderStatus {
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  total_amount: number;
+  total_amount: number = 0;
 
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
-  status: OrderStatus;
+  status: OrderStatus = OrderStatus.PENDING;
 
   @Column({ nullable: true })
-  payment_gateway_ref: string;
+  payment_gateway_ref?: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at?: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at?: Date;
 
   @ManyToOne(() => User, (user) => user.orders, { onDelete: 'CASCADE' })
-  user: User;
+  user?: User;
 
   @OneToMany(() => Ticket, (ticket) => ticket.order, { cascade: true })
   tickets: Ticket[];
@@ -49,5 +49,5 @@ export class Order {
     cascade: true,
     nullable: true,
   })
-  payment: Payment;
+  payment?: Payment;
 }

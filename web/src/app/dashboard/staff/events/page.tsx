@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 
-
 interface EventStats { totalTickets: number; checkedIn: number; }
 interface EventSummary {
   id: number;
@@ -13,7 +12,6 @@ interface EventSummary {
   city: string;
   location_name: string;
   stats: EventStats;
-  staffRole?: string;
 }
 
 const PAGE_SIZE = 6;
@@ -23,7 +21,7 @@ function pct(ev: EventSummary) {
   return t > 0 ? Math.round(((ev.stats?.checkedIn ?? 0) / t) * 100) : 0;
 }
 
-export default function OrganizerEventsPage() {
+export default function StaffEventsPage() {
   const [events, setEvents]   = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -53,16 +51,16 @@ export default function OrganizerEventsPage() {
 
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
-        <Link href="/dashboard/organizer" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+        <Link href="/dashboard/staff" style={{ fontSize: '0.8125rem', color: 'var(--muted)', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
           ← Tableau de bord
         </Link>
-        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
-          Espace Organisateur
+        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+          Espace Staff
         </p>
         <div className="flex items-baseline justify-between gap-4">
           <div>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, lineHeight: 1.2 }}>
-              Tous les événements
+              Événements assignés
             </h1>
             {!loading && (
               <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '4px' }}>
@@ -70,9 +68,6 @@ export default function OrganizerEventsPage() {
               </p>
             )}
           </div>
-          <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm" style={{ flexShrink: 0 }}>
-            + Nouvel événement
-          </Link>
         </div>
       </div>
 
@@ -110,8 +105,6 @@ export default function OrganizerEventsPage() {
               const barColor = p >= 80 ? '#4A7C6F' : p >= 40 ? '#B8862D' : '#6B7280';
               return (
                 <div key={ev.id} style={{ background: 'var(--background)', padding: '16px' }}>
-
-                  {/* Top row: date | info | button */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 
                     {/* Date block */}
@@ -124,7 +117,6 @@ export default function OrganizerEventsPage() {
                       </p>
                     </div>
 
-                    {/* Divider */}
                     <div style={{ width: '1px', height: '36px', background: 'var(--border)', flexShrink: 0 }} />
 
                     {/* Info */}
@@ -139,24 +131,22 @@ export default function OrganizerEventsPage() {
 
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                      {ev.staffRole === 'ORGANIZER' && (
-                        <Link
-                          href={`/dashboard/organizer/events/${ev.id}/edit`}
-                          style={{
-                            padding: '7px 14px',
-                            fontSize: '0.75rem',
-                            border: '1px solid var(--border)',
-                            color: 'var(--muted)',
-                            background: 'transparent',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          Modifier
-                        </Link>
-                      )}
                       <Link
-                        href={`/dashboard/organizer/${ev.id}`}
+                        href={`/dashboard/scanner/${ev.id}`}
+                        style={{
+                          padding: '7px 14px',
+                          fontSize: '0.75rem',
+                          border: '1px solid #4A7C6F',
+                          color: '#4A7C6F',
+                          background: 'transparent',
+                          textDecoration: 'none',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        ◎ Scanner
+                      </Link>
+                      <Link
+                        href={`/dashboard/staff/${ev.id}`}
                         className="btn-primary btn-action"
                       >
                         Gérer
@@ -164,7 +154,7 @@ export default function OrganizerEventsPage() {
                     </div>
                   </div>
 
-                  {/* Bottom row: progress bar (full width) */}
+                  {/* Progress bar */}
                   <div style={{ marginTop: '12px', paddingLeft: '56px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{c} / {t} enregistrés</span>
@@ -174,7 +164,6 @@ export default function OrganizerEventsPage() {
                       <div style={{ height: '100%', width: `${p}%`, background: barColor, transition: 'width 0.5s ease' }} />
                     </div>
                   </div>
-
                 </div>
               );
             })}

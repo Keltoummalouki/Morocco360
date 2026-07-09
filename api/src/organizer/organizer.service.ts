@@ -39,6 +39,7 @@ interface EventStatsRaw {
 }
 
 interface CategoryStatsRaw {
+  id: number;
   name: string;
   total: string;
   checked: string;
@@ -60,7 +61,7 @@ export class OrganizerService {
     const result = await this.staffRepo
       .createQueryBuilder('es')
       .leftJoin('es.event', 'e')
-      .leftJoin('tickets', 't', 't.event_id = es.event_id')
+      .leftJoin('tickets', 't', 't.event_id = e.id')
       .select([
         'es.id AS assignment_id',
         'es.staff_role AS staff_role',
@@ -76,7 +77,7 @@ export class OrganizerService {
         `SUM(CASE WHEN t.status = '${TicketStatus.VALID}' THEN 1 ELSE 0 END) AS pending`,
         `SUM(CASE WHEN t.status = '${TicketStatus.CANCELLED}' THEN 1 ELSE 0 END) AS cancelled`,
       ])
-      .where('es.user_id = :userId', { userId })
+      .where('es.userId = :userId', { userId })
       .groupBy(
         'es.id, es.staff_role, e.id, e.title, e.date_start, e.date_end, e.location_name, e.city, e.image_url',
       )
@@ -103,7 +104,10 @@ export class OrganizerService {
   async getEventStats(eventId: number, userId: number): Promise<unknown> {
     await this.assertAssigned(eventId, userId);
 
-    const event = await this.eventRepo.findOne({ where: { id: eventId } });
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: ['organizer'],
+    });
     if (!event) throw new NotFoundException('Event not found');
 
     const overallStats = await this.ticketRepo
@@ -121,6 +125,7 @@ export class OrganizerService {
       .createQueryBuilder('t')
       .leftJoin('t.category', 'c')
       .select([
+        'c.id AS id',
         'c.name AS name',
         'COUNT(t.id) AS total',
         `SUM(CASE WHEN t.status = '${TicketStatus.CHECKED}' THEN 1 ELSE 0 END) AS checked`,
@@ -143,7 +148,9 @@ export class OrganizerService {
       cancelled,
       remaining: event.total_stock - sold,
       checkInRate: sold > 0 ? Math.round((checkedIn / sold) * 100) : 0,
+      isOwner: event.organizer?.id === userId,
       byCategory: categoryStats.map((row) => ({
+        id: row.id,
         name: row.name,
         total: Number(row.total),
         checked: Number(row.checked),
@@ -176,34 +183,37 @@ export class OrganizerService {
   ): Promise<EventStaff> {
     const [event, user] = await Promise.all([
       this.eventRepo.findOne({ where: { id: eventId } }),
-      this.userRepo.findOne({ where: { id: dto.userId } }),
+      this.userRepo.findOne({ where: { id: dto.userId }, relations: ['role'] }),
     ]);
     if (!event) throw new NotFoundException('Event not found');
     if (!user) throw new NotFoundException('User not found');
 
     const existing = await this.staffRepo.findOne({
-      where: { event_id: eventId, user_id: dto.userId },
+      where: { event: { id: eventId }, user: { id: dto.userId } },
     });
     if (existing)
       throw new ConflictException('User already assigned to this event');
 
+    const staffRole =
+      user.role?.name === 'ORGANIZER'
+        ? EventStaffRole.ORGANIZER
+        : EventStaffRole.STAFF;
+
     const entry = this.staffRepo.create({
       event,
-      event_id: eventId,
       user,
-      user_id: dto.userId,
-      staff_role: EventStaffRole.ORGANIZER,
-      assigned_by_user_id: assignedBy,
+      staff_role: staffRole,
+      assigned_by: { id: assignedBy } as User,
     });
     this.logger.log(
-      `Assigned user=${dto.userId} as ORGANIZER to event=${eventId} by user=${assignedBy}`,
+      `Assigned user=${dto.userId} as ${staffRole} to event=${eventId} by user=${assignedBy}`,
     );
     return this.staffRepo.save(entry);
   }
 
   async removeStaff(eventId: number, userId: number): Promise<void> {
     const entry = await this.staffRepo.findOne({
-      where: { event_id: eventId, user_id: userId },
+      where: { event: { id: eventId }, user: { id: userId } },
     });
     if (!entry) throw new NotFoundException('Assignment not found');
     await this.staffRepo.remove(entry);
@@ -211,7 +221,7 @@ export class OrganizerService {
 
   async getStaff(eventId: number): Promise<unknown[]> {
     const entries = await this.staffRepo.find({
-      where: { event_id: eventId },
+      where: { event: { id: eventId } },
       relations: ['user'],
     });
     return entries.map((e) => ({
@@ -238,14 +248,22 @@ export class OrganizerService {
     });
   }
 
-  async searchUsers(email?: string, username?: string): Promise<unknown[]> {
+  async searchUsers(
+    email?: string,
+    username?: string,
+    role?: string,
+  ): Promise<unknown[]> {
     const qb = this.userRepo
       .createQueryBuilder('u')
+      .leftJoin('u.role', 'r')
       .select(['u.id', 'u.email', 'u.username', 'u.full_name']);
+    if (role) {
+      qb.andWhere('r.name = :role', { role });
+    }
     if (email) {
-      qb.where('u.email ILIKE :email', { email: `%${email}%` });
+      qb.andWhere('u.email ILIKE :email', { email: `%${email}%` });
     } else if (username) {
-      qb.where('u.username ILIKE :username', { username: `%${username}%` });
+      qb.andWhere('u.username ILIKE :username', { username: `%${username}%` });
     }
     const users = await qb.limit(10).getMany();
     return users.map((u) => ({
@@ -258,7 +276,7 @@ export class OrganizerService {
 
   private async assertAssigned(eventId: number, userId: number): Promise<void> {
     const found = await this.staffRepo.findOne({
-      where: { event_id: eventId, user_id: userId },
+      where: { event: { id: eventId }, user: { id: userId } },
     });
     if (!found) throw new ForbiddenException('Not assigned to this event');
   }

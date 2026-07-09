@@ -30,6 +30,7 @@ export interface EventFormData {
 interface EventFormProps {
   initial?: Partial<EventFormData>;
   eventId?: number;
+  redirectTo?: string;
 }
 
 const EMPTY: EventFormData = {
@@ -94,6 +95,15 @@ function validate(form: EventFormData): Record<string, string> {
     if (!Number.isInteger(stock) || stock < 0) e[`cat_${i}_stock`] = 'Entier ≥ 0 requis.';
   });
 
+  // Validate total capacity equals sum of category stocks
+  if (form.categories.length > 0) {
+    const totalStock = Number(form.total_stock) || 0;
+    const categorySum = form.categories.reduce((sum, cat) => sum + Number(cat.stock_allocated), 0);
+    if (totalStock !== categorySum) {
+      e.total_stock = `La capacité totale (${totalStock}) doit être égale à la somme des places des catégories (${categorySum}).`;
+    }
+  }
+
   return e;
 }
 
@@ -105,7 +115,7 @@ const errMsg: React.CSSProperties = {
   marginTop: '4px',
 };
 
-export default function EventForm({ initial, eventId }: EventFormProps) {
+export default function EventForm({ initial, eventId, redirectTo }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +148,11 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
     data.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: data });
+      const res = await fetch('/api/upload', { 
+        method: 'POST', 
+        body: data,
+        credentials: 'include', // Include cookies for authentication
+      });
       const json = await res.json() as { url?: string; message?: string };
       if (!res.ok) throw new Error(json.message ?? 'Erreur lors de l\'upload.');
       setField('image_url', json.url ?? '');
@@ -189,10 +203,10 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
     const payload = {
       title: form.title,
       description: form.description,
-      date_start: form.date_start,
+      date_start: form.date_start, // YYYY-MM-DD format from date input
       date_end: form.date_end,
       location_name: form.location_name,
-      city: form.city || undefined,
+      city: form.city.trim() || undefined,
       category: form.category || undefined,
       latitude: form.latitude ? Number(form.latitude) : undefined,
       longitude: form.longitude ? Number(form.longitude) : undefined,
@@ -206,6 +220,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
       })),
     };
 
+    console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
     try {
       const url = isEdit ? `/api/events/${eventId}` : '/api/events';
       const method = isEdit ? 'PATCH' : 'POST';
@@ -213,15 +229,17 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const data = (await res.json()) as { message?: string };
-        throw new Error(data.message ?? 'Une erreur est survenue.');
+        const data = (await res.json()) as { message?: string; error?: string };
+        console.error('API Error Response:', data);
+        throw new Error(data.message ?? data.error ?? 'Une erreur est survenue.');
       }
 
-      router.push('/dashboard/admin/events');
+      router.push(redirectTo ?? '/dashboard/admin/events');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue.');
@@ -640,7 +658,7 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
           <button
             type="button"
             className="btn-outline"
-            onClick={() => router.push('/dashboard/admin/events')}
+            onClick={() => router.push(redirectTo ?? '/dashboard/admin/events')}
           >
             Annuler
           </button>

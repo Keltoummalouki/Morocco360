@@ -71,6 +71,28 @@ export class AdminService {
     return this.toDto(saved);
   }
 
+  // ── Create staff ───────────────────────────────────────────────────────────
+  async createStaff(dto: CreateOrganizerDto): Promise<unknown> {
+    const exists = await this.userRepo.findOne({ where: { email: dto.email } });
+    if (exists) throw new ConflictException('Email already in use');
+
+    const role = await this.roleRepo.findOne({
+      where: { name: RoleName.STAFF },
+    });
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = this.userRepo.create({
+      username: dto.username,
+      email: dto.email,
+      password: passwordHash,
+      full_name: dto.full_name,
+      phone_number: dto.phone_number,
+      role: role ?? undefined,
+      status: UserStatus.ACTIVE,
+    });
+    const saved = await this.userRepo.save(user);
+    return this.toDto(saved);
+  }
+
   // ── Update user fields ─────────────────────────────────────────────────────
   async updateUser(id: number, dto: UpdateUserDto): Promise<unknown> {
     const user = await this.findOrFail(id);
@@ -162,25 +184,28 @@ export class AdminService {
     return events;
   }
 
-  // ── Assign event to organizer ──────────────────────────────────────────────
+  // ── Assign event to organizer or staff ────────────────────────────────────
   async assignEvent(userId: number, eventId: number): Promise<unknown> {
     const user = await this.findOrFail(userId);
     const event = await this.eventRepo.findOne({ where: { id: eventId } });
     if (!event) throw new NotFoundException('Event not found');
 
     const existing = await this.staffRepo.findOne({
-      where: { user_id: userId, event_id: eventId },
+      where: { user: { id: userId }, event: { id: eventId } },
     });
     if (existing)
-      throw new ConflictException('Event already assigned to this organizer');
+      throw new ConflictException('Event already assigned to this user');
+
+    const staffRole =
+      user.role?.name === RoleName.STAFF
+        ? EventStaffRole.STAFF
+        : EventStaffRole.ORGANIZER;
 
     const entry = this.staffRepo.create({
       user,
-      user_id: userId,
       event,
-      event_id: eventId,
-      staff_role: EventStaffRole.ORGANIZER,
-      assigned_by_user_id: userId, // self-assigned by admin action
+      staff_role: staffRole,
+      assigned_by: user,
     });
     await this.staffRepo.save(entry);
     return { userId, eventId, assigned: true };
@@ -189,7 +214,7 @@ export class AdminService {
   // ── Remove event assignment ────────────────────────────────────────────────
   async removeEventAssignment(userId: number, eventId: number): Promise<void> {
     const entry = await this.staffRepo.findOne({
-      where: { user_id: userId, event_id: eventId },
+      where: { user: { id: userId }, event: { id: eventId } },
     });
     if (!entry) throw new NotFoundException('Assignment not found');
     await this.staffRepo.remove(entry);
@@ -198,7 +223,7 @@ export class AdminService {
   // ── Events assigned to a specific organizer ────────────────────────────────
   async getOrganizerEvents(userId: number): Promise<unknown[]> {
     const entries = await this.staffRepo.find({
-      where: { user_id: userId },
+      where: { user: { id: userId } },
       relations: ['event'],
     });
     return entries.map((e) => ({

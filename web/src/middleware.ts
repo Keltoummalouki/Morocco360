@@ -21,6 +21,7 @@ const ROLE_ROUTES: { path: string; allowed: string[] }[] = [
   { path: '/dashboard/admin',     allowed: ['ADMIN'] },
   { path: '/dashboard/scanner',   allowed: ['STAFF', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/organizer', allowed: ['ORGANIZER', 'ADMIN'] },
+  { path: '/dashboard/staff',     allowed: ['STAFF', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/user',      allowed: ['USER', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard',           allowed: ['USER', 'ORGANIZER', 'ADMIN', 'STAFF'] },
 ];
@@ -28,7 +29,7 @@ const ROLE_ROUTES: { path: string; allowed: string[] }[] = [
 const ROLE_HOME: Record<string, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
-  STAFF:     '/dashboard/scanner',
+  STAFF:     '/dashboard/staff',
   USER:      '/dashboard/user',
 };
 

@@ -50,6 +50,12 @@ export class AdminController {
     return this.adminService.createOrganizer(dto);
   }
 
+  @Post('users/staff')
+  @ApiOperation({ summary: 'Create a new staff account' })
+  createStaff(@Body() dto: CreateOrganizerDto) {
+    return this.adminService.createStaff(dto);
+  }
+
   @Patch('users/:id')
   @ApiOperation({ summary: 'Update user profile fields' })
   updateUser(

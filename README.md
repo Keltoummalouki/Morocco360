@@ -178,7 +178,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 cd api
 npm install
 npm run start:dev
-# Serveur disponible sur http://localhost:3001
+# Serveur disponible sur http://localhost:4001
 ```
 
 ### 4. Seeder la base de donnees
@@ -327,4 +327,4 @@ Fichier de configuration : `.github/workflows/ci.yml`
 ---
 
 **Status** : Active Development
-**Derniere mise a jour** : Mars 2026
+**Derniere mise a jour** : April 2026

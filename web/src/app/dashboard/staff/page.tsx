@@ -24,7 +24,7 @@ function EventCard({ ev }: { ev: EventSummary }) {
   const t = ev.stats?.totalTickets ?? 0;
   const c = ev.stats?.checkedIn ?? 0;
   return (
-    <Link href={`/dashboard/organizer/${ev.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={`/dashboard/staff/${ev.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div style={{ border: '1px solid var(--border)', padding: '20px 24px', cursor: 'pointer', background: 'var(--background)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
           <div style={{ flex: 1, minWidth: 0, paddingRight: '16px' }}>
@@ -44,14 +44,14 @@ function EventCard({ ev }: { ev: EventSummary }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{c} / {t} enregistrés</p>
-          <span style={{ fontSize: '0.8125rem', color: '#B8862D', fontWeight: 500 }}>Gérer →</span>
+          <span style={{ fontSize: '0.8125rem', color: '#6B7280', fontWeight: 500 }}>Voir →</span>
         </div>
       </div>
     </Link>
   );
 }
 
-export default function OrganizerDashboard() {
+export default function StaffDashboard() {
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,32 +85,25 @@ export default function OrganizerDashboard() {
 
       {/* Header */}
       <div style={{ marginBottom: '36px' }}>
-        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#B8862D', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
-          Espace Organisateur
+        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.2em', color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
+          Espace Staff
         </p>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: 700, marginBottom: '6px' }}>
-              Tableau de bord
-            </h1>
-            <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>
-              Vue d&apos;ensemble de vos événements en temps réel.
-            </p>
-          </div>
-          <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm" style={{ flexShrink: 0 }}>
-            + Nouvel événement
-          </Link>
-        </div>
+        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: 700, marginBottom: '6px' }}>
+          Tableau de bord
+        </h1>
+        <p style={{ color: 'var(--muted)', fontSize: '0.9375rem' }}>
+          Vue d&apos;ensemble de vos événements assignés.
+        </p>
       </div>
 
       {/* Stat cards */}
       {!loading && events.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: '1px', background: 'var(--border)', marginBottom: '40px' }}>
           {[
-            { label: 'Événements',       value: String(events.length)  },
-            { label: 'Billets vendus',   value: String(totalTickets)   },
-            { label: 'Enregistrements', value: String(totalChecked)   },
-            { label: 'Taux global',      value: `${overallRate}%`      },
+            { label: 'Événements assignés', value: String(events.length)  },
+            { label: 'Billets vendus',      value: String(totalTickets)   },
+            { label: 'Enregistrements',     value: String(totalChecked)   },
+            { label: 'Taux global',         value: `${overallRate}%`      },
           ].map((s) => (
             <div key={s.label} style={{ background: 'var(--background)', padding: '24px' }}>
               <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</p>
@@ -120,7 +113,7 @@ export default function OrganizerDashboard() {
         </div>
       )}
 
-      {/* Loading skeleton */}
+      {/* Loading */}
       {loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
           {[1, 2, 3].map((i) => <div key={i} style={{ height: '100px', background: 'var(--border)', opacity: 0.4 }} />)}
@@ -141,7 +134,7 @@ export default function OrganizerDashboard() {
             <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 600 }}>
               Événements récents
             </h2>
-            <Link href="/dashboard/organizer/events" style={{ fontSize: '0.875rem', color: '#B8862D', textDecoration: 'none', fontWeight: 500 }}>
+            <Link href="/dashboard/staff/events" style={{ fontSize: '0.875rem', color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>
               Voir tous ({events.length}) →
             </Link>
           </div>
@@ -155,12 +148,7 @@ export default function OrganizerDashboard() {
       {!loading && !error && events.length === 0 && (
         <div style={{ padding: '48px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
           <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 600, marginBottom: '8px' }}>Aucun événement</p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginBottom: '20px' }}>
-            Créez votre premier événement ou attendez une assignation.
-          </p>
-          <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm">
-            + Créer un événement
-          </Link>
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucun événement ne vous a encore été assigné.</p>
         </div>
       )}
     </div>

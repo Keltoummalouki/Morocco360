@@ -17,10 +17,11 @@ interface UserRow {
 interface EventOption  { id: number; title: string; date_start: string; city: string; }
 interface AssignedEvent { id: number; title: string; date_start: string; city: string; }
 
-type Tab = 'organizers' | 'users';
+type Tab = 'organizers' | 'staff' | 'users';
 type ModalState =
   | { type: 'none' }
   | { type: 'create' }
+  | { type: 'create-staff' }
   | { type: 'edit';   user: UserRow }
   | { type: 'delete'; user: UserRow }
   | { type: 'events'; user: UserRow };
@@ -30,6 +31,7 @@ const STATUS_BG    = { ACTIVE: '#4A7C6F18', SUSPENDED: '#C2533A14' } as const;
 
 // ── Column templates ───────────────────────────────────────────────────────
 const COLS_ORG      = '2fr 3.2fr 180px 440px';
+const COLS_STAFF    = '2fr 3.2fr 180px 440px';
 const COLS_USER     = '2fr 3.2fr 180px 240px';
 const MIN_W_ORG     = '1200px';
 const MIN_W_USER    = '840px';
@@ -144,6 +146,7 @@ function ActionBtn({ label, color, onClick }: { label: string; color: string; on
 export default function AdminUsersPage() {
   const [tab, setTab]         = useState<Tab>('organizers');
   const [organizers, setOrgs] = useState<UserRow[]>([]);
+  const [staff, setStaff]     = useState<UserRow[]>([]);
   const [users, setUsers]     = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -158,6 +161,14 @@ export default function AdminUsersPage() {
     } catch { setError('Impossible de charger les organisateurs.'); }
   }, []);
 
+  const loadStaff = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/users?role=STAFF');
+      if (!res.ok) throw new Error();
+      setStaff(await res.json() as UserRow[]);
+    } catch { setError('Impossible de charger le staff.'); }
+  }, []);
+
   const loadUsers = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/users?role=USER');
@@ -168,12 +179,14 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([loadOrgs(), loadUsers()]).finally(() => setLoading(false));
-  }, [loadOrgs, loadUsers]);
+    Promise.all([loadOrgs(), loadStaff(), loadUsers()]).finally(() => setLoading(false));
+  }, [loadOrgs, loadStaff, loadUsers]);
 
   const refresh = useCallback(() => {
-    if (tab === 'organizers') void loadOrgs(); else void loadUsers();
-  }, [tab, loadOrgs, loadUsers]);
+    if (tab === 'organizers') void loadOrgs();
+    else if (tab === 'staff') void loadStaff();
+    else void loadUsers();
+  }, [tab, loadOrgs, loadStaff, loadUsers]);
 
   const filterFn = (u: UserRow) => {
     if (!search) return true;
@@ -182,6 +195,7 @@ export default function AdminUsersPage() {
   };
 
   const displayOrgs  = organizers.filter(filterFn);
+  const displayStaff = staff.filter(filterFn);
   const displayUsers = users.filter(filterFn);
 
   async function toggleStatus(user: UserRow) {
@@ -200,9 +214,9 @@ export default function AdminUsersPage() {
     else setError('Impossible de supprimer cet utilisateur.');
   }
 
-  const cols      = tab === 'organizers' ? COLS_ORG : COLS_USER;
-  const minW      = tab === 'organizers' ? MIN_W_ORG : MIN_W_USER;
-  const activeList = tab === 'organizers' ? displayOrgs : displayUsers;
+  const cols      = tab === 'users' ? COLS_USER : tab === 'staff' ? COLS_STAFF : COLS_ORG;
+  const minW      = tab === 'users' ? MIN_W_USER : MIN_W_ORG;
+  const activeList = tab === 'organizers' ? displayOrgs : tab === 'staff' ? displayStaff : displayUsers;
 
   return (
     <div className="dash-page">
@@ -224,6 +238,15 @@ export default function AdminUsersPage() {
               + Créer un organisateur
             </button>
           )}
+          {tab === 'staff' && (
+            <button
+              onClick={() => setModal({ type: 'create-staff' })}
+              className="btn-primary btn-action shrink-0"
+              style={{ background: '#6B7280' }}
+            >
+              + Créer un staff
+            </button>
+          )}
         </div>
       </div>
 
@@ -231,6 +254,7 @@ export default function AdminUsersPage() {
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '24px' }}>
         {([
           { key: 'organizers' as Tab, label: `Organisateurs (${organizers.length})` },
+          { key: 'staff' as Tab,      label: `Staff (${staff.length})` },
           { key: 'users' as Tab,      label: `Utilisateurs (${users.length})` },
         ]).map(({ key, label }) => (
           <button
@@ -339,6 +363,12 @@ export default function AdminUsersPage() {
                     <ActionBtn label="Modifier"   color="#4A7C6F" onClick={() => setModal({ type: 'edit',   user: u })} />
                     <ActionBtn label="Supprimer"  color="#C2533A" onClick={() => setModal({ type: 'delete', user: u })} />
                   </>
+                ) : tab === 'staff' ? (
+                  <>
+                    <ActionBtn label="Événements" color="#6B7280" onClick={() => setModal({ type: 'events', user: u })} />
+                    <ActionBtn label="Modifier"   color="#4A7C6F" onClick={() => setModal({ type: 'edit',   user: u })} />
+                    <ActionBtn label="Supprimer"  color="#C2533A" onClick={() => setModal({ type: 'delete', user: u })} />
+                  </>
                 ) : (
                   <ActionBtn
                     label={u.status === 'ACTIVE' ? 'Suspendre' : 'Activer'}
@@ -357,10 +387,13 @@ export default function AdminUsersPage() {
       {!loading && activeList.length === 0 && (
         <div style={{ padding: '48px', textAlign: 'center', border: '1px solid var(--border)' }}>
           <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.125rem', fontWeight: 600, marginBottom: '6px' }}>
-            {search ? 'Aucun résultat' : tab === 'organizers' ? 'Aucun organisateur' : 'Aucun utilisateur'}
+            {search ? 'Aucun résultat' : tab === 'organizers' ? 'Aucun organisateur' : tab === 'staff' ? 'Aucun staff' : 'Aucun utilisateur'}
           </p>
           {tab === 'organizers' && !search && (
             <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Créez votre premier organisateur.</p>
+          )}
+          {tab === 'staff' && !search && (
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Créez votre premier compte staff.</p>
           )}
         </div>
       )}
@@ -368,6 +401,9 @@ export default function AdminUsersPage() {
       {/* Modals */}
       {modal.type === 'create' && (
         <CreateOrganizerModal onClose={() => setModal({ type: 'none' })} onCreated={() => { setModal({ type: 'none' }); void loadOrgs(); }} />
+      )}
+      {modal.type === 'create-staff' && (
+        <CreateStaffModal onClose={() => setModal({ type: 'none' })} onCreated={() => { setModal({ type: 'none' }); void loadStaff(); }} />
       )}
       {modal.type === 'edit' && (
         <EditUserModal user={modal.user} onClose={() => setModal({ type: 'none' })} onSaved={() => { setModal({ type: 'none' }); refresh(); }} />
@@ -437,6 +473,66 @@ function CreateOrganizerModal({ onClose, onCreated }: { onClose: () => void; onC
           </div>
         )}
         <ModalActions onCancel={onClose} submitLabel="Créer le compte" loading={saving} />
+      </form>
+    </Overlay>
+  );
+}
+
+// ── Create staff modal ─────────────────────────────────────────────────────
+function CreateStaffModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({ username: '', email: '', password: '', full_name: '', phone_number: '' });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (fieldErrors[k]) setFieldErrors((prev) => { const n = { ...prev }; delete n[k]; return n; });
+  };
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const errs = validateOrganizerForm(form);
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
+    setFieldErrors({});
+    setSaving(true); setErr(null);
+    const res = await fetch('/api/admin/users/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    setSaving(false);
+    if (res.ok) { onCreated(); return; }
+    const data = await res.json() as { message?: string };
+    setErr(Array.isArray(data.message) ? (data.message as string[]).join(', ') : (data.message ?? 'Erreur lors de la création.'));
+  }
+
+  return (
+    <Overlay onClose={onClose}>
+      <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, marginBottom: '6px' }}>
+        Créer un staff
+      </h2>
+      <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginBottom: '28px' }}>
+        Le compte sera actif immédiatement après création.
+      </p>
+      <form onSubmit={(e) => void submit(e)} noValidate>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <Field label="Nom d'utilisateur" value={form.username} onChange={set('username')} required error={fieldErrors.username} />
+          <Field label="Email" value={form.email} onChange={set('email')} type="email" required error={fieldErrors.email} />
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <Field label="Mot de passe" value={form.password} onChange={set('password')} type="password" required error={fieldErrors.password} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <Field label="Nom complet" value={form.full_name} onChange={set('full_name')} />
+          <Field label="Téléphone" value={form.phone_number} onChange={set('phone_number')} error={fieldErrors.phone_number} />
+        </div>
+        {err && (
+          <div style={{ marginTop: '16px', padding: '10px 14px', background: '#dc262608', border: '1px solid #dc262630', color: '#dc2626', fontSize: '0.875rem' }}>
+            {err}
+          </div>
+        )}
+        <ModalActions onCancel={onClose} submitLabel="Créer le compte" submitColor="#6B7280" loading={saving} />
       </form>
     </Overlay>
   );

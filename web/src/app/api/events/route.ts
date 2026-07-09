@@ -3,10 +3,13 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3001';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const qs = req.nextUrl.searchParams.toString();
+  const url = `${API_URL}/events${qs ? `?${qs}` : ''}`;
+
   let apiRes: Response;
   try {
-    apiRes = await fetch(`${API_URL}/events`, { cache: 'no-store' });
+    apiRes = await fetch(url, { cache: 'no-store' });
   } catch {
     return NextResponse.json(
       { message: 'API unavailable. Is the server running?' },

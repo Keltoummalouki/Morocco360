@@ -21,6 +21,10 @@ const NAV_ITEMS: Record<Role, NavItem[]> = {
     { key: 'overview',  href: '/dashboard/organizer',        symbol: '◎' },
     { key: 'events',    href: '/dashboard/organizer/events', symbol: '◆' },
   ],
+  STAFF: [
+    { key: 'overview',  href: '/dashboard/staff',        symbol: '◎' },
+    { key: 'events',    href: '/dashboard/staff/events', symbol: '◆' },
+  ],
   USER: [
     { key: 'explore',  href: '/dashboard/user',          symbol: '◎' },
     { key: 'events',   href: '/dashboard/user/events',   symbol: '◆' },
@@ -33,6 +37,7 @@ const NAV_ITEMS: Record<Role, NavItem[]> = {
 const ROLE_ACCENT: Record<Role, string> = {
   ADMIN:     '#C2533A',
   ORGANIZER: '#B8862D',
+  STAFF:     '#6B7280',
   USER:      '#4A7C6F',
 };
 

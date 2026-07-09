@@ -1,43 +1,164 @@
-import Link from "next/link";
-import MobileNav from "@/components/MobileNav";
-import ThemeToggle from "@/components/ThemeToggle";
+import { cookies } from 'next/headers';
+import Link from 'next/link';
+import MobileNav from '@/components/MobileNav';
+import ThemeToggle from '@/components/ThemeToggle';
+import { decodeJwt } from '@/lib/auth-server';
+
+// ── Static data ────────────────────────────────────────────────────────────────
 
 const DESTINATIONS = [
-  { city: "Marrakech",   region: "South",     num: "01", dark: true  },
-  { city: "Chefchaouen", region: "North",     num: "02", dark: false },
-  { city: "Sahara",      region: "Southeast", num: "03", dark: false },
-  { city: "Fez",         region: "Central",   num: "04", dark: true  },
+  { city: 'Marrakech',   region: 'South',     num: '01', dark: true  },
+  { city: 'Chefchaouen', region: 'North',     num: '02', dark: false },
+  { city: 'Sahara',      region: 'Southeast', num: '03', dark: false },
+  { city: 'Fez',         region: 'Central',   num: '04', dark: true  },
 ];
 
 const FEATURES = [
   {
-    symbol: "◎",
-    title: "Immersive 360°",
-    desc: "Full spherical panoramas captured with professional equipment across Morocco's most breathtaking locations.",
+    symbol: '◎',
+    title: 'Immersive 360°',
+    desc: 'Full spherical panoramas captured with professional equipment across Morocco\'s most breathtaking locations.',
   },
   {
-    symbol: "◈",
-    title: "Curated Routes",
-    desc: "Expert-designed virtual tours connecting medinas, kasbahs, and natural landscapes in meaningful sequences.",
+    symbol: '◈',
+    title: 'Live Events',
+    desc: 'Attend cultural festivals, music concerts, art exhibitions and guided tours across Morocco\'s most iconic cities.',
   },
   {
-    symbol: "◇",
-    title: "Live Guides",
-    desc: "Join live sessions with local Moroccan guides who share stories, history, and hidden secrets of each place.",
+    symbol: '◇',
+    title: 'Digital Tickets',
+    desc: 'Book online and receive a secure QR-code ticket instantly — valid for seamless entry at any event.',
+  },
+  {
+    symbol: '◉',
+    title: 'Curated Routes',
+    desc: 'Expert-designed virtual tours connecting medinas, kasbahs, and natural landscapes in meaningful sequences.',
+  },
+  {
+    symbol: '◆',
+    title: 'Secure Payments',
+    desc: 'Complete your booking with confidence using Stripe-powered payments supporting major cards.',
+  },
+  {
+    symbol: '◐',
+    title: 'Local Guides',
+    desc: 'Join live sessions with local Moroccan guides who share stories, history, and hidden secrets of each place.',
   },
 ];
 
 const MARQUEE_CITIES = [
-  "MARRAKECH", "FEZ", "CHEFCHAOUEN", "SAHARA DESERT",
-  "ATLAS MOUNTAINS", "ESSAOUIRA", "CASABLANCA", "RABAT",
-  "MEKNES", "AGADIR", "OUARZAZATE", "TANGIER",
+  'MARRAKECH', 'FEZ', 'CHEFCHAOUEN', 'SAHARA DESERT',
+  'ATLAS MOUNTAINS', 'ESSAOUIRA', 'CASABLANCA', 'RABAT',
+  'MEKNES', 'AGADIR', 'OUARZAZATE', 'TANGIER',
 ];
 
-export default function Home() {
+const HOW_IT_WORKS = [
+  {
+    step: '01',
+    title: 'Discover',
+    desc: 'Browse curated events, panoramic experiences, and guided tours across the Kingdom of Morocco.',
+  },
+  {
+    step: '02',
+    title: 'Book',
+    desc: 'Select your ticket category, choose your quantity, and complete a secure payment in a few clicks.',
+  },
+  {
+    step: '03',
+    title: 'Experience',
+    desc: 'Receive your digital QR ticket instantly. Scan at the entrance and immerse yourself in Morocco.',
+  },
+];
+
+const ROLE_HOME: Record<string, string> = {
+  ADMIN:     '/dashboard/admin',
+  ORGANIZER: '/dashboard/organizer',
+  STAFF:     '/dashboard/staff',
+  USER:      '/dashboard/user',
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  MUSIQUE: 'Music', SPORT: 'Sport', CULTURE: 'Culture',
+  CINEMA: 'Cinema', HUMOUR: 'Comedy', ART: 'Art', AUTRE: 'Other',
+};
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+interface TicketCategory {
+  id: number;
+  name: string;
+  price: string;
+  stock_remaining: number;
+  stock_allocated: number;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date_start: string;
+  date_end: string;
+  location_name: string;
+  city: string | null;
+  category: string;
+  image_url: string | null;
+  total_stock: number;
+  is_active: boolean;
+  is_sold_out: boolean;
+  categories: TicketCategory[];
+}
+
+// ── Data fetching ──────────────────────────────────────────────────────────────
+
+async function getUpcomingEvents(): Promise<Event[]> {
+  try {
+    const API_URL = process.env.API_URL ?? 'http://localhost:3001';
+    const res = await fetch(`${API_URL}/events`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json()) as Event[];
+    const now = new Date();
+    return data
+      .filter((e) => e.is_active && new Date(e.date_end) >= now)
+      .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime())
+      .slice(0, 6);
+  } catch {
+    return [];
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function formatDateShort(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+
+function getMinPrice(categories: TicketCategory[]) {
+  if (!categories?.length) return null;
+  const min = Math.min(...categories.map((c) => Number(c.price)));
+  return min === 0 ? 'Free' : `From ${min.toFixed(0)} MAD`;
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
+
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value ?? null;
+  const payload = token ? decodeJwt(token) : null;
+  const isAuthenticated = !!payload && payload.exp * 1000 > Date.now();
+  const userRole = payload?.role ?? null;
+  const dashboardHref = userRole ? (ROLE_HOME[userRole] ?? '/dashboard/user') : '/dashboard/user';
+  const eventsBrowseHref = isAuthenticated
+    ? (userRole === 'STAFF' ? dashboardHref : '/dashboard/user/events')
+    : '/events';
+
+  const events = await getUpcomingEvents();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
 
-      {/* ── Navbar ─────────────────────────────────────── */}
+      {/* ── Navbar ──────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border" aria-label="Main navigation">
         <div className="nav-bar max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16">
           <Link href="/" className="font-playfair text-xl font-bold shrink-0">
@@ -46,34 +167,38 @@ export default function Home() {
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-10">
-            {["Experiences", "Destinations", "Gallery", "About"].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">
-                {item}
-              </Link>
+            {['Experiences', 'Destinations', 'Gallery', 'About'].map((item) => (
+              <Link key={item} href="#" className="link-underline nav-link">{item}</Link>
             ))}
           </div>
 
-          {/* Desktop right actions */}
+          {/* Desktop right — auth-aware */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            <Link href="/login" className="link-underline nav-link">Sign in</Link>
-            <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
+            {isAuthenticated ? (
+              <Link href={dashboardHref} className="btn-primary btn-sm">My Dashboard</Link>
+            ) : (
+              <>
+                <Link href="/login" className="link-underline nav-link">Sign in</Link>
+                <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
+              </>
+            )}
           </div>
 
-          {/* Mobile right actions */}
+          {/* Mobile */}
           <div className="flex md:hidden items-center gap-3">
             <ThemeToggle />
-            <MobileNav />
+            <MobileNav isAuthenticated={isAuthenticated} dashboardHref={dashboardHref} />
           </div>
         </div>
       </nav>
 
-      {/* ── Hero ───────────────────────────────────────── */}
+      {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="min-h-screen pt-16 flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 items-center">
 
-            {/* Left content */}
+            {/* Left */}
             <div className="lg:col-span-3">
               <p className="anim-fade-up label-caps text-primary mb-5 sm:mb-7">
                 Panoramic Experiences
@@ -90,25 +215,32 @@ export default function Home() {
               </h1>
 
               <p className="anim-fade-up delay-300 text-muted text-[1rem] sm:text-[1.0625rem] leading-[1.8] max-w-[460px] mt-6 mb-8 sm:mt-7 sm:mb-10">
-                Step inside the ancient medinas, golden deserts, and coastal cities
-                of Morocco. Immersive panoramic journeys, from anywhere in the world.
+                Step inside the ancient medinas, golden deserts, and coastal cities of Morocco.
+                Book live events, virtual tours, and panoramic journeys — from anywhere in the world.
               </p>
 
               <div className="anim-fade-up delay-400 flex flex-wrap gap-3 sm:gap-4">
-                <Link href="/register" className="btn-primary">Start Exploring</Link>
-                <Link href="#experiences" className="btn-outline">View Experiences</Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link href={dashboardHref} className="btn-primary">Go to Dashboard</Link>
+                    <Link href="#events" className="btn-outline">View Events</Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/register" className="btn-primary">Start Exploring</Link>
+                    <Link href="/events" className="btn-outline">View Events</Link>
+                  </>
+                )}
               </div>
 
               {/* Stats */}
               <div className="anim-fade-up delay-500 flex gap-8 sm:gap-12 mt-12 sm:mt-16 pt-8 sm:pt-10 border-t border-border flex-wrap">
-                {[["240+", "Panoramas"], ["18", "Cities"], ["50K+", "Explorers"]].map(
-                  ([num, label]) => (
-                    <div key={label}>
-                      <p className="font-playfair text-[1.875rem] sm:text-[2.25rem] font-bold">{num}</p>
-                      <p className="label-small text-muted mt-1">{label}</p>
-                    </div>
-                  )
-                )}
+                {[['240+', 'Panoramas'], ['18', 'Cities'], ['50K+', 'Explorers']].map(([num, label]) => (
+                  <div key={label}>
+                    <p className="font-playfair text-[1.875rem] sm:text-[2.25rem] font-bold">{num}</p>
+                    <p className="label-small text-muted mt-1">{label}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -120,8 +252,8 @@ export default function Home() {
                     key={dest.city}
                     className={`card-hover p-4 sm:p-6 aspect-square flex flex-col justify-between ${
                       dest.dark
-                        ? "bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)]"
-                        : "bg-surface text-foreground"
+                        ? 'bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)]'
+                        : 'bg-surface text-foreground'
                     }`}
                   >
                     <span className="text-[0.5625rem] sm:text-[0.625rem] tracking-[0.18em] opacity-45 uppercase">
@@ -143,7 +275,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Marquee strip ──────────────────────────────── */}
+      {/* ── Marquee strip ───────────────────────────────────────────────── */}
       <div className="border-y border-border py-3.5 overflow-hidden">
         <div className="marquee-track flex whitespace-nowrap w-max">
           {[...MARQUEE_CITIES, ...MARQUEE_CITIES].map((city, i) => (
@@ -155,7 +287,215 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Features ───────────────────────────────────── */}
+      {/* ── How it works ────────────────────────────────────────────────── */}
+      <section className="py-20 sm:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className="mb-14 sm:mb-20 text-center">
+            <p className="label-caps text-primary mb-3">Simple Process</p>
+            <h2 className="font-playfair text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.15]">
+              How it works
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16">
+            {HOW_IT_WORKS.map((s) => (
+              <div key={s.step}>
+                <span className="font-playfair text-[4.5rem] font-extrabold opacity-[0.06] leading-none block mb-4">
+                  {s.step}
+                </span>
+                <h3 className="font-playfair text-[1.25rem] sm:text-[1.5rem] font-semibold mb-3">{s.title}</h3>
+                <p className="text-muted leading-[1.8] text-[0.9375rem]">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Upcoming Events ─────────────────────────────────────────────── */}
+      <section id="events" className="bg-surface py-16 sm:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10 sm:mb-12">
+            <div>
+              <p className="label-caps text-primary mb-3">Live &amp; Upcoming</p>
+              <h2 className="font-playfair text-[clamp(1.5rem,3vw,2.75rem)] leading-[1.2]">
+                Upcoming Events
+              </h2>
+            </div>
+            <Link href={eventsBrowseHref} className="link-underline nav-link whitespace-nowrap self-start">
+              Browse all events →
+            </Link>
+          </div>
+
+          {events.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {events.map((event) => {
+                  const minPrice = getMinPrice(event.categories);
+                  const reserveHref = isAuthenticated
+                    ? `/dashboard/user/events/${event.id}`
+                    : `/login?redirect=/dashboard/user/events/${event.id}`;
+
+                  return (
+                    <div
+                      key={event.id}
+                      className="card-hover bg-background border border-border flex flex-col overflow-hidden"
+                    >
+                      {/* Image */}
+                      <div
+                        className="relative overflow-hidden"
+                        style={{ height: '176px', background: 'var(--surface)' }}
+                      >
+                        {event.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={event.image_url}
+                            alt={event.title}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <span
+                              className="font-playfair"
+                              style={{ fontSize: '3rem', opacity: 0.07 }}
+                            >
+                              M
+                            </span>
+                          </div>
+                        )}
+                        {/* Category badge */}
+                        <span
+                          className="label-caps"
+                          style={{
+                            position: 'absolute',
+                            top: '10px',
+                            left: '10px',
+                            background: 'var(--background)',
+                            color: 'var(--primary)',
+                            padding: '3px 8px',
+                            fontSize: '0.5625rem',
+                          }}
+                        >
+                          {CATEGORY_LABELS[event.category] ?? event.category}
+                        </span>
+                        {event.is_sold_out && (
+                          <span
+                            className="label-caps"
+                            style={{
+                              position: 'absolute',
+                              top: '10px',
+                              right: '10px',
+                              background: 'var(--foreground)',
+                              color: 'var(--background)',
+                              padding: '3px 8px',
+                              fontSize: '0.5625rem',
+                            }}
+                          >
+                            Sold Out
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 sm:p-6 flex flex-col flex-1">
+                        <p className="text-muted mb-2" style={{ fontSize: '0.75rem', letterSpacing: '0.04em' }}>
+                          {event.city ?? event.location_name} · {formatDateShort(event.date_start)}
+                        </p>
+                        <h3
+                          className="font-playfair font-semibold mb-2"
+                          style={{
+                            fontSize: '1.0625rem',
+                            lineHeight: 1.35,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {event.title}
+                        </h3>
+                        <p
+                          className="text-muted flex-1"
+                          style={{
+                            fontSize: '0.875rem',
+                            lineHeight: 1.7,
+                            marginBottom: '20px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {event.description}
+                        </p>
+
+                        <div
+                          className="border-t border-border"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            paddingTop: '16px',
+                          }}
+                        >
+                          <span className="font-playfair font-semibold" style={{ fontSize: '1rem' }}>
+                            {minPrice ?? '—'}
+                          </span>
+                          {event.is_sold_out ? (
+                            <span
+                              className="btn-outline btn-sm"
+                              style={{ opacity: 0.4, cursor: 'default' }}
+                            >
+                              Sold Out
+                            </span>
+                          ) : (
+                            <Link href={reserveHref} className="btn-primary btn-sm">
+                              {isAuthenticated ? 'Reserve' : 'Sign in to Reserve'}
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {!isAuthenticated && (
+                <p
+                  className="text-muted text-center"
+                  style={{ fontSize: '0.875rem', marginTop: '32px' }}
+                >
+                  <Link href="/login" style={{ color: 'var(--primary)' }}>Sign in</Link>
+                  {' '}or{' '}
+                  <Link href="/register" style={{ color: 'var(--primary)' }}>create an account</Link>
+                  {' '}to reserve tickets for these events.
+                </p>
+              )}
+            </>
+          ) : (
+            /* Empty state */
+            <div
+              className="border border-border"
+              style={{ padding: '64px 24px', textAlign: 'center' }}
+            >
+              <p className="font-playfair" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
+                No upcoming events
+              </p>
+              <p className="text-muted" style={{ fontSize: '0.9375rem' }}>
+                Check back soon — new events are added regularly.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Features / Why Morocco360 ────────────────────────────────────── */}
       <section id="experiences" className="py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="mb-12 sm:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6 sm:gap-8">
@@ -165,7 +505,10 @@ export default function Home() {
                 A new way to experience the kingdom
               </h2>
             </div>
-            <Link href="/register" className="link-underline nav-link whitespace-nowrap self-start">
+            <Link
+              href={isAuthenticated ? eventsBrowseHref : '/register'}
+              className="link-underline nav-link whitespace-nowrap self-start"
+            >
               See all experiences
             </Link>
           </div>
@@ -182,22 +525,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Destinations grid ──────────────────────────── */}
+      {/* ── Popular Destinations ─────────────────────────────────────────── */}
       <section className="bg-surface py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 sm:mb-12">
             <h2 className="font-playfair text-[clamp(1.5rem,3vw,2.75rem)] leading-[1.2]">
               Popular destinations
             </h2>
-            <Link href="/register" className="btn-outline self-start">Explore All</Link>
+            <Link
+              href={isAuthenticated ? dashboardHref : '/register'}
+              className="btn-outline self-start"
+            >
+              Explore All
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {[
-              ["Marrakech",  "240 panoramas"],
-              ["Fez Medina", "118 panoramas"],
-              ["Sahara Erg", "96 panoramas" ],
-              ["Essaouira",  "74 panoramas" ],
+              ['Marrakech',  '240 panoramas'],
+              ['Fez Medina', '118 panoramas'],
+              ['Sahara Erg', '96 panoramas' ],
+              ['Essaouira',  '74 panoramas' ],
             ].map(([name, count]) => (
               <div key={name} className="card-hover border border-border bg-background px-5 sm:px-6 py-7 sm:py-8">
                 <p className="font-playfair text-[1.125rem] sm:text-[1.25rem] font-semibold mb-2">{name}</p>
@@ -208,21 +556,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA ────────────────────────────────────────── */}
+      {/* ── CTA ─────────────────────────────────────────────────────────── */}
       <section className="bg-[var(--card-inverted-bg)] text-[var(--card-inverted-text)] py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
-          <p className="label-caps text-primary mb-4 sm:mb-5">Begin your journey</p>
+          <p className="label-caps text-primary mb-4 sm:mb-5">
+            {isAuthenticated ? 'Continue your journey' : 'Begin your journey'}
+          </p>
           <h2 className="font-playfair text-[clamp(2rem,5vw,4rem)] leading-[1.12] mb-5 sm:mb-6">
             Morocco awaits you
           </h2>
-          <p className="text-[var(--card-inverted-muted)] text-[1rem] sm:text-[1.0625rem] max-w-[440px] mx-auto mb-10 sm:mb-12 leading-[1.8]">
-            Create a free account and unlock hundreds of panoramic experiences across the Kingdom of Morocco.
+          <p
+            className="text-[var(--card-inverted-muted)] mx-auto mb-10 sm:mb-12 leading-[1.8]"
+            style={{ fontSize: '1rem', maxWidth: '440px' }}
+          >
+            {isAuthenticated
+              ? 'Discover upcoming events, book your tickets, and explore Morocco through immersive panoramic experiences.'
+              : 'Create a free account and unlock hundreds of panoramic experiences and live events across the Kingdom of Morocco.'}
           </p>
-          <Link href="/register" className="btn-primary btn-cta">Create Free Account</Link>
+          {isAuthenticated ? (
+            <Link href={eventsBrowseHref} className="btn-primary btn-cta">Explore Events</Link>
+          ) : (
+            <Link href="/register" className="btn-primary btn-cta">Create Free Account</Link>
+          )}
         </div>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
       <footer className="border-t border-border py-10 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
           <Link href="/" className="font-playfair text-[1.125rem] font-bold">
@@ -232,10 +591,8 @@ export default function Home() {
             2026 Morocco360. All rights reserved.
           </p>
           <div className="flex gap-6 sm:gap-8 flex-wrap justify-center">
-            {["Privacy", "Terms", "Contact"].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">
-                {item}
-              </Link>
+            {['Privacy', 'Terms', 'Contact'].map((item) => (
+              <Link key={item} href="#" className="link-underline nav-link">{item}</Link>
             ))}
           </div>
         </div>

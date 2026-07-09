@@ -38,8 +38,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Festival annuel de jazz reunissant des artistes nationaux et internationaux' +
       ' au coeur de la place Jemaa el-Fna. Trois jours de musique live, ateliers et jam sessions.',
-    date_start: '2025-07-15',
-    date_end: '2025-07-17',
+    date_start: '2026-07-15',
+    date_end: '2026-07-17',
     location_name: 'Jemaa el-Fna, Marrakech',
     city: 'Marrakech',
     category: EventCategory.MUSIQUE,
@@ -57,8 +57,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Le celebre festival de musiques sacrees du monde qui transforme la medina de Fes en' +
       ' scene internationale. Concerts dans les palais, les mosquees et les jardins historiques.',
-    date_start: '2025-06-06',
-    date_end: '2025-06-14',
+    date_start: '2027-06-06',
+    date_end: '2027-06-14',
     location_name: 'Medina de Fes',
     city: 'Fès',
     category: EventCategory.MUSIQUE,
@@ -76,8 +76,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Le festival Gnaoua est un grand rassemblement de musique mondiale base a Essaouira.' +
       ' Fusion unique entre les maalems gnaoua et les artistes world music.',
-    date_start: '2025-06-26',
-    date_end: '2025-06-29',
+    date_start: '2026-06-26',
+    date_end: '2026-06-29',
     location_name: 'Essaouira',
     city: 'Essaouira',
     category: EventCategory.MUSIQUE,
@@ -95,8 +95,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Un des plus grands festivals de musique en Afrique. Stars mondiales et artistes' +
       ' arabes se retrouvent a Rabat pour dix jours de concerts gratuits et payants.',
-    date_start: '2025-05-23',
-    date_end: '2025-06-01',
+    date_start: '2026-05-23',
+    date_end: '2026-06-01',
     location_name: 'Rabat — Scenes OLM Souissi & Bouregreg',
     city: 'Rabat',
     category: EventCategory.MUSIQUE,
@@ -114,8 +114,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Festival de jazz emblematique dans la ville detroit. Concerts en plein air' +
       ' au Jardin de la Mendoubia et dans les clubs historiques de Tanger.',
-    date_start: '2025-09-18',
-    date_end: '2025-09-21',
+    date_start: '2026-09-18',
+    date_end: '2026-09-21',
     location_name: 'Jardin de la Mendoubia, Tanger',
     city: 'Tanger',
     category: EventCategory.MUSIQUE,
@@ -133,8 +133,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Un des festivals de cinema les plus prestigieux en Afrique et dans le monde arabe.' +
       " Projections, rencontres avec les realisateurs et ceremonie de remise de l'Etoile d'Or.",
-    date_start: '2025-11-28',
-    date_end: '2025-12-06',
+    date_start: '2026-11-28',
+    date_end: '2026-12-06',
     location_name: 'Palais des Congres, Marrakech',
     city: 'Marrakech',
     category: EventCategory.CINEMA,
@@ -152,8 +152,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'La course a pied la plus dure du monde — 250 km en six etapes dans le Sahara marocain.' +
       " Participation internationale, paysages grandioses, defi ultime d'endurance.",
-    date_start: '2025-04-11',
-    date_end: '2025-04-20',
+    date_start: '2026-04-11',
+    date_end: '2026-04-20',
     location_name: "Desert du Sahara, region d'Ouarzazate",
     city: 'Ouarzazate',
     category: EventCategory.SPORT,
@@ -174,8 +174,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       'Rallye 100% feminin a travers les dunes, les rochers et les pistes du Maroc.' +
       ' Navigation a la boussole et a la carte, sans GPS, pour des equipages de 2 femmes.',
-    date_start: '2025-03-15',
-    date_end: '2025-03-26',
+    date_start: '2026-03-15',
+    date_end: '2026-03-26',
     location_name: 'Depart Agadir — arrivee Essaouira',
     city: 'Agadir',
     category: EventCategory.SPORT,
@@ -192,8 +192,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       "Grand festival de l'humour initie par Jamel Debbouze. Les plus grands comiques" +
       ' francophones se retrouvent a Marrakech pour des spectacles et fous rires garantis.',
-    date_start: '2025-06-19',
-    date_end: '2025-06-22',
+    date_start: '2026-06-19',
+    date_end: '2026-06-22',
     location_name: 'Palmeraie et scenes ouvertes, Marrakech',
     city: 'Marrakech',
     category: EventCategory.HUMOUR,
@@ -211,8 +211,8 @@ const SEED_EVENTS: SeedEvent[] = [
     description:
       "Festival de musique electronique au pied des montagnes de l'Atlas." +
       ' Sets 24h dans un cadre naturel unique, camping sur site et line-up international.',
-    date_start: '2025-10-03',
-    date_end: '2025-10-05',
+    date_start: '2026-10-03',
+    date_end: '2026-10-05',
     location_name: "Domaine Ourika, pied de l'Atlas",
     city: 'Marrakech',
     category: EventCategory.MUSIQUE,
@@ -318,7 +318,7 @@ export class EventSeeder {
     by: User,
   ) {
     const exists = await this.staffRepo.findOne({
-      where: { event_id: event.id, user_id: user.id },
+      where: { event: { id: event.id }, user: { id: user.id } },
     });
     if (exists) {
       console.log(`  [EventSeeder] Staff already assigned: ${user.email}`);
@@ -327,12 +327,9 @@ export class EventSeeder {
     await this.staffRepo.save(
       this.staffRepo.create({
         event,
-        event_id: event.id,
         user,
-        user_id: user.id,
         staff_role: role,
         assigned_by: by,
-        assigned_by_user_id: by.id,
       }),
     );
     console.log(

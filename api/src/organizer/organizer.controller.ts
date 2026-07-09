@@ -43,6 +43,7 @@ export class OrganizerController {
   constructor(private readonly organizerService: OrganizerService) {}
 
   @Get('events')
+  @Roles('ORGANIZER', 'ADMIN', 'STAFF')
   @ApiOperation({ summary: 'Get all events assigned to current user' })
   @ApiResponse({ status: 200, type: [AssignedEventDto] })
   getEvents(@Request() req: { user: JwtUser }) {
@@ -50,6 +51,7 @@ export class OrganizerController {
   }
 
   @Get('events/:eventId/stats')
+  @Roles('ORGANIZER', 'ADMIN', 'STAFF')
   @ApiOperation({ summary: 'Get detailed stats for an event' })
   @ApiResponse({ status: 200, type: EventStatsDto })
   getStats(
@@ -67,8 +69,9 @@ export class OrganizerController {
   searchUsers(
     @Query('email') email?: string,
     @Query('username') username?: string,
+    @Query('role') role?: string,
   ) {
-    return this.organizerService.searchUsers(email, username);
+    return this.organizerService.searchUsers(email, username, role);
   }
 
   @Roles('ORGANIZER', 'ADMIN')
@@ -95,13 +98,14 @@ export class OrganizerController {
   }
 
   @Get('events/:eventId/staff')
+  @Roles('ORGANIZER', 'ADMIN', 'STAFF')
   @ApiOperation({ summary: 'Get all staff assigned to an event' })
   @ApiResponse({ status: 200, type: [StaffMemberDto] })
   getStaff(@Param('eventId', ParseIntPipe) eventId: number) {
     return this.organizerService.getStaff(eventId);
   }
 
-  @Roles('ORGANIZER', 'ADMIN')
+  @Roles('ORGANIZER', 'ADMIN', 'STAFF')
   @Get('events/:eventId/attendees/export')
   @ApiOperation({ summary: 'Export attendees as CSV (ORGANIZER only)' })
   @ApiResponse({ status: 200, description: 'CSV file download' })

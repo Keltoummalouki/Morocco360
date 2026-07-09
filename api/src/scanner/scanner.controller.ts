@@ -30,7 +30,7 @@ interface JwtUser {
 @ApiTags('Scanner')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ORGANIZER', 'ADMIN')
+@Roles('ORGANIZER', 'ADMIN', 'STAFF')
 @Controller('scanner')
 export class ScannerController {
   constructor(private readonly scannerService: ScannerService) {}

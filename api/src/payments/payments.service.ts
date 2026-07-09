@@ -118,7 +118,7 @@ export class PaymentsService {
         };
       });
 
-      void this.sendTicketEmails(result.orderId);
+      if (result.orderId) void this.sendTicketEmails(result.orderId);
       return { url: result.url };
     }
 
@@ -166,9 +166,11 @@ export class PaymentsService {
       },
     });
 
-    await this.orderRepo.update(savedOrder.id, {
-      payment_gateway_ref: session.id,
-    });
+    if (savedOrder.id) {
+      await this.orderRepo.update(savedOrder.id, {
+        payment_gateway_ref: session.id,
+      });
+    }
 
     return { url: session.url, sessionId: session.id };
   }
@@ -333,7 +335,7 @@ export class PaymentsService {
       .leftJoinAndSelect('category.event', 'event')
       .where('order.id = :id', { id: orderId })
       .getOne();
-    if (!order || !order.tickets?.length) return null;
+    if (!order || !order.tickets?.length || !order.user) return null;
     return this.mailService.generateOrderPdf(order, order.user, order.tickets);
   }
 

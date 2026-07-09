@@ -11,10 +11,10 @@ export enum RoleName {
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({ type: 'enum', enum: RoleName, unique: true })
-  name: RoleName;
+  name: RoleName = RoleName.USER;
 
   @OneToMany(() => User, (user) => user.role)
   users: User[];

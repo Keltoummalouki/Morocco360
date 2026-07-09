@@ -47,7 +47,7 @@ export class EventAccessGuard implements CanActivate {
     if (isNaN(numericEventId)) throw new ForbiddenException('Invalid event ID');
 
     const assignment = await this.eventStaffRepo.findOne({
-      where: { event_id: numericEventId, user_id: user.id },
+      where: { event: { id: numericEventId }, user: { id: user.id } },
     });
 
     if (!assignment) throw new ForbiddenException('Not assigned to this event');

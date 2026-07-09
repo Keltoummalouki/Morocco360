@@ -53,6 +53,17 @@ function minPrice(categories: TicketCategory[], te: Translations['events']): str
   return min === 0 ? te.free : `${te.from} ${min.toFixed(0)} ${te.currency}`;
 }
 
+function matchesPrice(categories: TicketCategory[], filter: string): boolean {
+  if (filter === 'all') return true;
+  const prices = categories.map((c) => Number(c.price));
+  const min = prices.length ? Math.min(...prices) : 0;
+  if (filter === 'free')     return min === 0;
+  if (filter === 'under200') return min < 200;
+  if (filter === '200to500') return min >= 200 && min <= 500;
+  if (filter === '500plus')  return min > 500;
+  return true;
+}
+
 function matchesDate(dateStart: string, filter: string): boolean {
   if (filter === 'all') return true;
   const now = new Date();
@@ -252,6 +263,8 @@ export default function EventsGrid({
   const [activeCategory, setActiveCategory] = useState('');
   const [activeCity, setActiveCity]         = useState('');
   const [activeDate, setActiveDate]         = useState('all');
+  const [activePrice, setActivePrice]       = useState('all');
+  const [sort, setSort]                     = useState('date');
   const [viewMode, setViewMode]             = useState<'grid' | 'map'>('grid');
   const [savedIds, setSavedIds]             = useState<Set<number>>(() => new Set(initialSavedIds));
 
@@ -289,22 +302,35 @@ export default function EventsGrid({
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return events.filter((e) => {
-      if (q && !e.title.toLowerCase().includes(q) && !e.location_name.toLowerCase().includes(q) && !e.description.toLowerCase().includes(q)) return false;
-      if (activeCategory && e.category !== activeCategory) return false;
-      if (activeCity && e.city !== activeCity) return false;
-      if (!matchesDate(e.date_start, activeDate)) return false;
-      return true;
-    });
-  }, [events, search, activeCategory, activeCity, activeDate]);
+    return events
+      .filter((e) => {
+        if (q && !e.title.toLowerCase().includes(q) && !e.location_name.toLowerCase().includes(q) && !e.description.toLowerCase().includes(q)) return false;
+        if (activeCategory && e.category !== activeCategory) return false;
+        if (activeCity && e.city !== activeCity) return false;
+        if (!matchesDate(e.date_start, activeDate)) return false;
+        if (!matchesPrice(e.categories, activePrice)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (sort === 'price') {
+          const aMin = a.categories.length ? Math.min(...a.categories.map((c) => Number(c.price))) : 0;
+          const bMin = b.categories.length ? Math.min(...b.categories.map((c) => Number(c.price))) : 0;
+          return aMin - bMin;
+        }
+        if (sort === 'title') return a.title.localeCompare(b.title);
+        return new Date(a.date_start).getTime() - new Date(b.date_start).getTime();
+      });
+  }, [events, search, activeCategory, activeCity, activeDate, activePrice, sort]);
 
-  const hasFilters = search || activeCategory || activeCity || activeDate !== 'all';
+  const hasFilters = search || activeCategory || activeCity || activeDate !== 'all' || activePrice !== 'all';
 
   function resetFilters() {
     setSearch('');
     setActiveCategory('');
     setActiveCity('');
     setActiveDate('all');
+    setActivePrice('all');
+    setSort('date');
   }
 
   function countLabel() {
@@ -390,6 +416,28 @@ export default function EventsGrid({
           {dateOptions.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
+        </select>
+
+        <select
+          value={activePrice}
+          onChange={(e) => setActivePrice(e.target.value)}
+          style={{ ...selectStyle, color: activePrice !== 'all' ? 'var(--foreground)' : 'var(--muted)' }}
+        >
+          <option value="all">{te.allPrices}</option>
+          <option value="free">{te.priceFree}</option>
+          <option value="under200">{te.priceUnder200}</option>
+          <option value="200to500">{te.price200to500}</option>
+          <option value="500plus">{te.price500plus}</option>
+        </select>
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="date">{te.sortDate}</option>
+          <option value="price">{te.sortPrice}</option>
+          <option value="title">{te.sortTitle}</option>
         </select>
 
         {hasFilters && (
