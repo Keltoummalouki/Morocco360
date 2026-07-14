@@ -1,0 +1,51 @@
+<!-- @dsCard group="Components" name="Buttons" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buttons</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 44px; display: flex; flex-direction: column; gap: 30px; }
+    .set { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+    .tag { font-size: 0.625rem; color: var(--c-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <div>
+      <div class="tag c-mono">Primary · .c-btn</div>
+      <div class="set">
+        <button class="c-btn">Start the journey <span class="arrow">→</span></button>
+        <button class="c-btn" disabled>Disabled</button>
+      </div>
+    </div>
+    <div>
+      <div class="tag c-mono">Ghost · .c-btn-ghost</div>
+      <div class="set">
+        <button class="c-btn-ghost"><span>▷</span> Watch the film</button>
+        <button class="c-btn-ghost">I already explore here</button>
+      </div>
+    </div>
+    <div>
+      <div class="tag c-mono">Play · .c-play</div>
+      <div class="set">
+        <button class="c-play" aria-label="Play">
+          <span class="c-aperture-ring"></span>
+          <svg width="24" height="28" viewBox="0 0 26 30" fill="none" style="margin-left:4px"><path d="M2 2.5v25l22-12.5L2 2.5z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="tag c-mono">Nav link · .c-nav-link</div>
+      <div class="set" style="gap:34px">
+        <a href="#" class="c-nav-link">Experiences</a>
+        <a href="#" class="c-nav-link">Destinations</a>
+        <a href="#" class="c-nav-link">Gallery</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

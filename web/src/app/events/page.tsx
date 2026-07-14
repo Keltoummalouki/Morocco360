@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import ThemeToggle from '@/components/ThemeToggle';
-import MobileNav from '@/components/MobileNav';
-import { decodeJwt } from '@/lib/auth-server';
+import Image from 'next/image';
+import { decodeJwt, isExpired } from '@/lib/auth-server';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE, getTranslations, type Locale } from '@/lib/i18n';
+import EventsNav from '@/components/home/EventsNav';
+import EventsFooter from '@/components/home/EventsFooter';
 import PublicEventsGrid from './PublicEventsGrid';
 
 export const metadata: Metadata = {
-  title: 'Events — Morocco360',
+  title: 'Events',
   description: 'Discover and book live events across Morocco. Music, culture, sport, art and more.',
 };
 
@@ -39,6 +41,7 @@ export interface InitialFilters {
   category?: string;
   city?: string;
   date?: string;   // 'all' | 'month' | '3months' | 'year'
+  from?: string;   // ISO 'YYYY-MM-DD' — set by the home hero date picker
   price?: string;  // 'all' | 'free' | 'under200' | '200to500' | '500plus'
   sort?: string;   // 'date' | 'price' | 'title'
 }
@@ -47,7 +50,7 @@ const ROLE_HOME: Record<string, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
   STAFF:     '/dashboard/staff',
-  USER:      '/dashboard/user',
+  USER:      '/user/events',
 };
 
 // Fetch ALL active events — filtering is done client-side for instant UX.
@@ -68,9 +71,7 @@ export default async function EventsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // Works whether Next.js gives us a Promise or a plain object
   const sp = await Promise.resolve(searchParams);
-
   const str = (v: unknown) => (typeof v === 'string' ? v : undefined);
 
   const initialFilters: InitialFilters = {
@@ -78,116 +79,96 @@ export default async function EventsPage({
     category: str(sp.category),
     city:     str(sp.city),
     date:     str(sp.date),
+    from:     str(sp.from),
     price:    str(sp.price),
     sort:     str(sp.sort),
   };
 
   const cookieStore = await cookies();
-  const token       = cookieStore.get('access_token')?.value ?? null;
-  const payload     = token ? decodeJwt(token) : null;
-  const isAuthenticated = !!payload && payload.exp * 1000 > Date.now();
-  const userRole    = payload?.role ?? null;
-  const dashboardHref = userRole ? (ROLE_HOME[userRole] ?? '/dashboard/user') : '/dashboard/user';
+  const rawLocale = cookieStore.get(LOCALE_COOKIE)?.value;
+  const locale: Locale = LOCALES.includes(rawLocale as Locale)
+    ? (rawLocale as Locale)
+    : DEFAULT_LOCALE;
+  const t = getTranslations(locale);
+
+  const token   = cookieStore.get('access_token')?.value ?? null;
+  const payload = token ? decodeJwt(token) : null;
+  const isAuthenticated = !!payload && !isExpired(payload);
+  const userRole = payload?.role ?? null;
+  const dashboardHref = userRole ? (ROLE_HOME[userRole] ?? '/user/events') : '/user/events';
 
   const events = await getAllEvents();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="ev min-h-screen">
+      <EventsNav
+        locale={locale}
+        active="events"
+        isAuthenticated={isAuthenticated}
+        dashboardHref={dashboardHref}
+      />
 
-      {/* ── Navbar ────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border" aria-label="Main navigation">
-        <div className="nav-bar max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="font-playfair text-xl font-bold shrink-0">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-10">
-            <Link href="/"       className="link-underline nav-link">Home</Link>
-            <Link href="/events" className="nav-link" style={{ color: 'var(--foreground)', fontWeight: 500 }}>Events</Link>
-            <Link href="#"       className="link-underline nav-link">Destinations</Link>
-            <Link href="#"       className="link-underline nav-link">About</Link>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
-            {isAuthenticated ? (
-              <Link href={dashboardHref} className="btn-primary btn-sm">My Dashboard</Link>
-            ) : (
-              <>
-                <Link href="/login"    className="link-underline nav-link">Sign in</Link>
-                <Link href="/register" className="btn-primary btn-sm">Get Started</Link>
-              </>
-            )}
-          </div>
-
-          <div className="flex md:hidden items-center gap-3">
-            <ThemeToggle />
-            <MobileNav isAuthenticated={isAuthenticated} dashboardHref={dashboardHref} />
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Page header ───────────────────────────────────── */}
-      <div className="pt-16 bg-surface border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14">
-          <p className="label-caps text-primary mb-3">Discover Morocco</p>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+      {/* ── Page header — photo hero ────────────────────── */}
+      <section className="relative overflow-hidden border-b border-border">
+        <Image
+          src="/events/hero-marrakech.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(10,16,23,0.55) 0%, rgba(10,16,23,0.84) 100%)',
+          }}
+        />
+        <div className="ev-container relative py-12 sm:py-16">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="font-playfair text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] mb-3">
-                Upcoming Events
+              <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>
+                {t.events.discover}
+              </div>
+              <h1 className="ev-display text-white text-[clamp(1.9rem,5vw,3.25rem)]">
+                {t.events.title}
               </h1>
-              <p className="text-muted" style={{ fontSize: '0.9375rem' }}>
+              <p className="mt-2 text-sm text-white/80">
                 {events.length > 0
-                  ? `${events.length} event${events.length !== 1 ? 's' : ''} across Morocco`
-                  : 'No upcoming events — check back soon'}
+                  ? `${events.length} ${events.length === 1 ? t.events.event : t.events.events}`
+                  : t.events.noResults}
               </p>
             </div>
 
             {!isAuthenticated && (
-              <div
-                className="border border-border bg-background"
-                style={{ padding: '16px 20px', maxWidth: '300px', flexShrink: 0 }}
-              >
-                <p className="font-playfair font-semibold mb-1" style={{ fontSize: '0.9375rem' }}>
-                  Ready to attend?
-                </p>
-                <p className="text-muted" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
-                  <Link href="/register" style={{ color: 'var(--primary)' }}>Create a free account</Link>
-                  {' '}or{' '}
-                  <Link href="/login" style={{ color: 'var(--primary)' }}>sign in</Link>
-                  {' '}to reserve tickets.
+              <div className="w-full rounded-xl border border-border bg-card p-5 shadow-lg sm:w-auto sm:max-w-sm">
+                <p className="font-semibold text-foreground">{t.events.readyTitle}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  <Link href="/register" className="text-primary underline underline-offset-2">
+                    {t.events.createAccount}
+                  </Link>{' '}
+                  ·{' '}
+                  <Link href="/login" className="text-primary underline underline-offset-2">
+                    {t.events.signInCta}
+                  </Link>
                 </p>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Filter + grid ─────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14">
+      {/* ── Filters + grid ──────────────────────────────── */}
+      <main className="ev-container py-10 sm:py-14">
         <PublicEventsGrid
           events={events}
           isAuthenticated={isAuthenticated}
           initialFilters={initialFilters}
         />
-      </div>
+      </main>
 
-      {/* ── Footer ────────────────────────────────────────── */}
-      <footer className="border-t border-border py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
-          <Link href="/" className="font-playfair text-[1.125rem] font-bold">
-            Morocco<span className="text-primary">360</span>
-          </Link>
-          <p className="text-[0.8125rem] text-muted text-center sm:text-left">
-            2026 Morocco360. All rights reserved.
-          </p>
-          <div className="flex gap-6 sm:gap-8 flex-wrap justify-center">
-            {['Privacy', 'Terms', 'Contact'].map((item) => (
-              <Link key={item} href="#" className="link-underline nav-link">{item}</Link>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <EventsFooter locale={locale} />
     </div>
   );
 }

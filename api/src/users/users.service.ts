@@ -1,12 +1,14 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { User } from './entities/user.entity';
 import { Role, RoleName } from './entities/role.entity';
 import { RegisterDto } from '../auth/dto/register.dto';
@@ -62,7 +64,53 @@ export class UsersService {
 
   async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
     const user = await this.getProfile(userId);
-    Object.assign(user, dto);
+
+    // ── Username: unique across other users ──────────────────
+    if (dto.username !== undefined && dto.username !== user.username) {
+      const taken = await this.repo.findOne({
+        where: { username: dto.username, id: Not(userId) },
+      });
+      if (taken) throw new ConflictException('Username already taken');
+      user.username = dto.username;
+    }
+
+    // ── Email: valid (DTO) + unique across other users ───────
+    if (dto.email !== undefined && dto.email !== user.email) {
+      const taken = await this.repo.findOne({
+        where: { email: dto.email, id: Not(userId) },
+      });
+      if (taken) throw new ConflictException('Email already in use');
+      user.email = dto.email;
+    }
+
+    // ── Phone: libphonenumber validate + E.164 + unique ──────
+    if (dto.phone_number !== undefined) {
+      const raw = dto.phone_number.trim();
+      if (raw === '') {
+        user.phone_number = null as unknown as string;
+      } else {
+        const parsed = parsePhoneNumberFromString(raw);
+        if (!parsed || !parsed.isValid()) {
+          throw new BadRequestException(
+            'Invalid phone number — include the country code (e.g. +212 …)',
+          );
+        }
+        const normalized = parsed.number; // E.164, e.g. +2126…
+        if (normalized !== user.phone_number) {
+          const taken = await this.repo.findOne({
+            where: { phone_number: normalized, id: Not(userId) },
+          });
+          if (taken) throw new ConflictException('Phone number already in use');
+        }
+        user.phone_number = normalized;
+      }
+    }
+
+    if (dto.full_name !== undefined) {
+      // Store a cleared name as NULL rather than an empty string.
+      user.full_name = (dto.full_name.trim() || null) as unknown as string;
+    }
+
     return this.repo.save(user);
   }
 

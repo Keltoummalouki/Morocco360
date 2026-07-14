@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Event } from './event.entity';
 import { Ticket } from '../../orders/entities/ticket.entity';
+import { SettingStatus } from '../../common/enums/status.enum';
 
 @Entity('ticket_categories')
 export class TicketCategory {
@@ -16,6 +17,12 @@ export class TicketCategory {
 
   @Column({ length: 100 })
   name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({ type: 'enum', enum: SettingStatus, default: SettingStatus.ACTIVE })
+  status: SettingStatus;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;

@@ -2,301 +2,167 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import { Search, MapPin, CalendarDays, X } from 'lucide-react';
+import { useLocale } from '@/components/LocaleProvider';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  EVENT_CATEGORIES,
+  ANY_VALUE,
+  categoryColors,
+  getMinPrice,
+  matchesDate,
+  matchesPrice,
+  matchesFrom,
+  sortEvents,
+} from '@/lib/event-filters';
+import { selectContentFit, selectItemWrap } from '@/lib/utils';
 import type { InitialFilters, PublicEvent } from './page';
 
 // ── Constants ──────────────────────────────────────────────
 
-const ACCENT = '#4A7C6F';
+/** "No city filter" sentinel — Radix Select forbids an empty-string value. */
+const ANY_CITY = ANY_VALUE;
 
-const CATEGORIES = [
-  'Musique', 'Sport', 'Culture', 'Cinema', 'Humour', 'Art', 'Autre',
-] as const;
-
-const DATE_OPTIONS = [
-  { value: 'all',     label: 'Any date'      },
-  { value: 'month',   label: 'This month'    },
-  { value: '3months', label: 'Next 3 months' },
-  { value: 'year',    label: 'This year'     },
-];
-
-const PRICE_OPTIONS = [
-  { value: 'all',      label: 'All prices'    },
-  { value: 'free',     label: 'Free'          },
-  { value: 'under200', label: 'Under 200 MAD' },
-  { value: '200to500', label: '200–500 MAD'   },
-  { value: '500plus',  label: '500 MAD+'      },
-];
-
-const SORT_OPTIONS = [
-  { value: 'date',  label: 'Date (soonest)' },
-  { value: 'price', label: 'Price (lowest)' },
-  { value: 'title', label: 'Name (A–Z)'     },
-];
 
 // ── Helpers ────────────────────────────────────────────────
+// Filtering/sorting lives in @/lib/event-filters so the public grid and the
+// signed-in /user/events browser stay in sync.
 
-function getMinPrice(categories: PublicEvent['categories']): number | null {
-  if (!categories?.length) return null;
-  return Math.min(...categories.map((c) => Number(c.price)));
-}
-
-function formatMinPrice(categories: PublicEvent['categories']): string {
-  const min = getMinPrice(categories);
-  if (min === null) return '—';
-  return min === 0 ? 'Free' : `From ${min.toFixed(0)} MAD`;
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
-
-function matchesDate(dateStart: string, filter: string): boolean {
-  if (filter === 'all') return true;
-  const now   = new Date();
-  const start = new Date(dateStart);
-  if (filter === 'month') {
-    return start.getFullYear() === now.getFullYear() && start.getMonth() === now.getMonth();
-  }
-  if (filter === '3months') {
-    const limit = new Date(now);
-    limit.setMonth(limit.getMonth() + 3);
-    return start >= now && start <= limit;
-  }
-  if (filter === 'year') {
-    return start.getFullYear() === now.getFullYear();
-  }
-  return true;
-}
-
-function matchesPrice(categories: PublicEvent['categories'], filter: string): boolean {
-  if (filter === 'all') return true;
-  const min = getMinPrice(categories);
-  if (min === null) return true;
-  if (filter === 'free')     return min === 0;
-  if (filter === 'under200') return min < 200;
-  if (filter === '200to500') return min >= 200 && min <= 500;
-  if (filter === '500plus')  return min > 500;
-  return true;
-}
-
-/** Update the browser URL bar without triggering any navigation or re-render. */
-function syncUrl(q: string, category: string, city: string, date: string, price: string, sort: string) {
+/** Update the URL bar without navigating, so filters stay shareable. */
+function syncUrl(
+  q: string, category: string, city: string,
+  date: string, from: string, price: string, sort: string,
+) {
   if (typeof window === 'undefined') return;
   const p = new URLSearchParams();
-  if (q.trim())             p.set('q',        q.trim());
-  if (category)             p.set('category', category);
-  if (city)                 p.set('city',     city);
-  if (date  !== 'all')      p.set('date',     date);
-  if (price !== 'all')      p.set('price',    price);
-  if (sort  !== 'date')     p.set('sort',     sort);
-  const qs  = p.toString();
-  const url = qs ? `/events?${qs}` : '/events';
-  window.history.replaceState(null, '', url);
+  if (q.trim()) p.set('q', q.trim());
+  if (category) p.set('category', category);
+  if (city !== ANY_CITY) p.set('city', city);
+  if (date !== 'all') p.set('date', date);
+  if (from) p.set('from', from);
+  if (price !== 'all') p.set('price', price);
+  if (sort !== 'date') p.set('sort', sort);
+  const qs = p.toString();
+  window.history.replaceState(null, '', qs ? `/events?${qs}` : '/events');
 }
 
-// ── Sub-components ─────────────────────────────────────────
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '6px 14px',
-        fontSize: '0.75rem',
-        letterSpacing: '0.06em',
-        fontWeight: active ? 600 : 400,
-        color: active ? ACCENT : 'var(--muted)',
-        background: active ? `${ACCENT}14` : 'transparent',
-        border: `1px solid ${active ? ACCENT : 'var(--border)'}`,
-        cursor: 'pointer',
-        transition: 'all 0.15s ease',
-        fontFamily: 'inherit',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
+// ── Event card ─────────────────────────────────────────────
 
 function EventCard({
   event,
   isAuthenticated,
+  locale,
 }: {
   event: PublicEvent;
   isAuthenticated: boolean;
+  locale: string;
 }) {
-  const minPrice    = formatMinPrice(event.categories);
-  const isFree      = getMinPrice(event.categories) === 0;
+  const { t } = useLocale();
+  const min = getMinPrice(event.categories);
+  const isFree = min === 0;
+  const priceLabel =
+    min === null ? '—' : isFree ? t.events.free : `${t.events.from} ${min.toFixed(0)} ${t.events.currency}`;
+
   const reserveHref = isAuthenticated
-    ? `/dashboard/user/events/${event.id}`
-    : `/login?redirect=/dashboard/user/events/${event.id}`;
+    ? `/user/events/${event.id}`
+    : `/login?redirect=/user/events/${event.id}`;
+
+  const bcp = locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-MA' : 'en-GB';
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString(bcp, { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const [catLight, catDark] = categoryColors(event.category);
 
   return (
-    <div
-      className="card-hover"
-      style={{
-        border: '1px solid var(--border)',
-        background: 'var(--background)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
-      {/* Full-card link (sits behind interactive elements) */}
-      <Link
-        href={reserveHref}
-        style={{ position: 'absolute', inset: 0, zIndex: 0 }}
-        aria-label={event.title}
-      />
-
-      {/* Image */}
-      <div
-        style={{
-          height: '200px',
-          flexShrink: 0,
-          background: 'var(--surface)',
-          position: 'relative',
-          overflow: 'hidden',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      >
+    <Card className="ev-card relative flex flex-col overflow-hidden p-0 gap-0">
+      <div className="relative aspect-[16/10] shrink-0 overflow-hidden bg-muted">
         {event.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
+          /* Remote API images — next/image would need remotePatterns config. */
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={event.image_url}
-            alt={event.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="ev-card-img h-full w-full object-cover"
           />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="font-playfair" style={{ fontSize: '2.5rem', opacity: 0.07 }}>M</span>
+          <div className="flex h-full w-full items-center justify-center bg-[var(--surface-3)]">
+            <span className="ev-display text-4xl opacity-10">M</span>
           </div>
         )}
 
-        {/* Category badge */}
         {event.category && (
           <span
-            className="label-caps"
-            style={{
-              position: 'absolute', top: 12, left: 12,
-              fontSize: '0.5625rem', color: ACCENT,
-              background: `${ACCENT}22`, padding: '3px 8px',
-            }}
+            className="ev-cat ev-cat--tint absolute top-3 z-[3]"
+            style={
+              {
+                insetInlineStart: '12px',
+                '--cat': catLight,
+                '--cat-dark': catDark,
+              } as React.CSSProperties
+            }
           >
             {event.category}
           </span>
         )}
 
-        {/* Price pill */}
-        <span
-          style={{
-            position: 'absolute', top: 12, right: 12,
-            fontSize: '0.6875rem', fontWeight: 600,
-            color: isFree ? ACCENT : 'var(--foreground)',
-            background: 'var(--background)',
-            padding: '3px 8px',
-            border: '1px solid var(--border)',
-          }}
-        >
-          {minPrice}
-        </span>
+        {!isFree && min !== null && <span className="ev-price">{priceLabel}</span>}
 
-        {/* Sold-out overlay */}
         {event.is_sold_out && (
-          <div
-            style={{
-              position: 'absolute', inset: 0,
-              background: 'rgba(19,17,16,0.55)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <span
-              className="label-caps"
-              style={{
-                fontSize: '0.6875rem', color: '#FAFAF8',
-                border: '1.5px solid #FAFAF8', padding: '5px 14px',
-              }}
-            >
-              Sold Out
+          <div className="absolute inset-0 z-[4] flex items-center justify-center bg-black/60">
+            <span className="rounded-full border-2 border-white px-4 py-1.5 text-xs font-bold tracking-wider text-white uppercase">
+              {t.events.soldOut}
             </span>
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
-        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '8px' }}>
-          {event.city ?? event.location_name} · {formatDate(event.date_start)}
-        </p>
+      <CardContent className="flex flex-1 flex-col gap-2 p-5">
+        <div className="ev-card-meta text-muted-foreground">
+          <MapPin size={14} aria-hidden="true" />
+          <span>{event.city ?? event.location_name}</span>
+          <span aria-hidden="true">·</span>
+          <CalendarDays size={14} aria-hidden="true" />
+          <span>{fmt(event.date_start)}</span>
+        </div>
 
-        <p
-          className="font-playfair"
-          style={{
-            fontSize: '1.0625rem', fontWeight: 600, lineHeight: 1.3,
-            marginBottom: '8px',
-            display: '-webkit-box', WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden',
-          }}
-        >
-          {event.title}
-        </p>
+        <h3 className="ev-card-title line-clamp-2 text-foreground">{event.title}</h3>
 
-        <p
-          style={{
-            fontSize: '0.8125rem', color: 'var(--muted)', lineHeight: 1.6,
-            flex: 1, marginBottom: '16px',
-            display: '-webkit-box', WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden',
-          }}
-        >
+        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
           {event.description}
         </p>
 
         {event.date_end !== event.date_start && (
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-            Until {formatDate(event.date_end)}
+          <p className="mt-auto pt-1 text-xs text-muted-foreground">
+            {t.events.until} {fmt(event.date_end)}
           </p>
         )}
-      </div>
+      </CardContent>
 
-      {/* Footer */}
-      <div
-        style={{
-          padding: '14px 20px',
-          borderTop: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: '12px',
-          position: 'relative', zIndex: 1, pointerEvents: 'auto',
-        }}
-      >
-        <span className="font-playfair" style={{ fontSize: '1rem', fontWeight: 700 }}>
-          {minPrice}
-        </span>
+      <CardFooter className="flex items-center justify-between gap-3 border-t border-border p-4">
+        <span className="ev-display text-base">{priceLabel}</span>
         {event.is_sold_out ? (
-          <span style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', padding: '7px 16px', border: '1px solid var(--border)' }}>
-            Sold Out
+          <span className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
+            {t.events.soldOut}
           </span>
         ) : (
-          <Link href={reserveHref} className="btn-primary btn-sm" style={{ textAlign: 'center' }}>
-            {isAuthenticated ? 'Reserve' : 'Sign in to Reserve'}
-          </Link>
+          <Button asChild size="sm">
+            <Link href={reserveHref}>
+              {isAuthenticated ? t.events.reserve : t.events.signInToReserve}
+            </Link>
+          </Button>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -311,32 +177,33 @@ export default function PublicEventsGrid({
   isAuthenticated: boolean;
   initialFilters: InitialFilters;
 }) {
-  // All filter state lives here — no server round-trips on change
-  const [search,   setSearch]   = useState(initialFilters.q        ?? '');
-  const [category, setCategory] = useState(initialFilters.category ?? '');
-  const [city,     setCity]     = useState(initialFilters.city     ?? '');
-  const [date,     setDate]     = useState(initialFilters.date     ?? 'all');
-  const [price,    setPrice]    = useState(initialFilters.price    ?? 'all');
-  const [sort,     setSort]     = useState(initialFilters.sort     ?? 'date');
+  const { t, locale } = useLocale();
 
-  // Sync URL silently on every filter change (skip first render — URL is already correct)
+  const [search, setSearch] = useState(initialFilters.q ?? '');
+  const [category, setCategory] = useState(initialFilters.category ?? '');
+  const [city, setCity] = useState(initialFilters.city || ANY_CITY);
+  const [date, setDate] = useState(initialFilters.date ?? 'all');
+  const [from, setFrom] = useState(initialFilters.from ?? '');
+  const [price, setPrice] = useState(initialFilters.price ?? 'all');
+  const [sort, setSort] = useState(initialFilters.sort ?? 'date');
+  const [fromOpen, setFromOpen] = useState(false);
+
+  // Skip the first run — the URL already reflects the initial filters.
   const mounted = useRef(false);
   useEffect(() => {
     if (!mounted.current) { mounted.current = true; return; }
-    syncUrl(search, category, city, date, price, sort);
-  }, [search, category, city, date, price, sort]);
+    syncUrl(search, category, city, date, from, price, sort);
+  }, [search, category, city, date, from, price, sort]);
 
-  // Unique cities derived from the full event list (not filtered, so city options stay stable)
   const cities = useMemo(() => {
     const set = new Set(events.map((e) => e.city).filter(Boolean) as string[]);
     return Array.from(set).sort();
   }, [events]);
 
-  // Client-side filtering + sorting — instant, no network
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
 
-    let result = events.filter((e) => {
+    const result = events.filter((e) => {
       if (q) {
         const hit =
           e.title.toLowerCase().includes(q) ||
@@ -346,179 +213,244 @@ export default function PublicEventsGrid({
         if (!hit) return false;
       }
       if (category && e.category !== category) return false;
-      if (city     && e.city     !== city)     return false;
-      if (!matchesDate(e.date_start, date))    return false;
-      if (!matchesPrice(e.categories, price))  return false;
+      if (city !== ANY_CITY && e.city !== city) return false;
+      if (!matchesDate(e.date_start, date)) return false;
+      if (!matchesFrom(e, from)) return false;
+      if (!matchesPrice(e.categories, price)) return false;
       return true;
     });
 
-    if (sort === 'price') {
-      result = [...result].sort((a, b) => {
-        const pa = getMinPrice(a.categories) ?? Infinity;
-        const pb = getMinPrice(b.categories) ?? Infinity;
-        return pa - pb;
-      });
-    } else if (sort === 'title') {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-    } else {
-      result = [...result].sort(
-        (a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime(),
-      );
-    }
+    return sortEvents(result, sort);
+  }, [events, search, category, city, date, from, price, sort]);
 
-    return result;
-  }, [events, search, category, city, date, price, sort]);
-
-  const hasFilters = !!(search || category || city || date !== 'all' || price !== 'all');
+  const hasFilters = !!(
+    search || category || city !== ANY_CITY || date !== 'all' || from || price !== 'all'
+  );
 
   function resetFilters() {
     setSearch('');
     setCategory('');
-    setCity('');
+    setCity(ANY_CITY);
     setDate('all');
+    setFrom('');
     setPrice('all');
     setSort('date');
   }
 
-  const selectStyle: React.CSSProperties = {
-    border: '1.5px solid var(--border)',
-    background: 'var(--input-bg)',
-    padding: '8px 12px',
-    fontSize: '0.875rem',
-    color: 'var(--foreground)',
-    outline: 'none',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    minWidth: '140px',
-  };
+  const bcp = locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-MA' : 'en-GB';
+  const fromLabel = from
+    ? new Intl.DateTimeFormat(bcp, { day: 'numeric', month: 'short', year: 'numeric' })
+        .format(new Date(`${from}T00:00:00`))
+    : t.events.from;
+
+  const DATE_OPTIONS = [
+    { value: 'all', label: t.dates.all },
+    { value: 'month', label: t.dates.month },
+    { value: '3months', label: t.dates.threeMonths },
+    { value: 'year', label: t.dates.year },
+  ];
+  const PRICE_OPTIONS = [
+    { value: 'all', label: t.events.allPrices },
+    { value: 'free', label: t.events.priceFree },
+    { value: 'under200', label: t.events.priceUnder200 },
+    { value: '200to500', label: t.events.price200to500 },
+    { value: '500plus', label: t.events.price500plus },
+  ];
+  const SORT_OPTIONS = [
+    { value: 'date', label: t.events.sortDate },
+    { value: 'price', label: t.events.sortPrice },
+    { value: 'title', label: t.events.sortTitle },
+  ];
 
   return (
     <>
       {/* ── Search ──────────────────────────────────────── */}
-      <div style={{ marginBottom: '20px' }}>
-        <input
-          className="input-field"
+      <div className="relative max-w-lg">
+        <Search
+          size={16}
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground"
+          style={{ insetInlineStart: '12px' }}
+        />
+        <Input
           type="search"
-          placeholder="Search events, cities, or keywords…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: '480px' }}
+          placeholder={t.events.searchPlaceholder}
+          aria-label={t.events.searchPlaceholder}
+          className="h-11 ps-10"
         />
       </div>
 
       {/* ── Category chips ──────────────────────────────── */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-        <Chip active={category === ''} onClick={() => setCategory('')}>All</Chip>
-        {CATEGORIES.map((cat) => (
-          <Chip
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant={category === '' ? 'default' : 'outline'}
+          className="rounded-full"
+          onClick={() => setCategory('')}
+        >
+          {t.events.allCategories}
+        </Button>
+        {EVENT_CATEGORIES.map((cat) => (
+          <Button
             key={cat}
-            active={category === cat}
+            type="button"
+            size="sm"
+            variant={category === cat ? 'default' : 'outline'}
+            className="rounded-full"
             onClick={() => setCategory(category === cat ? '' : cat)}
           >
             {cat}
-          </Chip>
+          </Button>
         ))}
       </div>
 
-      {/* ── City / Date / Price row ──────────────────────── */}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '28px' }}>
+      {/* ── City / date / price ─────────────────────────── */}
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center">
+        {/* City names come from the data and can be very long, so the panel is
+            pinned to the trigger width and long labels wrap. */}
+        <Select value={city} onValueChange={setCity}>
+          <SelectTrigger className="w-full lg:w-[190px]" aria-label={t.events.allCities}>
+            <SelectValue placeholder={t.events.allCities} />
+          </SelectTrigger>
+          <SelectContent position="popper" className={selectContentFit}>
+            <SelectItem value={ANY_CITY} className={selectItemWrap}>
+              {t.events.allCities}
+            </SelectItem>
+            {cities.map((c) => (
+              <SelectItem key={c} value={c} className={selectItemWrap}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          style={{ ...selectStyle, color: city ? 'var(--foreground)' : 'var(--muted)' }}
-        >
-          <option value="">All cities</option>
-          {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <Select value={date} onValueChange={setDate}>
+          <SelectTrigger className="w-full lg:w-[190px]" aria-label={t.dates.all}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" className={selectContentFit}>
+            {DATE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className={selectItemWrap}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select value={date} onChange={(e) => setDate(e.target.value)} style={selectStyle}>
-          {DATE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        {/* "From" date — this is what the home hero's date picker sends. */}
+        <Popover open={fromOpen} onOpenChange={setFromOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={`w-full justify-start font-normal lg:w-[190px] ${from ? '' : 'text-muted-foreground'}`}
+            >
+              <CalendarDays size={16} aria-hidden="true" />
+              <span className="truncate">{fromLabel}</span>
+              {from && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={t.events.reset}
+                  className="ms-auto rounded p-0.5 hover:bg-accent"
+                  onClick={(e) => { e.stopPropagation(); setFrom(''); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFrom(''); }
+                  }}
+                >
+                  <X size={14} aria-hidden="true" />
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={from ? new Date(`${from}T00:00:00`) : undefined}
+              onSelect={(d) => {
+                setFrom(d ? format(d, 'yyyy-MM-dd') : '');
+                setFromOpen(false);
+              }}
+              autoFocus
+            />
+          </PopoverContent>
+        </Popover>
 
-        <select value={price} onChange={(e) => setPrice(e.target.value)} style={selectStyle}>
-          {PRICE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <Select value={price} onValueChange={setPrice}>
+          <SelectTrigger className="w-full lg:w-[190px]" aria-label={t.events.allPrices}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" className={selectContentFit}>
+            {PRICE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className={selectItemWrap}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {hasFilters && (
-          <button
-            type="button"
-            onClick={resetFilters}
-            style={{
-              fontSize: '0.75rem', color: 'var(--muted)',
-              background: 'transparent', border: 'none',
-              cursor: 'pointer', padding: '4px 0',
-              textDecoration: 'underline', fontFamily: 'inherit',
-            }}
-          >
-            Reset filters
-          </button>
+          <Button type="button" variant="ghost" size="sm" onClick={resetFilters} className="justify-self-start">
+            {t.events.reset}
+          </Button>
         )}
       </div>
 
       {/* ── Count + sort ────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', margin: 0 }}>
+      <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+        <p className="text-sm text-muted-foreground">
           {filtered.length === events.length
-            ? `${events.length} event${events.length !== 1 ? 's' : ''}`
-            : `${filtered.length} result${filtered.length !== 1 ? 's' : ''} of ${events.length}`}
-          {!isAuthenticated && filtered.length > 0 && (
-            <span style={{ marginLeft: '12px' }}>
-              —{' '}
-              <Link href="/login" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
-                Sign in to reserve
-              </Link>
-            </span>
-          )}
+            ? `${events.length} ${events.length === 1 ? t.events.event : t.events.events}`
+            : `${filtered.length} ${filtered.length === 1 ? t.events.result : t.events.results} ${t.events.of} ${events.length}`}
         </p>
 
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          style={{ ...selectStyle, minWidth: '160px', fontSize: '0.8125rem' }}
-        >
-          {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger className="w-full sm:w-[190px]" aria-label={t.events.sortDate}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" className={selectContentFit}>
+            {SORT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value} className={selectItemWrap}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* ── Grid ────────────────────────────────────────── */}
       {filtered.length === 0 ? (
-        <div className="border border-border" style={{ padding: '80px 24px', textAlign: 'center' }}>
-          <p className="font-playfair" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '8px' }}>
-            No events found
-          </p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.9375rem', marginBottom: '20px' }}>
-            Try adjusting your filters or search term.
-          </p>
+        <div className="mt-8 rounded-xl border border-border px-6 py-20 text-center">
+          <p className="ev-h2 mb-2 text-xl">{t.events.noResults}</p>
+          <p className="mb-5 text-sm text-muted-foreground">{t.events.noResultsHint}</p>
           {hasFilters && (
-            <button type="button" onClick={resetFilters} className="btn-outline btn-sm">
-              Reset all filters
-            </button>
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              {t.events.resetAll}
+            </Button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '20px' }}>
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((event) => (
-            <EventCard key={event.id} event={event} isAuthenticated={isAuthenticated} />
+            <EventCard
+              key={event.id}
+              event={event}
+              isAuthenticated={isAuthenticated}
+              locale={locale}
+            />
           ))}
         </div>
       )}
 
       {/* ── Guest CTA ───────────────────────────────────── */}
       {!isAuthenticated && filtered.length > 0 && (
-        <div
-          className="bg-surface border border-border"
-          style={{ marginTop: '48px', padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}
-        >
-          <p className="font-playfair" style={{ fontSize: '1.375rem', fontWeight: 600 }}>
-            Ready to attend an event?
+        <div className="mt-12 flex flex-col items-center gap-4 rounded-xl border border-border bg-muted p-8 text-center">
+          <p className="ev-h2 text-xl">{t.events.readyTitle}</p>
+          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+            {t.events.readyBody}
           </p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.9375rem', maxWidth: '400px', lineHeight: 1.7 }}>
-            Create a free account to reserve tickets, save events, and manage your bookings.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link href="/register" className="btn-primary">Create Free Account</Link>
-            <Link href="/login"    className="btn-outline">Sign in</Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button asChild>
+              <Link href="/register">{t.events.createAccount}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/login">{t.events.signInCta}</Link>
+            </Button>
           </div>
         </div>
       )}

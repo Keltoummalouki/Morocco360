@@ -16,7 +16,10 @@ export enum PaymentGateway {
 
 export enum PaymentStatus {
   PENDING = 'PENDING',
+  /** Legacy "paid" state written by the Stripe flow; treated as PAID by admin. */
   SUCCESS = 'SUCCESS',
+  PAID = 'PAID',
+  NOT_PAID = 'NOT_PAID',
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED',
 }
@@ -37,6 +40,12 @@ export class Payment {
 
   @Column({ nullable: true })
   transaction_id: string;
+
+  @Column({ nullable: true })
+  invoice_number: string;
+
+  @Column({ nullable: true })
+  invoice_pdf_url: string;
 
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
   status: PaymentStatus;

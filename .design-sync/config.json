@@ -1,0 +1,7 @@
+{
+  "projectId": "e3b27b60-af8b-46d6-9494-850ca9b9f397",
+  "projectName": "Morocco360 Design System",
+  "shape": "offscript",
+  "readmeHeader": ".design-sync/conventions.md",
+  "notes": "Next.js app, no Storybook / no component-library dist. Synced as a hand-authored CSS design kit derived from the framework-agnostic .cinema system in web/src/app/globals.css. No _ds_sync.json anchor emitted — re-syncs re-verify."
+}

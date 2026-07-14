@@ -2,17 +2,21 @@
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
 import { ROLE_HOME, apiRegister } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function RegisterForm() {
   const [fields, setFields] = useState({
     firstName: '',
-    lastName:  '',
-    email:     '',
-    password:  '',
-    confirm:   '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirm: '',
   });
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   function set(key: keyof typeof fields) {
@@ -33,9 +37,9 @@ export default function RegisterForm() {
 
     try {
       const { role } = await apiRegister({
-        username:  fields.email.split('@')[0],
-        email:     fields.email,
-        password:  fields.password,
+        username: fields.email.split('@')[0],
+        email: fields.email,
+        password: fields.password,
         full_name: `${fields.firstName} ${fields.lastName}`.trim() || undefined,
       });
 
@@ -46,139 +50,112 @@ export default function RegisterForm() {
     }
   }
 
-  const label = (text: string) => (
-    <span style={{ fontSize: '0.8125rem', fontWeight: 500, letterSpacing: '0.03em' }}>
-      {text}
-    </span>
-  );
-
   return (
-    <div className="w-full max-w-md anim-fade-up">
-      <div style={{ marginBottom: '36px' }}>
-        <div style={{ width: '28px', height: '2px', background: 'linear-gradient(90deg, var(--primary), var(--accent))', marginBottom: '20px', borderRadius: '2px' }} />
-        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.75rem, 3vw, 2.25rem)', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.02em' }}>
-          Create account
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-          Start exploring Morocco for free
+    <div className="w-full max-w-md">
+      <div className="mb-8">
+        <h1 className="ev-display text-[clamp(1.75rem,3vw,2.25rem)]">Create account</h1>
+        <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
+          Book tickets to events across Morocco — free to join.
         </p>
       </div>
 
       <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="firstName" style={{ display: 'block', marginBottom: '8px' }}>
-              {label('First name')}
-            </label>
-            <input
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="firstName">First name</Label>
+            <Input
               id="firstName"
               type="text"
               placeholder="Youssef"
               autoComplete="given-name"
-              className="input-field"
               value={fields.firstName}
               onChange={set('firstName')}
+              className="h-11"
             />
           </div>
-          <div>
-            <label htmlFor="lastName" style={{ display: 'block', marginBottom: '8px' }}>
-              {label('Last name')}
-            </label>
-            <input
+          <div className="grid gap-2">
+            <Label htmlFor="lastName">Last name</Label>
+            <Input
               id="lastName"
               type="text"
               placeholder="Alami"
               autoComplete="family-name"
-              className="input-field"
               value={fields.lastName}
               onChange={set('lastName')}
+              className="h-11"
             />
           </div>
         </div>
 
-        <div>
-          <label htmlFor="reg-email" style={{ display: 'block', marginBottom: '8px' }}>
-            {label('Email address')}
-          </label>
-          <input
+        <div className="grid gap-2">
+          <Label htmlFor="reg-email">Email address</Label>
+          <Input
             id="reg-email"
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
-            className="input-field"
             value={fields.email}
             onChange={set('email')}
             required
+            className="h-11"
           />
         </div>
 
-        <div>
-          <label htmlFor="reg-password" style={{ display: 'block', marginBottom: '8px' }}>
-            {label('Password')}
-          </label>
-          <input
+        <div className="grid gap-2">
+          <Label htmlFor="reg-password">Password</Label>
+          <Input
             id="reg-password"
             type="password"
             placeholder="Min. 8 chars, uppercase + number"
             autoComplete="new-password"
-            className="input-field"
             value={fields.password}
             onChange={set('password')}
             required
+            className="h-11"
           />
         </div>
 
-        <div>
-          <label htmlFor="reg-confirm" style={{ display: 'block', marginBottom: '8px' }}>
-            {label('Confirm password')}
-          </label>
-          <input
+        <div className="grid gap-2">
+          <Label htmlFor="reg-confirm">Confirm password</Label>
+          <Input
             id="reg-confirm"
             type="password"
             placeholder="••••••••"
             autoComplete="new-password"
-            className="input-field"
             value={fields.confirm}
             onChange={set('confirm')}
             required
+            className="h-11"
           />
         </div>
 
         {error && (
-          <div style={{ padding: '12px 16px', border: '1px solid rgba(224,82,82,0.3)', background: 'rgba(224,82,82,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <svg style={{ width: '16px', height: '16px', color: 'var(--error)', flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <p style={{ fontSize: '0.875rem', color: 'var(--error)' }}>{error}</p>
+          <div
+            role="alert"
+            className="flex items-center gap-2.5 rounded-md border p-3"
+            style={{ borderColor: 'var(--error)', background: 'var(--error-bg)' }}
+          >
+            <AlertCircle size={16} className="shrink-0" style={{ color: 'var(--error)' }} aria-hidden="true" />
+            <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
           </div>
         )}
 
-        <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', lineHeight: 1.65 }}>
+        <p className="text-[0.8125rem] leading-relaxed text-muted-foreground">
           By creating an account you agree to our{' '}
-          <Link href="#" style={{ color: 'var(--foreground)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
-            Terms of Service
-          </Link>{' '}
+          <Link href="#" className="text-foreground underline underline-offset-2">Terms of Service</Link>{' '}
           and{' '}
-          <Link href="#" style={{ color: 'var(--foreground)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
-            Privacy Policy
-          </Link>
-          .
+          <Link href="#" className="text-foreground underline underline-offset-2">Privacy Policy</Link>.
         </p>
 
-        <button
-          type="submit"
-          className="btn-primary"
-          style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: '4px', opacity: loading ? 0.7 : 1 }}
-          disabled={loading}
-        >
+        <Button type="submit" size="lg" className="h-11 w-full" disabled={loading}>
           {loading ? 'Creating account…' : 'Create Account'}
-        </button>
+        </Button>
       </form>
 
-      <div style={{ borderTop: '1px solid var(--border)', marginTop: '32px', paddingTop: '32px' }}>
-        <p style={{ textAlign: 'center', fontSize: '0.9375rem', color: 'var(--muted)' }}>
+      <div className="mt-8 border-t border-border pt-6 text-center">
+        <p className="text-[0.9375rem] text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="link-underline" style={{ color: 'var(--foreground)', fontWeight: 600 }}>
+          <Link href="/login" className="font-semibold text-foreground hover:underline">
             Sign in
           </Link>
         </p>

@@ -5,7 +5,7 @@ export const ROLE_HOME: Record<Role, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
   STAFF:     '/dashboard/staff',
-  USER:      '/dashboard/user',
+  USER:      '/user/events',
 };
 
 // ── Role display labels ────────────────────────────────────

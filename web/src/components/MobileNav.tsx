@@ -12,7 +12,7 @@ const NAV_LINKS = ['Experiences', 'Destinations', 'Gallery', 'About'];
 
 export default function MobileNav({
   isAuthenticated = false,
-  dashboardHref = '/dashboard/user',
+  dashboardHref = '/user/events',
 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 

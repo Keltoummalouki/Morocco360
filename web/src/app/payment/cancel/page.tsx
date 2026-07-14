@@ -75,7 +75,7 @@ export default async function PaymentCancelPage({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Link
-            href="/dashboard/user/events"
+            href="/user/events"
             className="btn-primary"
             style={{ display: 'block', textAlign: 'center' }}
           >

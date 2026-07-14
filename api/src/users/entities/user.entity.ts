@@ -34,8 +34,17 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ length: 100, nullable: true })
+  first_name: string;
+
+  @Column({ length: 100, nullable: true })
+  last_name: string;
+
   @Column({ length: 150, nullable: true })
   full_name: string;
+
+  @Column({ type: 'date', nullable: true })
+  date_of_birth: string | null;
 
   @Column({ length: 20, nullable: true })
   phone_number: string;

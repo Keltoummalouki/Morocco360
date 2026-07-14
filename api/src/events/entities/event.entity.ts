@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { TicketCategory } from './ticket-category.entity';
+import { City } from '../../settings/entities/city.entity';
+import { EventCategory as EventCategoryEntity } from '../../settings/entities/event-category.entity';
 
 export enum EventCategory {
   MUSIQUE = 'Musique',
@@ -18,6 +20,19 @@ export enum EventCategory {
   HUMOUR = 'Humour',
   ART = 'Art',
   AUTRE = 'Autre',
+}
+
+/**
+ * Admin lifecycle status. Coexists with the legacy `is_active` / `is_sold_out`
+ * booleans (the public site still filters on those); the admin services keep
+ * the two in sync.
+ */
+export enum EventStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  DRAFT = 'DRAFT',
+  SOLD_OUT = 'SOLD_OUT',
+  CANCELLED = 'CANCELLED',
 }
 
 @Entity('events')
@@ -46,6 +61,14 @@ export class Event {
   @Column({ type: 'enum', enum: EventCategory, default: EventCategory.AUTRE })
   category: EventCategory;
 
+  /** Normalized city (admin backoffice); country is derived via city.country. */
+  @ManyToOne(() => City, { nullable: true, onDelete: 'SET NULL' })
+  cityEntity: City;
+
+  /** Normalized taxonomy (admin backoffice); coexists with the legacy enum. */
+  @ManyToOne(() => EventCategoryEntity, { nullable: true, onDelete: 'SET NULL' })
+  categoryEntity: EventCategoryEntity;
+
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   latitude: number;
 
@@ -63,6 +86,9 @@ export class Event {
 
   @Column({ default: false })
   is_sold_out: boolean;
+
+  @Column({ type: 'enum', enum: EventStatus, default: EventStatus.ACTIVE })
+  status: EventStatus;
 
   @CreateDateColumn()
   created_at: Date;

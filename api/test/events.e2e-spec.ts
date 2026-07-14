@@ -15,6 +15,8 @@ import { User } from '../src/users/entities/user.entity';
 const mockCategory: TicketCategory = {
   id: 1,
   name: 'General',
+  description: null as unknown as string,
+  status: 'ACTIVE' as TicketCategory['status'],
   price: 50,
   stock_allocated: 100,
   stock_remaining: 100,
@@ -42,6 +44,9 @@ const mockEvent: Event = {
   total_stock: 200,
   is_active: true,
   is_sold_out: false,
+  status: 'ACTIVE' as Event['status'],
+  cityEntity: null as unknown as Event['cityEntity'],
+  categoryEntity: null as unknown as Event['categoryEntity'],
   created_at: new Date(),
   organizer: null as unknown as User,
   savedByUsers: [],

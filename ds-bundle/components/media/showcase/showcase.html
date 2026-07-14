@@ -1,0 +1,61 @@
+<!-- @dsCard group="Components" name="Portal, stats & marquee" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal, stats & marquee</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 44px; display: flex; flex-direction: column; gap: 44px; }
+    .tag { font-size: 0.625rem; color: var(--c-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--c-line); }
+    .cell { padding: 26px 20px; border-bottom: 1px solid var(--c-line); border-right: 1px solid var(--c-line); }
+    .cell:last-child { border-right: none; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <div>
+      <div class="tag c-mono">.c-portal (aperture motif)</div>
+      <div class="c-portal" style="width:280px;height:280px">
+        <div class="c-media"><div class="c-media-ph"></div></div>
+        <span class="c-aperture-ring"></span>
+        <span class="c-aperture-ring reverse"></span>
+        <div style="position:absolute;left:0;right:0;bottom:24px;text-align:center;z-index:3">
+          <span class="c-mono" style="font-size:0.625rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.85)">Marrakech · Souk</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tag c-mono">Stats · .c-stat-num</div>
+      <div class="stats">
+        <div class="cell"><div class="c-stat-num">240<span class="unit">+</span></div><div class="c-mono" style="font-size:0.6875rem;letter-spacing:0.2em;text-transform:uppercase;margin-top:12px">Panoramas</div></div>
+        <div class="cell"><div class="c-stat-num">18</div><div class="c-mono" style="font-size:0.6875rem;letter-spacing:0.2em;text-transform:uppercase;margin-top:12px">Cities</div></div>
+        <div class="cell"><div class="c-stat-num">50<span class="unit">K</span></div><div class="c-mono" style="font-size:0.6875rem;letter-spacing:0.2em;text-transform:uppercase;margin-top:12px">Explorers</div></div>
+        <div class="cell"><div class="c-stat-num">4.9</div><div class="c-mono" style="font-size:0.6875rem;letter-spacing:0.2em;text-transform:uppercase;margin-top:12px">Rating</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="tag c-mono">Marquee · .c-marquee</div>
+      <div class="c-marquee" style="padding:14px 0">
+        <div class="c-marquee-track">
+          <span class="c-marquee-item">Marrakech<span class="dot"></span></span>
+          <span class="c-marquee-item">Fez<span class="dot"></span></span>
+          <span class="c-marquee-item">Chefchaouen<span class="dot"></span></span>
+          <span class="c-marquee-item">Sahara<span class="dot"></span></span>
+          <span class="c-marquee-item">Essaouira<span class="dot"></span></span>
+          <span class="c-marquee-item">Marrakech<span class="dot"></span></span>
+          <span class="c-marquee-item">Fez<span class="dot"></span></span>
+          <span class="c-marquee-item">Chefchaouen<span class="dot"></span></span>
+          <span class="c-marquee-item">Sahara<span class="dot"></span></span>
+          <span class="c-marquee-item">Essaouira<span class="dot"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

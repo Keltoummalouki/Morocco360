@@ -1,0 +1,42 @@
+<!-- @dsCard group="Foundations" name="Color tokens" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color tokens</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 40px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-top: 28px; }
+    .sw { border-radius: 12px; overflow: hidden; border: 1px solid var(--c-line); }
+    .sw .chip { height: 82px; }
+    .sw .meta { padding: 10px 12px; background: var(--c-bg-2); }
+    .sw .name { font-size: 0.75rem; color: var(--c-fg); }
+    .sw .hex { font-size: 0.6875rem; color: var(--c-muted); margin-top: 2px; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <div class="c-eyebrow" style="margin-bottom:16px">Foundations · Color</div>
+    <h1 class="c-display" style="font-size:2.25rem;margin:0">Filmic palette</h1>
+    <p class="c-lead" style="margin-top:10px">Warm near-black base; terracotta and gold carry the brand; green supports.</p>
+
+    <div class="grid">
+      <div class="sw"><div class="chip" style="background:#E27A4D"></div><div class="meta"><div class="name c-mono">terracotta</div><div class="hex c-mono">#E27A4D</div></div></div>
+      <div class="sw"><div class="chip" style="background:#C4623F"></div><div class="meta"><div class="name c-mono">terracotta-deep</div><div class="hex c-mono">#C4623F</div></div></div>
+      <div class="sw"><div class="chip" style="background:#E2B45E"></div><div class="meta"><div class="name c-mono">gold</div><div class="hex c-mono">#E2B45E</div></div></div>
+      <div class="sw"><div class="chip" style="background:#B8852D"></div><div class="meta"><div class="name c-mono">gold-deep</div><div class="hex c-mono">#B8852D</div></div></div>
+      <div class="sw"><div class="chip" style="background:#3CA882"></div><div class="meta"><div class="name c-mono">green</div><div class="hex c-mono">#3CA882</div></div></div>
+      <div class="sw"><div class="chip" style="background:#0A0B0A"></div><div class="meta"><div class="name c-mono">bg</div><div class="hex c-mono">#0A0B0A</div></div></div>
+      <div class="sw"><div class="chip" style="background:#0E100E"></div><div class="meta"><div class="name c-mono">bg-2</div><div class="hex c-mono">#0E100E</div></div></div>
+      <div class="sw"><div class="chip" style="background:#171915"></div><div class="meta"><div class="name c-mono">panel-solid</div><div class="hex c-mono">#171915</div></div></div>
+      <div class="sw"><div class="chip" style="background:#F4F0E7"></div><div class="meta"><div class="name c-mono">fg (bone)</div><div class="hex c-mono">#F4F0E7</div></div></div>
+      <div class="sw"><div class="chip" style="background:#C6C0B3"></div><div class="meta"><div class="name c-mono">fg-dim</div><div class="hex c-mono">#C6C0B3</div></div></div>
+      <div class="sw"><div class="chip" style="background:#8C877B"></div><div class="meta"><div class="name c-mono">muted</div><div class="hex c-mono">#8C877B</div></div></div>
+      <div class="sw"><div class="chip" style="background:linear-gradient(180deg,#E27A4D,#E2B45E)"></div><div class="meta"><div class="name c-mono">terra→gold</div><div class="hex c-mono">glow gradient</div></div></div>
+    </div>
+  </div>
+</body>
+</html>

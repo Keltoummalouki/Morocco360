@@ -16,6 +16,7 @@ export enum TicketStatus {
   CHECKED = 'CHECKED',
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',
+  SUSPENDED = 'SUSPENDED',
 }
 
 @Entity('tickets')

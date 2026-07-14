@@ -10,9 +10,15 @@ import { Order } from '../../orders/entities/order.entity';
 import { Ticket } from '../../orders/entities/ticket.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { QRScanLog } from '../../scanner/entities/qr-scan-log.entity';
+import { Country } from '../../settings/entities/country.entity';
+import { City } from '../../settings/entities/city.entity';
+import { Language } from '../../settings/entities/language.entity';
+import { EventCategory } from '../../settings/entities/event-category.entity';
+import { EventReview } from '../../reviews/entities/event-review.entity';
 import { RoleSeeder } from './role.seeder';
 import { UserSeeder } from './user.seeder';
 import { EventSeeder } from './event.seeder';
+import { SettingsSeeder } from './settings.seeder';
 import { SeederService } from './seeder.service';
 
 const ALL_ENTITIES = [
@@ -25,6 +31,11 @@ const ALL_ENTITIES = [
   Ticket,
   Payment,
   QRScanLog,
+  Country,
+  City,
+  Language,
+  EventCategory,
+  EventReview,
 ];
 
 @Module({
@@ -52,8 +63,19 @@ const ALL_ENTITIES = [
       EventStaff,
       Order,
       Ticket,
+      Country,
+      City,
+      Language,
+      EventCategory,
+      EventReview,
     ]),
   ],
-  providers: [RoleSeeder, UserSeeder, EventSeeder, SeederService],
+  providers: [
+    RoleSeeder,
+    UserSeeder,
+    EventSeeder,
+    SettingsSeeder,
+    SeederService,
+  ],
 })
 export class SeederModule {}

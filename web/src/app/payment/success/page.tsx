@@ -163,14 +163,14 @@ function SuccessContent() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <Link
-          href="/dashboard/user/events"
+          href="/user/events"
           className="btn-primary"
           style={{ display: 'block', textAlign: 'center' }}
         >
           Voir les événements
         </Link>
         <Link
-          href="/dashboard/user"
+          href="/user/events"
           style={{ fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'underline' }}
         >
           Retour au tableau de bord

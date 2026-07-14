@@ -1,0 +1,44 @@
+<!-- @dsCard group="Foundations" name="Typography" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Typography</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 40px; display: flex; flex-direction: column; gap: 26px; }
+    .row { border-top: 1px solid var(--c-line); padding-top: 22px; }
+    .tag { font-size: 0.625rem; color: var(--c-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <div>
+      <div class="tag c-mono">Display · Fraunces</div>
+      <div class="c-display c-text-glow" style="font-size:clamp(3rem,10vw,7rem);line-height:0.9">Morocco</div>
+    </div>
+    <div class="row">
+      <div class="tag c-mono">Display italic</div>
+      <div class="c-display c-display-italic" style="font-size:3rem">lose yourself</div>
+    </div>
+    <div class="row">
+      <div class="tag c-mono">Heading · Fraunces 500</div>
+      <div class="c-display" style="font-size:2.25rem">Not a photo. A place.</div>
+    </div>
+    <div class="row">
+      <div class="tag c-mono">Eyebrow · Geist Mono</div>
+      <div class="c-eyebrow">360° immersive journeys · Morocco</div>
+    </div>
+    <div class="row">
+      <div class="tag c-mono">Lead · Geist</div>
+      <p class="c-lead" style="margin:0">Walk the medinas of Fez, cross the Sahara at dusk, and stand beneath the Atlas — panoramic experiences you can step into from anywhere.</p>
+    </div>
+    <div class="row">
+      <div class="tag c-mono">Mono / tabular figures · Geist Mono</div>
+      <div class="c-mono" style="font-size:1rem;color:var(--c-fg-dim)">31.63°N · 7.99°W — 240 panoramas</div>
+    </div>
+  </div>
+</body>
+</html>

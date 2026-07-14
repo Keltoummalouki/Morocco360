@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Playfair_Display, Noto_Sans_Arabic } from 'next/font/google';
+import { Inter, Playfair_Display, Noto_Sans_Arabic, Plus_Jakarta_Sans, Work_Sans } from 'next/font/google';
 import { cookies } from 'next/headers';
 import './globals.css';
 
@@ -26,10 +26,27 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ['300', '400', '500', '600', '700'],
 });
 
+/* ── Imperial Trinity fonts (events home + app) ───────────── */
+const jakarta = Plus_Jakarta_Sans({
+  variable: '--font-jakarta',
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+});
+
+const workSans = Work_Sans({
+  variable: '--font-work-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+});
+
 export const metadata: Metadata = {
-  title: 'Morocco360 — Discover the Kingdom',
+  title: {
+    default: 'Morocco360 — Discover & book events across Morocco',
+    template: '%s · Morocco360',
+  },
   description:
-    'Explore Morocco through immersive 360° panoramic experiences. Ancient medinas, golden deserts, and coastal cities await.',
+    'Discover concerts, festivals, matches and cultural events across Morocco — and book secure tickets in seconds. From the medina to the main stage.',
+  keywords: ['Morocco', 'events', 'tickets', 'concerts', 'festivals', 'Marrakech', 'Casablanca', 'booking'],
 };
 
 export default async function RootLayout({
@@ -54,7 +71,7 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${inter.variable} ${playfair.variable} ${notoArabic.variable} antialiased`}
+        className={`${inter.variable} ${playfair.variable} ${notoArabic.variable} ${jakarta.variable} ${workSans.variable} antialiased`}
         style={locale === 'ar' ? { fontFamily: 'var(--font-arabic), system-ui' } : undefined}
       >
         <ThemeProvider>

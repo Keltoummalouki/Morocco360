@@ -1,0 +1,70 @@
+<!-- @dsCard group="Components" name="Cards & surfaces" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cards</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 44px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; align-items: start; }
+    .tag { font-size: 0.625rem; color: var(--c-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <!-- Glass card -->
+    <div>
+      <div class="tag c-mono">.c-glass</div>
+      <div class="c-glass" style="padding:28px">
+        <div class="c-eyebrow" style="margin-bottom:14px">Live</div>
+        <h3 class="c-display" style="font-size:1.5rem;margin:0 0 8px">Guided at dusk</h3>
+        <p style="color:var(--c-fg-dim);font-size:0.9rem;line-height:1.6;margin:0">A soft-glass panel for overlays, popovers, and floating UI.</p>
+      </div>
+    </div>
+
+    <!-- Destination tile -->
+    <div>
+      <div class="tag c-mono">.c-dest (destination tile)</div>
+      <a href="#" class="c-dest" style="height:340px">
+        <div class="c-media c-media-scrim"><div class="c-media-ph"></div></div>
+        <div class="c-dest-body">
+          <div style="display:flex;justify-content:space-between">
+            <span class="c-mono" style="font-size:0.6875rem;color:rgba(244,240,231,0.75)">01</span>
+            <span class="c-mono" style="font-size:0.5625rem;letter-spacing:0.24em;text-transform:uppercase;color:rgba(244,240,231,0.65)">The Red City</span>
+          </div>
+          <div>
+            <h3 class="c-display" style="font-size:2rem;color:#F7F3EA;margin:0">Marrakech</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+              <span class="c-mono" style="font-size:0.6875rem;text-transform:uppercase;color:var(--c-gold)">240 panoramas</span>
+              <span class="c-dest-explore">Enter →</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Feature row -->
+    <div>
+      <div class="tag c-mono">.c-feat-row (editorial list)</div>
+      <div class="c-glass" style="padding:8px 24px">
+        <div class="c-feat-row" style="border-top:none">
+          <span class="c-feat-idx">01</span>
+          <div>
+            <h3 class="c-feat-title">Spherical, not flat</h3>
+            <p style="color:var(--c-fg-dim);line-height:1.7;font-size:0.9rem;margin:0">True 360° panoramas captured in 12K. Look anywhere.</p>
+          </div>
+        </div>
+        <div class="c-feat-row">
+          <span class="c-feat-idx">02</span>
+          <div>
+            <h3 class="c-feat-title">Routes with a narrative</h3>
+            <p style="color:var(--c-fg-dim);line-height:1.7;font-size:0.9rem;margin:0">Curated journeys through medinas, kasbahs, and dunes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

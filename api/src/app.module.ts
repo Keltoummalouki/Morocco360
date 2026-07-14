@@ -13,6 +13,8 @@ import { TicketsModule } from './tickets/tickets.module';
 import { ScannerModule } from './scanner/scanner.module';
 import { OrganizerModule } from './organizer/organizer.module';
 import { AdminModule } from './admin/admin.module';
+import { SettingsModule } from './settings/settings.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { HealthModule } from './health/health.module';
 import { configValidationSchema } from './config/config.schema';
 
@@ -50,6 +52,8 @@ import { configValidationSchema } from './config/config.schema';
     ScannerModule,
     OrganizerModule,
     AdminModule,
+    SettingsModule,
+    ReviewsModule,
     HealthModule,
   ],
   controllers: [AppController],
