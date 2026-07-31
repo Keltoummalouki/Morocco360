@@ -4,6 +4,12 @@ export class AddEventStaffTable1743000000000 implements MigrationInterface {
   name = 'AddEventStaffTable1743000000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
+    // On a brand-new database, migrations run before synchronize, so "events"
+    // and "users" don't exist yet — synchronize will create event_staff too
+    // (it has its own entity) with the correct final schema.
+    const hasEvents = await queryRunner.hasTable('events');
+    if (!hasEvents) return;
+
     // Idempotent: skip if enum already exists
     await queryRunner.query(`
       DO $$ BEGIN

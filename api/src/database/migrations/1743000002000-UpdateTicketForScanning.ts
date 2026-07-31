@@ -4,6 +4,13 @@ export class UpdateTicketForScanning1743000002000 implements MigrationInterface 
   name = 'UpdateTicketForScanning1743000002000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
+    // On a brand-new database, migrations run before synchronize, so
+    // "tickets" doesn't exist yet — synchronize will create it directly
+    // with the correct final schema (all columns/enum values below already
+    // included).
+    const hasTickets = await queryRunner.hasTable('tickets');
+    if (!hasTickets) return;
+
     // Only transform the enum if the old 'USED' value still exists.
     // If synchronize already ran and updated the enum, this block is skipped.
     await queryRunner.query(`
