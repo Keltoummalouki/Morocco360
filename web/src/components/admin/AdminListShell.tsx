@@ -2,6 +2,17 @@
 
 import { type ReactNode } from 'react';
 import Paginator from '@/components/user/Paginator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "all statuses" option and is translated back to '' below.
+const ALL_STATUS_VALUE = '__all__';
 
 export interface Column<T> {
   header: string;
@@ -131,17 +142,19 @@ export default function AdminListShell<T>({
         </div>
 
         {onStatusChange && (
-          <select
-            value={statusValue ?? ''}
-            onChange={(e) => onStatusChange(e.target.value)}
-            className="search-input"
-            style={{ flex: '0 0 auto', cursor: 'pointer' }}
-            aria-label="Filtrer par statut"
+          <Select
+            value={statusValue || ALL_STATUS_VALUE}
+            onValueChange={(v) => onStatusChange(v === ALL_STATUS_VALUE ? '' : v)}
           >
-            <option value="">Tous les statuts</option>
-            <option value="ACTIVE">Actif</option>
-            <option value="SUSPENDED">Suspendu</option>
-          </select>
+            <SelectTrigger className="w-[160px] flex-none" aria-label="Filtrer par statut">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS_VALUE}>Tous les statuts</SelectItem>
+              <SelectItem value="ACTIVE">Actif</SelectItem>
+              <SelectItem value="SUSPENDED">Suspendu</SelectItem>
+            </SelectContent>
+          </Select>
         )}
 
         {extraFilters}

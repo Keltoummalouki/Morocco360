@@ -14,6 +14,13 @@ import {
   StatusSelect,
   SelectInput,
 } from '@/components/admin/AdminFormModal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminList } from '@/lib/admin/use-admin-list';
 import {
   allCountries,
@@ -29,6 +36,10 @@ import {
 const PAGE_SIZE = 12;
 
 type Modal = { type: 'none' } | { type: 'create' } | { type: 'edit'; row: City };
+
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "all countries" option and is translated back to '' below.
+const ALL_VALUE = '__all__';
 
 function num(v: string): number | undefined {
   const n = parseFloat(v);
@@ -192,23 +203,25 @@ export default function CitiesPage() {
         statusValue={list.status}
         onStatusChange={(v) => list.onStatus(v as SettingStatus | '')}
         extraFilters={
-          <select
-            value={countryFilter === '' ? '' : String(countryFilter)}
-            onChange={(e) => {
-              setCountryFilter(e.target.value === '' ? '' : Number(e.target.value));
+          <Select
+            value={countryFilter === '' ? ALL_VALUE : String(countryFilter)}
+            onValueChange={(v) => {
+              setCountryFilter(v === ALL_VALUE ? '' : Number(v));
               list.setPage(1);
             }}
-            className="search-input"
-            style={{ cursor: 'pointer' }}
-            aria-label="Filtrer par pays"
           >
-            <option value="">Tous les pays</option>
-            {countries.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[160px]" aria-label="Filtrer par pays">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_VALUE}>Tous les pays</SelectItem>
+              {countries.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         }
         addLabel="Nouvelle ville"
         onAdd={openCreate}

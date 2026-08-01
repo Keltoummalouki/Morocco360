@@ -4,6 +4,13 @@ import { useCallback, useState } from 'react';
 import { DashboardPage } from '@/components/DashboardAnimations';
 import AdminListShell, { type Column } from '@/components/admin/AdminListShell';
 import StatusPill from '@/components/admin/StatusPill';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminList } from '@/lib/admin/use-admin-list';
 import {
   listReviews,
@@ -14,6 +21,10 @@ import {
 
 const PAGE_SIZE = 15;
 const REVIEW_STATUSES: ReviewStatus[] = ['PENDING', 'APPROVED', 'UNAPPROVED'];
+
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "all" option and is translated back to '' below.
+const ALL_VALUE = '__all__';
 
 function Stars({ n }: { n: number }) {
   return (
@@ -111,26 +122,30 @@ export default function AdminReviewsPage() {
         onSearchChange={list.setSearchInput}
         extraFilters={
           <>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value as ReviewStatus | ''); list.setPage(1); }}
-              className="search-input"
-              style={{ cursor: 'pointer' }}
-              aria-label="Filtrer par statut"
+            <Select
+              value={statusFilter || ALL_VALUE}
+              onValueChange={(v) => { setStatusFilter(v === ALL_VALUE ? '' : (v as ReviewStatus)); list.setPage(1); }}
             >
-              <option value="">Tous les statuts</option>
-              {REVIEW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select
-              value={ratingFilter === '' ? '' : String(ratingFilter)}
-              onChange={(e) => { setRatingFilter(e.target.value === '' ? '' : Number(e.target.value)); list.setPage(1); }}
-              className="search-input"
-              style={{ cursor: 'pointer' }}
-              aria-label="Filtrer par note"
+              <SelectTrigger className="w-[160px]" aria-label="Filtrer par statut">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>Tous les statuts</SelectItem>
+                {REVIEW_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select
+              value={ratingFilter === '' ? ALL_VALUE : String(ratingFilter)}
+              onValueChange={(v) => { setRatingFilter(v === ALL_VALUE ? '' : Number(v)); list.setPage(1); }}
             >
-              <option value="">Toutes les notes</option>
-              {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} ★</option>)}
-            </select>
+              <SelectTrigger className="w-[160px]" aria-label="Filtrer par note">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>Toutes les notes</SelectItem>
+                {[5, 4, 3, 2, 1].map((n) => <SelectItem key={n} value={String(n)}>{n} ★</SelectItem>)}
+              </SelectContent>
+            </Select>
           </>
         }
         columns={columns}

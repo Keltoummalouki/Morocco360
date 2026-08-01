@@ -4,6 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { DashboardPage } from '@/components/DashboardAnimations';
 import AdminListShell, { type Column } from '@/components/admin/AdminListShell';
 import StatusPill from '@/components/admin/StatusPill';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminList } from '@/lib/admin/use-admin-list';
 import {
   getBooking,
@@ -19,6 +27,10 @@ import {
 const PAGE_SIZE = 15;
 const ORDER_STATUSES: OrderStatus[] = ['PENDING', 'PAID', 'CANCELLED', 'REFUNDED', 'SUSPENDED'];
 const TICKET_STATUSES: TicketStatus[] = ['PENDING', 'VALID', 'CHECKED', 'CANCELLED', 'REFUNDED', 'SUSPENDED'];
+
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "all statuses" option and is translated back to '' below.
+const ALL_VALUE = '__all__';
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -113,21 +125,23 @@ export default function AdminBookingsPage() {
         searchValue={list.searchInput}
         onSearchChange={list.setSearchInput}
         extraFilters={
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as OrderStatus | '');
+          <Select
+            value={statusFilter || ALL_VALUE}
+            onValueChange={(v) => {
+              setStatusFilter(v === ALL_VALUE ? '' : (v as OrderStatus));
               list.setPage(1);
             }}
-            className="search-input"
-            style={{ cursor: 'pointer' }}
-            aria-label="Filtrer par statut"
           >
-            <option value="">Tous les statuts</option>
-            {ORDER_STATUSES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[160px]" aria-label="Filtrer par statut">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_VALUE}>Tous les statuts</SelectItem>
+              {ORDER_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         }
         columns={columns}
         rows={list.data}
@@ -143,23 +157,24 @@ export default function AdminBookingsPage() {
       />
 
       {(detail || detailLoading) && (
-        <div onClick={() => setDetail(null)} style={overlay}>
-          <div onClick={(e) => e.stopPropagation()} style={panel}>
+        <Dialog open onOpenChange={(open) => !open && setDetail(null)}>
+          <DialogContent className="max-w-[560px]">
             {detailLoading || !detail ? (
-              <div className="shimmer" style={{ height: '200px', borderRadius: '6px' }} />
+              <>
+                <DialogTitle className="sr-only">Chargement de la réservation</DialogTitle>
+                <div className="shimmer" style={{ height: '200px', borderRadius: '6px' }} />
+              </>
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <DialogHeader className="flex-row items-start justify-between gap-3 space-y-0 mb-2">
                   <div>
-                    <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 700 }}>
-                      Réservation #{detail.id}
-                    </p>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>
+                    <DialogTitle className="mb-0">Réservation #{detail.id}</DialogTitle>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginTop: '4px' }}>
                       {detail.user?.full_name || detail.user?.username} · {fmt(detail.created_at)}
                     </p>
                   </div>
                   <StatusPill status={detail.status} label={detail.status} />
-                </div>
+                </DialogHeader>
 
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', fontSize: '0.875rem' }}>
                   <span>Total : <strong>{Number(detail.total_amount).toLocaleString('fr-FR')} MAD</strong></span>
@@ -187,16 +202,19 @@ export default function AdminBookingsPage() {
                       <span style={{ fontSize: '0.875rem' }}>#{t.id} · {t.category || '—'}</span>
                       <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)' }}>{t.event?.title}</span>
                     </div>
-                    <select
+                    <Select
                       value={t.status}
-                      onChange={(e) => void changeTicketStatus(t.id, e.target.value as TicketStatus)}
-                      className="search-input"
-                      style={{ width: 'auto', cursor: 'pointer', fontSize: '0.75rem', padding: '4px 8px' }}
+                      onValueChange={(v) => void changeTicketStatus(t.id, v as TicketStatus)}
                     >
-                      {TICKET_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger size="sm" className="w-auto text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TICKET_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 ))}
 
@@ -205,8 +223,8 @@ export default function AdminBookingsPage() {
                 </button>
               </>
             )}
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </DashboardPage>
   );
@@ -220,13 +238,4 @@ const smallBtn: React.CSSProperties = { ...detailBtn, padding: '5px 10px' };
 const sectionLabel: React.CSSProperties = {
   fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase',
   color: 'var(--muted)', marginBottom: '10px',
-};
-const overlay: React.CSSProperties = {
-  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex',
-  alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px',
-};
-const panel: React.CSSProperties = {
-  background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '4px',
-  padding: '32px', maxWidth: '560px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
-  boxShadow: '0 24px 64px -12px var(--shadow)',
 };

@@ -14,6 +14,14 @@ import {
   SelectInput,
 } from '@/components/admin/AdminFormModal';
 import UserPicker from '@/components/admin/UserPicker';
+import { DateTimePicker } from '@/components/ui/date-picker';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminList } from '@/lib/admin/use-admin-list';
 import {
   createAdminEvent,
@@ -47,8 +55,12 @@ type Modal =
   | { type: 'create' }
   | { type: 'edit'; row: AdminEvent };
 
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "no filter" / "all" option and is translated back to '' below.
+const ALL_VALUE = '__all__';
+
 function toLocalInput(iso: string): string {
-  // ISO -> value for <input type="datetime-local">
+  // ISO -> "yyyy-MM-ddTHH:mm" value for <DateTimePicker>
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -67,6 +79,7 @@ const emptyForm = {
   date_start: '',
   date_end: '',
   location_name: '',
+  countryId: '' as number | '',
   cityId: '' as number | '',
   categoryId: '' as number | '',
   organizerId: null as number | null,
@@ -104,9 +117,6 @@ export default function AdminEventsPage() {
 
   useEffect(() => {
     allCountries().then(setCountries).catch(() => setCountries([]));
-    listCities({ limit: 100, sortBy: 'name', sortOrder: 'ASC' })
-      .then((r) => setCities(r.data))
-      .catch(() => setCities([]));
     listEventCategories({ limit: 100, sortBy: 'name', sortOrder: 'ASC' })
       .then((r) => setCategories(r.data))
       .catch(() => setCategories([]));
@@ -116,6 +126,23 @@ export default function AdminEventsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Cities depend on the selected country in the create/edit form — a city
+  // has exactly one country, so re-scope the list whenever it changes.
+  useEffect(() => {
+    if (modal.type === 'none' || form.countryId === '') {
+      setCities([]);
+      return;
+    }
+    listCities({
+      countryId: form.countryId,
+      limit: 100,
+      sortBy: 'name',
+      sortOrder: 'ASC',
+    })
+      .then((r) => setCities(r.data))
+      .catch(() => setCities([]));
+  }, [form.countryId, modal.type]);
 
   function openCreate() {
     setForm(emptyForm);
@@ -129,6 +156,7 @@ export default function AdminEventsPage() {
       date_start: toLocalInput(row.date_start),
       date_end: toLocalInput(row.date_end),
       location_name: row.location_name,
+      countryId: row.cityEntity?.country?.id ?? '',
       cityId: row.cityEntity?.id ?? '',
       categoryId: row.categoryEntity?.id ?? '',
       organizerId: row.organizer?.id ?? null,
@@ -143,6 +171,10 @@ export default function AdminEventsPage() {
   }
 
   async function submit() {
+    if (!form.date_start || !form.date_end) {
+      setFormError('Les dates de début et de fin sont requises.');
+      return;
+    }
     setSaving(true);
     setFormError(null);
     try {
@@ -271,57 +303,63 @@ export default function AdminEventsPage() {
         onSearchChange={list.setSearchInput}
         extraFilters={
           <>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as EventStatus | '');
+            <Select
+              value={statusFilter || ALL_VALUE}
+              onValueChange={(v) => {
+                setStatusFilter(v === ALL_VALUE ? '' : (v as EventStatus));
                 list.setPage(1);
               }}
-              className="search-input"
-              style={{ cursor: 'pointer' }}
-              aria-label="Filtrer par statut"
             >
-              <option value="">Tous les statuts</option>
-              {EVENT_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <select
-              value={countryFilter === '' ? '' : String(countryFilter)}
-              onChange={(e) => {
-                setCountryFilter(e.target.value === '' ? '' : Number(e.target.value));
+              <SelectTrigger className="w-[160px]" aria-label="Filtrer par statut">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>Tous les statuts</SelectItem>
+                {EVENT_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={countryFilter === '' ? ALL_VALUE : String(countryFilter)}
+              onValueChange={(v) => {
+                setCountryFilter(v === ALL_VALUE ? '' : Number(v));
                 list.setPage(1);
               }}
-              className="search-input"
-              style={{ cursor: 'pointer' }}
-              aria-label="Filtrer par pays"
             >
-              <option value="">Tous les pays</option>
-              {countries.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={categoryFilter === '' ? '' : String(categoryFilter)}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value === '' ? '' : Number(e.target.value));
+              <SelectTrigger className="w-[160px]" aria-label="Filtrer par pays">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>Tous les pays</SelectItem>
+                {countries.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={categoryFilter === '' ? ALL_VALUE : String(categoryFilter)}
+              onValueChange={(v) => {
+                setCategoryFilter(v === ALL_VALUE ? '' : Number(v));
                 list.setPage(1);
               }}
-              className="search-input"
-              style={{ cursor: 'pointer' }}
-              aria-label="Filtrer par catégorie"
             >
-              <option value="">Toutes les catégories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[180px]" aria-label="Filtrer par catégorie">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>Toutes les catégories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </>
         }
         addLabel="Nouvel événement"
@@ -361,32 +399,18 @@ export default function AdminEventsPage() {
               onChange={(v) => setForm((f) => ({ ...f, description: v }))}
             />
           </Field>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ flex: 1 }}>
-              <Field label="Début">
-                <input
-                  type="datetime-local"
-                  value={form.date_start}
-                  onChange={(e) => setForm((f) => ({ ...f, date_start: e.target.value }))}
-                  className="search-input"
-                  style={{ width: '100%' }}
-                  required
-                />
-              </Field>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Field label="Fin">
-                <input
-                  type="datetime-local"
-                  value={form.date_end}
-                  onChange={(e) => setForm((f) => ({ ...f, date_end: e.target.value }))}
-                  className="search-input"
-                  style={{ width: '100%' }}
-                  required
-                />
-              </Field>
-            </div>
-          </div>
+          <Field label="Début">
+            <DateTimePicker
+              value={form.date_start}
+              onChange={(v) => setForm((f) => ({ ...f, date_start: v }))}
+            />
+          </Field>
+          <Field label="Fin">
+            <DateTimePicker
+              value={form.date_end}
+              onChange={(v) => setForm((f) => ({ ...f, date_end: v }))}
+            />
+          </Field>
           <Field label="Lieu">
             <TextInput
               value={form.location_name}
@@ -397,18 +421,32 @@ export default function AdminEventsPage() {
           </Field>
           <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flex: 1 }}>
-              <Field label="Ville">
+              <Field label="Pays">
                 <SelectInput<number>
-                  value={form.cityId}
-                  onChange={(v) => setForm((f) => ({ ...f, cityId: v }))}
-                  options={cities.map((c) => ({
-                    value: c.id,
-                    label: c.country ? `${c.name} (${c.country.name})` : c.name,
-                  }))}
+                  value={form.countryId}
+                  onChange={(v) =>
+                    setForm((f) => ({ ...f, countryId: v, cityId: '' }))
+                  }
+                  options={countries.map((c) => ({ value: c.id, label: c.name }))}
                   placeholder="Sélectionner"
                 />
               </Field>
             </div>
+            <div style={{ flex: 1 }}>
+              <Field label="Ville">
+                <SelectInput<number>
+                  value={form.cityId}
+                  onChange={(v) => setForm((f) => ({ ...f, cityId: v }))}
+                  options={cities.map((c) => ({ value: c.id, label: c.name }))}
+                  placeholder={
+                    form.countryId === '' ? 'Choisir un pays d’abord' : 'Sélectionner'
+                  }
+                  disabled={form.countryId === ''}
+                />
+              </Field>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flex: 1 }}>
               <Field label="Catégorie">
                 <SelectInput<number>
@@ -419,8 +457,6 @@ export default function AdminEventsPage() {
                 />
               </Field>
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
             <div style={{ flex: 1 }}>
               <Field label="Places (stock)">
                 <NumberInput
@@ -430,17 +466,15 @@ export default function AdminEventsPage() {
                 />
               </Field>
             </div>
-            <div style={{ flex: 1 }}>
-              <Field label="Statut">
-                <SelectInput<EventStatus>
-                  value={form.status}
-                  onChange={(v) => setForm((f) => ({ ...f, status: (v || 'ACTIVE') as EventStatus }))}
-                  options={EVENT_STATUSES.map((s) => ({ value: s, label: s }))}
-                  placeholder="ACTIVE"
-                />
-              </Field>
-            </div>
           </div>
+          <Field label="Statut">
+            <SelectInput<EventStatus>
+              value={form.status}
+              onChange={(v) => setForm((f) => ({ ...f, status: (v || 'ACTIVE') as EventStatus }))}
+              options={EVENT_STATUSES.map((s) => ({ value: s, label: s }))}
+              placeholder="ACTIVE"
+            />
+          </Field>
           <Field label="Organisateur">
             {form.organizerId ? (
               <div

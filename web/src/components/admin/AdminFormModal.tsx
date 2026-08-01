@@ -1,6 +1,22 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // ── Modal shell ────────────────────────────────────────────
 export function AdminFormModal({
@@ -20,93 +36,48 @@ export function AdminFormModal({
   submitLabel?: string;
   children: ReactNode;
 }) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
-
   return (
-    <div
-      onClick={onCancel}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px',
-      }}
-    >
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!submitting) onSubmit();
-        }}
-        style={{
-          background: 'var(--background)',
-          border: '1px solid var(--border)',
-          borderRadius: '4px',
-          padding: '32px',
-          maxWidth: '520px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          boxShadow: '0 24px 64px -12px var(--shadow)',
-        }}
-      >
-        <p
-          style={{
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            marginBottom: '24px',
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!submitting) onSubmit();
           }}
         >
-          {title}
-        </p>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {children}
-        </div>
+          <div className="mt-4 flex flex-col gap-4">{children}</div>
 
-        {error && (
-          <p
-            style={{
-              color: '#C4623F',
-              fontSize: '0.8125rem',
-              marginTop: '16px',
-            }}
-          >
-            {error}
-          </p>
-        )}
+          {error && (
+            <p style={{ color: '#C4623F', fontSize: '0.8125rem', marginTop: '16px' }}>
+              {error}
+            </p>
+          )}
 
-        <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary btn-sm"
-            style={{ flex: 1, opacity: submitting ? 0.6 : 1 }}
-          >
-            {submitting ? '…' : submitLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="btn-outline btn-sm"
-            style={{ flex: 1 }}
-          >
-            <span>Annuler</span>
-          </button>
-        </div>
-      </form>
-    </div>
+          <DialogFooter className="mt-7">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary btn-sm"
+              style={{ flex: 1, opacity: submitting ? 0.6 : 1 }}
+            >
+              {submitting ? '…' : submitLabel}
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn-outline btn-sm"
+              style={{ flex: 1 }}
+            >
+              <span>Annuler</span>
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -150,15 +121,13 @@ export function TextInput({
   maxLength?: number;
 }) {
   return (
-    <input
+    <Input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
       maxLength={maxLength}
-      className="search-input"
-      style={{ width: '100%' }}
     />
   );
 }
@@ -175,14 +144,13 @@ export function TextArea({
   maxLength?: number;
 }) {
   return (
-    <textarea
+    <Textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       maxLength={maxLength}
       rows={3}
-      className="search-input"
-      style={{ width: '100%', resize: 'vertical', minHeight: '72px' }}
+      className="min-h-[72px] resize-y"
     />
   );
 }
@@ -199,14 +167,12 @@ export function NumberInput({
   step?: string;
 }) {
   return (
-    <input
+    <Input
       type="number"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       step={step}
-      className="search-input"
-      style={{ width: '100%' }}
     />
   );
 }
@@ -219,45 +185,54 @@ export function StatusSelect({
   onChange: (v: 'ACTIVE' | 'SUSPENDED') => void;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as 'ACTIVE' | 'SUSPENDED')}
-      className="search-input"
-      style={{ width: '100%', cursor: 'pointer' }}
-    >
-      <option value="ACTIVE">Actif</option>
-      <option value="SUSPENDED">Suspendu</option>
-    </select>
+    <Select value={value} onValueChange={(v) => onChange(v as 'ACTIVE' | 'SUSPENDED')}>
+      <SelectTrigger className="w-full min-w-0">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="ACTIVE">Actif</SelectItem>
+        <SelectItem value="SUSPENDED">Suspendu</SelectItem>
+      </SelectContent>
+    </Select>
   );
 }
+
+// Radix Select forbids an item with value="" (that's reserved to mean
+// "nothing selected"), so a synthetic sentinel represents the clearable
+// placeholder entry and is translated back to '' here.
+const CLEAR_VALUE = '__clear__';
 
 export function SelectInput<V extends string | number>({
   value,
   onChange,
   options,
   placeholder,
+  disabled,
 }: {
   value: V | '';
   onChange: (v: V | '') => void;
   options: { value: V; label: string }[];
   placeholder?: string;
+  disabled?: boolean;
 }) {
   return (
-    <select
-      value={value === '' ? '' : String(value)}
-      onChange={(e) =>
-        onChange(e.target.value === '' ? '' : (e.target.value as V))
-      }
-      className="search-input"
-      style={{ width: '100%', cursor: 'pointer' }}
+    <Select
+      value={value === '' ? undefined : String(value)}
+      onValueChange={(v) => onChange(v === CLEAR_VALUE ? '' : (v as V))}
+      disabled={disabled}
     >
-      <option value="">{placeholder ?? '—'}</option>
-      {options.map((o) => (
-        <option key={String(o.value)} value={String(o.value)}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger className="w-full min-w-0">
+        <SelectValue placeholder={placeholder ?? '—'} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={CLEAR_VALUE}>{placeholder ?? '—'}</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={String(o.value)} value={String(o.value)}>
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 

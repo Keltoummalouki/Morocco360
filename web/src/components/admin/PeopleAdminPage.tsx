@@ -10,6 +10,14 @@ import {
   Field,
   TextInput,
 } from '@/components/admin/AdminFormModal';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAdminList } from '@/lib/admin/use-admin-list';
 import {
   createPerson,
@@ -267,25 +275,21 @@ export default function PeopleAdminPage({
             />
           </Field>
           <Field label="Email">
-            <input
+            <Input
               type="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               required
-              className="search-input"
-              style={{ width: '100%' }}
             />
           </Field>
           {modal.type === 'create' && (
             <Field label="Mot de passe">
-              <input
+              <Input
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 required
                 minLength={8}
-                className="search-input"
-                style={{ width: '100%' }}
                 placeholder="8+ caractères, maj/min/chiffre"
               />
             </Field>
@@ -303,14 +307,9 @@ export default function PeopleAdminPage({
             </div>
             <div style={{ flex: 1 }}>
               <Field label="Date de naissance">
-                <input
-                  type="date"
+                <DatePicker
                   value={form.date_of_birth}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, date_of_birth: e.target.value }))
-                  }
-                  className="search-input"
-                  style={{ width: '100%' }}
+                  onChange={(v) => setForm((f) => ({ ...f, date_of_birth: v }))}
                 />
               </Field>
             </div>
@@ -364,42 +363,17 @@ function PersonDetailModal({
   const relatedTitle = resource === 'users' ? 'Réservations' : 'Événements';
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--background)',
-          border: '1px solid var(--border)',
-          borderRadius: '4px',
-          padding: '32px',
-          maxWidth: '560px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          boxShadow: '0 24px 64px -12px var(--shadow)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[560px]">
+        <DialogHeader className="flex-row items-start justify-between gap-3 space-y-0">
           <div>
-            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 700 }}>
-              {user.full_name || user.username}
+            <DialogTitle className="mb-0">{user.full_name || user.username}</DialogTitle>
+            <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginTop: '4px' }}>
+              {user.email}
             </p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{user.email}</p>
           </div>
           <StatusPill status={user.status} />
-        </div>
+        </DialogHeader>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
           <Info label="Utilisateur" value={user.username} />
@@ -456,8 +430,8 @@ function PersonDetailModal({
             <span>Fermer</span>
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
