@@ -59,11 +59,14 @@ Morocco360 est une plateforme web permettant aux utilisateurs (locaux et tourist
 |---------------|---------------------------------------|
 | **Frontend**  | Next.js 14+ (React, TypeScript)       |
 | **Backend**   | Node.js + NestJS 11 (TypeScript)      |
-| **Database**  | PostgreSQL 16 (Docker)                |
+| **Database**  | Supabase PostgreSQL 17 / Docker local |
 | **ORM**       | TypeORM 0.3                           |
 | **Auth**      | JWT (access + refresh) + Passport.js  |
 | **CI/CD**     | GitHub Actions                        |
 | **Container** | Docker + Docker Compose               |
+
+Deploiement gratuit recommande : **Supabase + Render + Vercel**. Voir le guide
+pas a pas : **[docs/SUPABASE_DEPLOYMENT.md](docs/SUPABASE_DEPLOYMENT.md)**.
 
 ---
 
@@ -137,7 +140,7 @@ morocco360/
 
 ### Prerequis
 - Node.js 18+
-- Docker + Docker Compose
+- Docker + Docker Compose (optionnel, pour PostgreSQL local)
 - Git
 
 ### 1. Cloner et configurer
@@ -148,6 +151,11 @@ cd Morocco360
 ```
 
 ### 2. Demarrer la base de donnees
+
+Pour utiliser Supabase et deployer gratuitement, suivre
+**[le guide de deploiement Supabase](docs/SUPABASE_DEPLOYMENT.md)**.
+
+Pour le developpement PostgreSQL local :
 
 ```bash
 cp api/.env.example api/.env

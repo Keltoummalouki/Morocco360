@@ -17,6 +17,7 @@ import { SettingsModule } from './settings/settings.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { HealthModule } from './health/health.module';
 import { configValidationSchema } from './config/config.schema';
+import { createTypeOrmOptions } from './database/typeorm.options';
 
 @Module({
   imports: [
@@ -31,18 +32,7 @@ import { configValidationSchema } from './config/config.schema';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get<string>('DB_USER', 'morocco360'),
-        password: config.get<string>('DB_PASS', 'morocco360'),
-        database: config.get<string>('DB_NAME', 'morocco360'),
-        autoLoadEntities: true,
-        synchronize: config.get<string>('NODE_ENV') !== 'production',
-        migrations: [__dirname + '/database/migrations/*.{ts,js}'],
-        migrationsRun: true,
-      }),
+      useFactory: (config: ConfigService) => createTypeOrmOptions(config),
     }),
     AuthModule,
     UsersModule,
