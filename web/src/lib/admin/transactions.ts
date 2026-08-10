@@ -113,6 +113,8 @@ export interface Invoice {
   status: PaymentStatus;
   gateway: string;
   currency: string;
+  orderId: number | null;
+  transactionId: string | null;
   customer: { name: string; email: string };
   event: { title: string; date: string | null } | null;
   lines: InvoiceLine[];

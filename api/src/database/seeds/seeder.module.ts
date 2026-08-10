@@ -19,6 +19,8 @@ import { RoleSeeder } from './role.seeder';
 import { UserSeeder } from './user.seeder';
 import { EventSeeder } from './event.seeder';
 import { SettingsSeeder } from './settings.seeder';
+import { CommerceSeeder } from './commerce.seeder';
+import { ReviewSeeder } from './review.seeder';
 import { SeederService } from './seeder.service';
 
 const ALL_ENTITIES = [
@@ -55,26 +57,15 @@ const ALL_ENTITIES = [
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([
-      User,
-      Role,
-      Event,
-      TicketCategory,
-      EventStaff,
-      Order,
-      Ticket,
-      Country,
-      City,
-      Language,
-      EventCategory,
-      EventReview,
-    ]),
+    TypeOrmModule.forFeature(ALL_ENTITIES),
   ],
   providers: [
     RoleSeeder,
     UserSeeder,
     EventSeeder,
     SettingsSeeder,
+    CommerceSeeder,
+    ReviewSeeder,
     SeederService,
   ],
 })

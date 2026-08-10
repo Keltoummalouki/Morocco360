@@ -35,6 +35,9 @@ export class CountriesService {
   async list(query: QueryCountryDto): Promise<PaginatedResult<Country>> {
     const qb = this.repo
       .createQueryBuilder('c')
+      // The edit form pre-selects its language chips from the list row, so the
+      // relation has to travel with it.
+      .leftJoinAndSelect('c.languages', 'lang')
       .loadRelationCountAndMap('c.cityCount', 'c.cities');
 
     if (query.search?.trim()) {
@@ -119,10 +122,7 @@ export class CountriesService {
     return country.languages ?? [];
   }
 
-  async assignLanguages(
-    id: number,
-    dto: AssignLanguagesDto,
-  ): Promise<Country> {
+  async assignLanguages(id: number, dto: AssignLanguagesDto): Promise<Country> {
     const country = await this.findOne(id);
     country.languages = dto.languageIds.length
       ? await this.languageRepo.findBy({ id: In(dto.languageIds) })

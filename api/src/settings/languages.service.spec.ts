@@ -7,7 +7,13 @@ import { Country } from './entities/country.entity';
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['andWhere', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);
@@ -46,6 +52,19 @@ describe('LanguagesService', () => {
   });
 
   describe('list', () => {
+    // Feeds both the "Pays" column and the edit modal's country chips.
+    it('loads the countries relation onto each row', async () => {
+      const qb = chainableQb([], 0);
+      repo.createQueryBuilder.mockReturnValue(qb as never);
+
+      await service.list({ page: 1, limit: 20 });
+
+      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith(
+        'l.countries',
+        'country',
+      );
+    });
+
     it('searches name and code', async () => {
       const qb = chainableQb([], 0);
       repo.createQueryBuilder.mockReturnValue(qb as never);

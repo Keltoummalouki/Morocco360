@@ -27,7 +27,11 @@ export class LanguagesService {
   ) {}
 
   async list(query: QueryLanguageDto): Promise<PaginatedResult<Language>> {
-    const qb = this.repo.createQueryBuilder('l');
+    // Same as countries: the "Pays" column and the edit form's country chips
+    // both read this relation off the list row.
+    const qb = this.repo
+      .createQueryBuilder('l')
+      .leftJoinAndSelect('l.countries', 'country');
 
     if (query.search?.trim()) {
       qb.andWhere('(l.name ILIKE :s OR l.code ILIKE :s)', {

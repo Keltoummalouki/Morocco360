@@ -6,11 +6,6 @@ import { City } from '../../settings/entities/city.entity';
 import { Language } from '../../settings/entities/language.entity';
 import { EventCategory as EventCategoryEntity } from '../../settings/entities/event-category.entity';
 import { Event } from '../../events/entities/event.entity';
-import { User } from '../../users/entities/user.entity';
-import {
-  EventReview,
-  ReviewStatus,
-} from '../../reviews/entities/event-review.entity';
 
 interface SeedCity {
   name: string;
@@ -88,9 +83,6 @@ export class SettingsSeeder {
     @InjectRepository(EventCategoryEntity)
     private readonly categoryRepo: Repository<EventCategoryEntity>,
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
-    @InjectRepository(User) private readonly userRepo: Repository<User>,
-    @InjectRepository(EventReview)
-    private readonly reviewRepo: Repository<EventReview>,
   ) {}
 
   async seed(): Promise<void> {
@@ -99,37 +91,6 @@ export class SettingsSeeder {
     await this.seedCities(morocco);
     await this.seedCategories();
     await this.backfillEvents();
-    await this.seedReviews();
-  }
-
-  /** A few sample reviews so the moderation screen has content. */
-  private async seedReviews(): Promise<void> {
-    const existing = await this.reviewRepo.count();
-    if (existing > 0) return;
-
-    const [events, user] = await Promise.all([
-      this.eventRepo.find({ take: 3, order: { id: 'ASC' } }),
-      this.userRepo
-        .createQueryBuilder('u')
-        .leftJoin('u.role', 'r')
-        .where('r.name = :role', { role: 'USER' })
-        .getOne(),
-    ]);
-    if (!user || events.length === 0) return;
-
-    const samples: { rating: number; comment: string; status: ReviewStatus }[] =
-      [
-        { rating: 5, comment: 'Événement incroyable, très bien organisé !', status: ReviewStatus.PENDING },
-        { rating: 4, comment: 'Bonne ambiance mais un peu bondé.', status: ReviewStatus.APPROVED },
-        { rating: 2, comment: 'Décevant par rapport au prix.', status: ReviewStatus.PENDING },
-      ];
-
-    for (let i = 0; i < samples.length; i++) {
-      const event = events[i % events.length];
-      await this.reviewRepo.save(
-        this.reviewRepo.create({ ...samples[i], event, user }),
-      );
-    }
   }
 
   private async seedLanguages(): Promise<Map<string, Language>> {
@@ -197,9 +158,7 @@ export class SettingsSeeder {
       this.cityRepo.find(),
       this.categoryRepo.find(),
     ]);
-    const cityByName = new Map(
-      cities.map((c) => [c.name.toLowerCase(), c]),
-    );
+    const cityByName = new Map(cities.map((c) => [c.name.toLowerCase(), c]));
     const categoryByName = new Map(
       categories.map((c) => [c.name.toLowerCase(), c]),
     );

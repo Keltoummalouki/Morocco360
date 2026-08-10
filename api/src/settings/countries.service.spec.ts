@@ -11,6 +11,7 @@ import { SettingStatus } from '../common/enums/status.enum';
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
   for (const m of [
+    'leftJoinAndSelect',
     'loadRelationCountAndMap',
     'andWhere',
     'orderBy',
@@ -61,6 +62,17 @@ describe('CountriesService', () => {
   });
 
   describe('list', () => {
+    // The edit modal pre-selects its language chips from the list row, so
+    // dropping this join silently unselects every language.
+    it('loads the languages relation onto each row', async () => {
+      const qb = chainableQb([{ id: 1 }], 1);
+      repo.createQueryBuilder.mockReturnValue(qb as never);
+
+      await service.list({ page: 1, limit: 20 });
+
+      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith('c.languages', 'lang');
+    });
+
     it('returns { data, meta } and applies search + status filters', async () => {
       const qb = chainableQb([{ id: 1 }], 1);
       repo.createQueryBuilder.mockReturnValue(qb as never);
