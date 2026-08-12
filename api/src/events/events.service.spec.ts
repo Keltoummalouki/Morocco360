@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
@@ -6,6 +5,7 @@ import { Repository } from 'typeorm';
 
 import { EventsService } from './events.service';
 import { Event } from './entities/event.entity';
+import { EventStaff } from './entities/event-staff.entity';
 import { TicketCategory } from './entities/ticket-category.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -13,6 +13,8 @@ import { User } from '../users/entities/user.entity';
 const mockCategory: TicketCategory = {
   id: 1,
   name: 'General',
+  description: null as unknown as string,
+  status: 'ACTIVE' as TicketCategory['status'],
   price: 50,
   stock_allocated: 100,
   stock_remaining: 100,
@@ -40,6 +42,9 @@ const mockEvent: Event = {
   total_stock: 200,
   is_active: true,
   is_sold_out: false,
+  status: 'ACTIVE' as Event['status'],
+  cityEntity: null as unknown as Event['cityEntity'],
+  categoryEntity: null as unknown as Event['categoryEntity'],
   created_at: new Date(),
   organizer: null as unknown as User,
   savedByUsers: [],
@@ -60,11 +65,19 @@ describe('EventsService', () => {
           useValue: {
             find: jest.fn(),
             findOne: jest.fn(),
+            createQueryBuilder: jest.fn(),
           },
         },
         {
           provide: getRepositoryToken(User),
           useValue: {},
+        },
+        {
+          provide: getRepositoryToken(EventStaff),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -77,23 +90,34 @@ describe('EventsService', () => {
     jest.clearAllMocks();
   });
 
-  // ── findAll ──────────────────────────────────────────────
+  // ── findAll (query-builder based) ────────────────────────
   describe('findAll', () => {
-    it('returns only active events ordered by date_start', async () => {
-      repo.find.mockResolvedValue([mockEvent]);
+    function mockQb(rows: Event[]) {
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(rows),
+      };
+      repo.createQueryBuilder.mockReturnValue(
+        qb as unknown as ReturnType<typeof repo.createQueryBuilder>,
+      );
+      return qb;
+    }
+
+    it('filters on active events and returns the query results', async () => {
+      const qb = mockQb([mockEvent]);
 
       const result = await service.findAll();
 
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { is_active: true },
-        relations: ['categories'],
-        order: { date_start: 'ASC' },
-      });
+      expect(repo.createQueryBuilder).toHaveBeenCalledWith('event');
+      expect(qb.where).toHaveBeenCalledWith('event.is_active = true');
       expect(result).toEqual([mockEvent]);
     });
 
     it('returns an empty array when there are no active events', async () => {
-      repo.find.mockResolvedValue([]);
+      mockQb([]);
 
       const result = await service.findAll();
 

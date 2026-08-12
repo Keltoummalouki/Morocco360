@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -16,21 +15,13 @@ export enum EventStaffRole {
 }
 
 @Entity('event_staff')
-@Unique(['event_id', 'user_id'])
+@Unique(['event', 'user'])
 export class EventStaff {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index()
-  @Column()
-  event_id: number;
-
   @ManyToOne(() => Event, { onDelete: 'CASCADE', nullable: false })
   event: Event;
-
-  @Index()
-  @Column()
-  user_id: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
   user: User;
@@ -40,9 +31,6 @@ export class EventStaff {
 
   @CreateDateColumn()
   assigned_at: Date;
-
-  @Column({ nullable: true })
-  assigned_by_user_id: number;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   assigned_by: User;

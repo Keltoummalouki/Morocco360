@@ -5,6 +5,7 @@ import type { Role } from '@/lib/auth';
 const ROLE_HOME: Record<Role, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
+  STAFF:     '/dashboard/staff',
   USER:      '/dashboard/user',
 };
 

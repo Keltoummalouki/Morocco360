@@ -32,4 +32,13 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
   },
+  {
+    // Jest assertions take mocked methods by reference (`expect(repo.save)`).
+    // `unbound-method` flags that, but a jest.fn() has no `this` to lose — the
+    // warning is a false positive here and only fires in test files.
+    files: ['**/*.spec.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
 );

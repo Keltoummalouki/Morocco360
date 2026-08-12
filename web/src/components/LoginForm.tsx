@@ -3,22 +3,26 @@
 import { useState, FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
 import { DEV_USERS, ROLE_HOME, apiLogin } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const ROLE_COLORS: Record<string, string> = {
-  ADMIN: '#C4623F',
-  ORGANIZER: '#C49A3C',
-  USER: '#2E8B6A',
+  ADMIN: 'var(--accent)',
+  ORGANIZER: 'var(--gold-strong)',
+  USER: 'var(--primary)',
 };
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo   = searchParams.get('redirect');
+  const redirectTo = searchParams.get('redirect');
 
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -26,7 +30,8 @@ export default function LoginForm() {
     setLoading(true);
     try {
       const { role } = await apiLogin(email, password);
-      const dest = redirectTo && redirectTo !== '/dashboard' ? redirectTo : ROLE_HOME[role] ?? '/dashboard';
+      const dest =
+        redirectTo && redirectTo !== '/dashboard' ? redirectTo : ROLE_HOME[role] ?? '/dashboard';
       window.location.href = dest;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
@@ -35,100 +40,85 @@ export default function LoginForm() {
   }
 
   return (
-    <div style={{ width: '100%', maxWidth: '420px' }} className="anim-fade-up">
-      <div style={{ marginBottom: '36px' }}>
-        <div style={{ width: '28px', height: '2px', background: 'linear-gradient(90deg, var(--primary), var(--accent))', marginBottom: '20px', borderRadius: '2px' }} />
-        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.75rem, 3vw, 2.25rem)', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.02em' }}>
-          Welcome back
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-          Sign in to continue your journey
+    <div className="w-full max-w-md">
+      <div className="mb-8">
+        <h1 className="ev-display text-[clamp(1.75rem,3vw,2.25rem)]">Welcome back</h1>
+        <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
+          Sign in to book tickets and manage your events.
         </p>
       </div>
 
-      <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} onSubmit={handleSubmit} noValidate>
-        <div>
-          <label htmlFor="email" style={{ fontSize: '0.8125rem', fontWeight: 500, letterSpacing: '0.03em', display: 'block', marginBottom: '8px', color: 'var(--foreground-dim)' }}>
-            Email address
-          </label>
-          <input
-            id="email" type="email" placeholder="you@example.com"
-            autoComplete="email" className="input-field"
-            value={email} onChange={(e) => setEmail(e.target.value)} required
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
+        <div className="grid gap-2">
+          <Label htmlFor="email">Email address</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-11"
           />
         </div>
 
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <label htmlFor="password" style={{ fontSize: '0.8125rem', fontWeight: 500, letterSpacing: '0.03em', color: 'var(--foreground-dim)' }}>
-              Password
-            </label>
-            <Link href="#" className="link-underline" style={{ fontSize: '0.8125rem', color: 'var(--primary)' }}>
+        <div className="grid gap-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="#" className="text-[0.8125rem] text-primary hover:underline">
               Forgot?
             </Link>
           </div>
-          <input
-            id="password" type="password" placeholder="••••••••"
-            autoComplete="current-password" className="input-field"
-            value={password} onChange={(e) => setPassword(e.target.value)} required
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-11"
           />
         </div>
 
         {error && (
-          <div style={{
-            padding: '12px 16px',
-            border: '1px solid rgba(224,82,82,0.3)',
-            background: 'rgba(224,82,82,0.06)',
-            display: 'flex', alignItems: 'center', gap: '10px',
-          }}>
-            <svg style={{ width: '16px', height: '16px', color: 'var(--error)', flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <p style={{ fontSize: '0.875rem', color: 'var(--error)' }}>{error}</p>
+          <div
+            role="alert"
+            className="flex items-center gap-2.5 rounded-md border p-3"
+            style={{ borderColor: 'var(--error)', background: 'var(--error-bg)' }}
+          >
+            <AlertCircle size={16} className="shrink-0" style={{ color: 'var(--error)' }} aria-hidden="true" />
+            <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
           </div>
         )}
 
-        <button
-          type="submit"
-          className="btn-primary"
-          style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: '4px', opacity: loading ? 0.7 : 1, padding: '15px' }}
-          disabled={loading}
-        >
+        <Button type="submit" size="lg" className="h-11 w-full" disabled={loading}>
           {loading ? 'Signing in…' : 'Sign In'}
-        </button>
+        </Button>
       </form>
 
       {/* Dev quick access */}
-      <div style={{ marginTop: '32px', padding: '20px', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-        <p style={{ fontSize: '0.6875rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px', fontWeight: 600 }}>
+      <div className="mt-8 rounded-xl border border-border bg-muted p-5">
+        <p className="mb-3 text-[0.6875rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
           Dev — Quick access
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className="flex flex-col gap-1.5">
           {DEV_USERS.map((u) => (
             <button
               key={u.email}
               type="button"
               onClick={() => { setEmail(u.email); setPassword(u.password); }}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 14px',
-                background: 'var(--surface-3)',
-                border: '1px solid var(--border)',
-                cursor: 'pointer', fontSize: '0.8125rem', textAlign: 'left',
-                transition: 'border-color 0.2s ease, background 0.2s ease',
-                fontFamily: 'var(--font-inter), system-ui, sans-serif',
-                color: 'var(--foreground)',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-light)'; (e.currentTarget as HTMLElement).style.background = 'var(--glass-bg)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
+              className="flex items-center justify-between rounded-md border border-border bg-card px-3.5 py-2.5 text-left text-[0.8125rem] text-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <span>{u.name}</span>
-              <span style={{
-                fontSize: '0.625rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700,
-                color: ROLE_COLORS[u.role] ?? 'var(--muted)',
-                background: `${ROLE_COLORS[u.role] ?? '#666'}14`,
-                padding: '3px 8px',
-              }}>
+              <span
+                className="rounded px-2 py-0.5 text-[0.625rem] font-bold tracking-wider uppercase"
+                style={{
+                  color: ROLE_COLORS[u.role] ?? 'var(--muted)',
+                  background: `color-mix(in srgb, ${ROLE_COLORS[u.role] ?? 'var(--muted)'} 14%, transparent)`,
+                }}
+              >
                 {u.role}
               </span>
             </button>
@@ -136,10 +126,10 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border)', marginTop: '28px', paddingTop: '24px', textAlign: 'center' }}>
-        <p style={{ fontSize: '0.9375rem', color: 'var(--muted)' }}>
+      <div className="mt-7 border-t border-border pt-6 text-center">
+        <p className="text-[0.9375rem] text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="link-underline" style={{ color: 'var(--foreground)', fontWeight: 600 }}>
+          <Link href="/register" className="font-semibold text-foreground hover:underline">
             Sign up
           </Link>
         </p>

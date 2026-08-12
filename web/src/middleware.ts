@@ -21,15 +21,21 @@ const ROLE_ROUTES: { path: string; allowed: string[] }[] = [
   { path: '/dashboard/admin',     allowed: ['ADMIN'] },
   { path: '/dashboard/scanner',   allowed: ['STAFF', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/organizer', allowed: ['ORGANIZER', 'ADMIN'] },
+  { path: '/dashboard/staff',     allowed: ['STAFF', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard/user',      allowed: ['USER', 'ORGANIZER', 'ADMIN'] },
   { path: '/dashboard',           allowed: ['USER', 'ORGANIZER', 'ADMIN', 'STAFF'] },
+  // The user "app" (mobile-style) — replaces /dashboard/user for the USER role.
+  { path: '/user',                allowed: ['USER', 'ORGANIZER', 'ADMIN'] },
 ];
+
+// Prefixes that require authentication (role checks come from ROLE_ROUTES).
+const PROTECTED_PREFIXES = ['/dashboard', '/user'];
 
 const ROLE_HOME: Record<string, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
-  STAFF:     '/dashboard/scanner',
-  USER:      '/dashboard/user',
+  STAFF:     '/dashboard/staff',
+  USER:      '/user/events',
 };
 
 // Paths that should redirect authenticated users away
@@ -73,8 +79,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── Protect dashboard routes ─────────────────────────────
-  if (pathname.startsWith('/dashboard')) {
+  // ── Protect dashboard + user-app routes ──────────────────
+  if (PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))) {
     if (!isAuthenticated) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);

@@ -167,7 +167,7 @@ export class ScannerService {
 
   async getAssignedEvents(userId: number): Promise<unknown[]> {
     const assignments = await this.eventStaffRepo.find({
-      where: { user_id: userId },
+      where: { user: { id: userId } },
       relations: ['event'],
     });
 

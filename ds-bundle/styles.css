@@ -1,0 +1,166 @@
+/* ══════════════════════════════════════════════════════════════════
+   MOROCCO360 — CINEMA DESIGN KIT
+   Self-contained stylesheet. Every design rendered in Claude Design
+   receives this file's @import closure, so all brand styling lives here.
+   Derived from the app's framework-agnostic `.cinema` system.
+   Wrap any UI in <element class="cinema"> to receive the design language.
+   ══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap');
+
+:root {
+  --font-fraunces: 'Fraunces', Georgia, serif;
+  --font-geist: 'Geist', system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+.cinema {
+  /* Dark-committed filmic palette */
+  --c-bg: #0A0B0A;
+  --c-bg-2: #0E100E;
+  --c-panel-solid: #171915;
+  --c-line: rgba(240, 236, 226, 0.10);
+  --c-line-strong: rgba(240, 236, 226, 0.20);
+
+  --c-fg: #F4F0E7;
+  --c-fg-dim: #C6C0B3;
+  --c-muted: #8C877B;
+  --c-muted-dim: #625E54;
+
+  --c-terra: #E27A4D;
+  --c-terra-deep: #C4623F;
+  --c-gold: #E2B45E;
+  --c-gold-deep: #B8852D;
+  --c-green: #3CA882;
+
+  --c-glow-terra: rgba(226, 122, 77, 0.40);
+  --c-glow-terra-soft: rgba(226, 122, 77, 0.14);
+  --c-glow-gold: rgba(226, 180, 94, 0.30);
+
+  --c-scrim: rgba(8, 9, 8, 0.72);
+  --c-scrim-strong: rgba(8, 9, 8, 0.90);
+
+  --c-display: var(--font-fraunces);
+  --c-sans: var(--font-geist);
+  --c-mono: var(--font-geist-mono);
+
+  --c-shadow: 0 40px 120px -30px rgba(0,0,0,0.85);
+  --c-radius: 18px;
+  --c-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: var(--c-bg);
+  color: var(--c-fg);
+  font-family: var(--c-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="light"] .cinema {
+  --c-bg: #EEE6D6;
+  --c-bg-2: #E7DDC9;
+  --c-panel-solid: #E1D6C0;
+  --c-line: rgba(26, 23, 18, 0.12);
+  --c-line-strong: rgba(26, 23, 18, 0.22);
+  --c-fg: #1A1712;
+  --c-fg-dim: #4A4438;
+  --c-muted: #6B6355;
+  --c-muted-dim: #948B79;
+  --c-terra: #C4623F;
+  --c-gold: #A9741F;
+  --c-scrim: rgba(24, 20, 14, 0.55);
+  --c-scrim-strong: rgba(24, 20, 14, 0.80);
+}
+
+/* ── Typography ────────────────────────────────────────────── */
+.c-display { font-family: var(--c-display); font-weight: 500; line-height: 0.98; letter-spacing: -0.025em; font-optical-sizing: auto; text-wrap: balance; }
+.c-display-italic { font-style: italic; font-weight: 400; }
+.c-giant { font-size: clamp(3rem, 13vw, 12rem); line-height: 0.9; letter-spacing: -0.04em; }
+.c-eyebrow { font-family: var(--c-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.32em; text-transform: uppercase; color: var(--c-terra); display: inline-flex; align-items: center; gap: 12px; }
+.c-eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.7; }
+.c-mono { font-family: var(--c-mono); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.c-lead { color: var(--c-fg-dim); font-size: clamp(1rem, 1.4vw, 1.1875rem); line-height: 1.7; font-weight: 400; max-width: 46ch; }
+.c-kicker { font-family: var(--c-mono); font-size: 0.6875rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--c-muted); }
+.c-text-glow { background: linear-gradient(102deg, var(--c-terra) 0%, var(--c-gold) 52%, var(--c-terra) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.c-btn { --_glow: var(--c-glow-terra); display: inline-flex; align-items: center; gap: 10px; padding: 15px 30px; font-family: var(--c-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #0A0B0A; background: linear-gradient(180deg, var(--c-terra) 0%, var(--c-terra-deep) 100%); border: none; border-radius: 100px; cursor: pointer; position: relative; isolation: isolate; overflow: hidden; transition: transform 0.4s var(--c-ease), box-shadow 0.4s var(--c-ease); box-shadow: 0 8px 30px -8px var(--_glow); }
+.c-btn::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #FFFFFF33 0%, transparent 55%); opacity: 0; transition: opacity 0.4s ease; }
+.c-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 48px -10px var(--_glow); }
+.c-btn:hover::after { opacity: 1; }
+.c-btn:active { transform: translateY(-1px) scale(0.985); }
+.c-btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; transform: none; box-shadow: none; }
+.c-btn-ghost { display: inline-flex; align-items: center; gap: 10px; padding: 15px 28px; font-family: var(--c-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c-fg); background: transparent; border: 1px solid var(--c-line-strong); border-radius: 100px; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.35s ease, color 0.35s ease, background 0.35s ease, transform 0.4s var(--c-ease); backdrop-filter: blur(6px); }
+.c-btn-ghost:hover { border-color: var(--c-terra); color: var(--c-terra); background: var(--c-glow-terra-soft); transform: translateY(-3px); }
+.c-btn-ghost:active { transform: translateY(-1px) scale(0.985); }
+.c-btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; transform: none; }
+.c-btn .arrow, .c-btn-ghost .arrow { transition: transform 0.35s var(--c-ease); }
+.c-btn:hover .arrow, .c-btn-ghost:hover .arrow { transform: translateX(4px); }
+
+/* ── Nav link ──────────────────────────────────────────────── */
+.c-nav-link { font-family: var(--c-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-fg-dim); position: relative; padding-bottom: 3px; transition: color 0.3s ease; text-decoration: none; }
+.c-nav-link::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0; height: 1px; background: var(--c-terra); transition: width 0.4s var(--c-ease); }
+.c-nav-link:hover { color: var(--c-fg); }
+.c-nav-link:hover::after { width: 100%; }
+
+/* ── Input ─────────────────────────────────────────────────── */
+.c-input { background: transparent; color: var(--c-fg); border: 1px solid var(--c-line-strong); border-radius: 100px; padding: 12px 18px; font-family: var(--c-mono); font-size: 0.8125rem; outline: none; transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
+.c-input::placeholder { color: var(--c-muted-dim); }
+.c-input:hover { border-color: var(--c-terra); }
+.c-input:focus { border-color: var(--c-terra); box-shadow: 0 0 0 3px var(--c-glow-terra-soft); background: var(--c-glow-terra-soft); }
+
+/* ── Media / placeholder ───────────────────────────────────── */
+.c-media { position: relative; overflow: hidden; background: var(--c-bg-2); isolation: isolate; }
+.c-media > img, .c-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 0; }
+.c-media-ph { position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 90% at 78% 14%, rgba(226,180,94,0.28) 0%, transparent 55%), radial-gradient(130% 120% at 14% 88%, rgba(226,122,77,0.44) 0%, transparent 55%), linear-gradient(155deg, #2A1E12 0%, #17110B 50%, #0B0C0A 100%); background-size: 200% 200%; }
+.c-media-scrim::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to top, var(--c-scrim-strong) 0%, transparent 45%, transparent 70%, var(--c-scrim) 100%); }
+.c-media-vignette::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; box-shadow: inset 0 0 180px 40px rgba(6,7,6,0.7); }
+
+/* ── Portal / aperture ─────────────────────────────────────── */
+.c-portal { position: relative; border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px var(--c-line-strong), 0 40px 120px -30px rgba(0,0,0,0.8), inset 0 0 60px 10px rgba(6,7,6,0.55); }
+.c-portal .c-media { position: absolute; inset: 0; border-radius: 50%; }
+.c-aperture-ring { position: absolute; inset: -14px; border-radius: 50%; border: 1px dashed var(--c-line-strong); animation: apertureSpin 60s linear infinite; pointer-events: none; }
+.c-aperture-ring.reverse { inset: -30px; border-style: dotted; animation-duration: 90s; animation-direction: reverse; opacity: 0.6; }
+
+/* ── Surfaces / cards ──────────────────────────────────────── */
+.c-glass { background: linear-gradient(180deg, rgba(30,32,28,0.55), rgba(14,16,14,0.55)); border: 1px solid var(--c-line); backdrop-filter: blur(18px) saturate(1.3); border-radius: var(--c-radius); }
+[data-theme="light"] .cinema .c-glass { background: linear-gradient(180deg, rgba(255,251,242,0.72), rgba(246,240,228,0.72)); }
+
+/* Destination tile */
+.c-dest { position: relative; display: block; border-radius: var(--c-radius); overflow: hidden; cursor: pointer; isolation: isolate; border: 1px solid var(--c-line); text-decoration: none; transition: transform 0.6s var(--c-ease), box-shadow 0.6s var(--c-ease), border-color 0.4s ease; }
+.c-dest .c-media { position: absolute; inset: 0; }
+.c-dest:hover { transform: translateY(-6px); border-color: var(--c-line-strong); box-shadow: var(--c-shadow); }
+.c-dest-body { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(20px, 2.4vw, 32px); }
+.c-dest-explore { display: inline-flex; align-items: center; gap: 8px; font-family: var(--c-mono); font-size: 0.6875rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c-fg); opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s var(--c-ease); }
+.c-dest:hover .c-dest-explore { opacity: 1; transform: none; }
+
+/* Feature row */
+.c-feat-row { display: grid; grid-template-columns: auto 1fr; gap: clamp(20px, 3vw, 44px); align-items: start; padding: clamp(26px, 3.2vw, 40px) 0; border-top: 1px solid var(--c-line); transition: border-color 0.4s ease; }
+.c-feat-idx { font-family: var(--c-display); font-weight: 300; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1; color: var(--c-muted-dim); transition: color 0.4s var(--c-ease), transform 0.4s var(--c-ease); }
+.c-feat-title { font-family: var(--c-display); font-size: clamp(1.35rem, 2.4vw, 2rem); font-weight: 500; letter-spacing: -0.015em; color: var(--c-fg); margin: 0 0 10px; }
+.c-feat-row:hover { border-top-color: var(--c-line-strong); }
+.c-feat-row:hover .c-feat-idx { color: var(--c-terra); transform: translateY(-2px); }
+
+/* Play button */
+.c-play { position: relative; display: flex; align-items: center; justify-content: center; width: clamp(76px, 9vw, 116px); height: clamp(76px, 9vw, 116px); border-radius: 50%; color: #0A0B0A; background: rgba(244, 240, 231, 0.92); transition: transform 0.4s var(--c-ease), background 0.35s ease, box-shadow 0.4s var(--c-ease); box-shadow: 0 12px 44px -8px rgba(0,0,0,0.6); border: none; cursor: pointer; }
+.c-play:hover { transform: scale(1.08); background: var(--c-terra); box-shadow: 0 18px 60px -10px var(--c-glow-terra); }
+
+/* Stat */
+.c-stat-num { font-family: var(--c-display); font-weight: 300; font-size: clamp(2.75rem, 6vw, 5rem); line-height: 1; letter-spacing: -0.03em; color: var(--c-fg); font-variant-numeric: tabular-nums; }
+.c-stat-num .unit { color: var(--c-terra); }
+
+/* ── Marquee ───────────────────────────────────────────────── */
+.c-marquee { overflow: hidden; border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); background: var(--c-bg-2); }
+.c-marquee-track { display: flex; width: max-content; animation: marquee 42s linear infinite; }
+.c-marquee-item { font-family: var(--c-display); font-style: italic; font-size: clamp(1.5rem, 3.4vw, 3rem); font-weight: 400; color: var(--c-fg-dim); padding: 0 32px; display: inline-flex; align-items: center; gap: 40px; white-space: nowrap; }
+.c-marquee-item .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-terra); flex-shrink: 0; }
+.c-marquee:hover .c-marquee-track { animation-play-state: paused; }
+
+/* ── Keyframes ─────────────────────────────────────────────── */
+@keyframes apertureSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cinema .c-aperture-ring, .cinema .c-marquee-track { animation: none !important; }
+}
+
+/* Focus visibility */
+.cinema :focus-visible { outline: 2px solid var(--c-terra); outline-offset: 3px; border-radius: 4px; }

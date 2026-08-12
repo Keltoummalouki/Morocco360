@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 
+
 interface EventStats { totalTickets: number; checkedIn: number; }
 interface EventSummary {
   id: number;
@@ -12,6 +13,7 @@ interface EventSummary {
   city: string;
   location_name: string;
   stats: EventStats;
+  staffRole?: string;
 }
 
 const PAGE_SIZE = 6;
@@ -58,14 +60,19 @@ export default function OrganizerEventsPage() {
           Espace Organisateur
         </p>
         <div className="flex items-baseline justify-between gap-4">
-          <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, lineHeight: 1.2 }}>
-            Tous les événements
-          </h1>
-          {!loading && (
-            <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {events.length} événement{events.length !== 1 ? 's' : ''}
-            </p>
-          )}
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 700, lineHeight: 1.2 }}>
+              Tous les événements
+            </h1>
+            {!loading && (
+              <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '4px' }}>
+                {events.length} événement{events.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+          <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm" style={{ flexShrink: 0 }}>
+            + Nouvel événement
+          </Link>
         </div>
       </div>
 
@@ -130,14 +137,31 @@ export default function OrganizerEventsPage() {
                       </p>
                     </div>
 
-                    {/* Action */}
-                    <Link
-                      href={`/dashboard/organizer/${ev.id}`}
-                      className="btn-primary btn-action"
-                      style={{ flexShrink: 0 }}
-                    >
-                      Gérer
-                    </Link>
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                      {ev.staffRole === 'ORGANIZER' && (
+                        <Link
+                          href={`/dashboard/organizer/events/${ev.id}/edit`}
+                          style={{
+                            padding: '7px 14px',
+                            fontSize: '0.75rem',
+                            border: '1px solid var(--border)',
+                            color: 'var(--muted)',
+                            background: 'transparent',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Modifier
+                        </Link>
+                      )}
+                      <Link
+                        href={`/dashboard/organizer/${ev.id}`}
+                        className="btn-primary btn-action"
+                      >
+                        Gérer
+                      </Link>
+                    </div>
                   </div>
 
                   {/* Bottom row: progress bar (full width) */}

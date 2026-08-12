@@ -1,18 +1,28 @@
 'use client';
 
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { Button } from '@/components/ui/button';
 
+/**
+ * Icon toggle. Icon visibility is driven by the `[data-theme]` attribute via
+ * the `dark:` variant (wired to that attribute in globals.css), so there's no
+ * server/client render mismatch — no hydration flash.
+ */
 export default function ThemeToggle() {
-  const { theme, toggle } = useTheme();
+  const { toggle } = useTheme();
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={toggle}
-      className="theme-toggle"
-      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      suppressHydrationWarning
+      className="text-foreground"
+      title="Toggle theme"
+      aria-label="Toggle theme"
     >
-      <span suppressHydrationWarning>{theme === 'dark' ? '☀' : '☽'}</span>
-    </button>
+      <Sun className="size-[18px] dark:hidden" />
+      <Moon className="hidden size-[18px] dark:block" />
+    </Button>
   );
 }

@@ -4,6 +4,12 @@ export class AddQRScanLogTable1743000001000 implements MigrationInterface {
   name = 'AddQRScanLogTable1743000001000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
+    // On a brand-new database, migrations run before synchronize, so
+    // "tickets"/"users" don't exist yet — synchronize will create
+    // qr_scan_logs too (it has its own entity) with the correct final schema.
+    const hasTickets = await queryRunner.hasTable('tickets');
+    if (!hasTickets) return;
+
     await queryRunner.query(`
       DO $$ BEGIN
         CREATE TYPE "scan_result_enum" AS ENUM ('SUCCESS','ALREADY_USED','INVALID','WRONG_EVENT','EXPIRED');

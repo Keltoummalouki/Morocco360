@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
 
@@ -13,10 +13,11 @@ interface EventStats {
   cancelled: number;
   remaining: number;
   checkInRate: number;
-  byCategory: { name: string; total: number; checked: number; remaining: number }[];
+  isOwner?: boolean;
+  byCategory: { id: number; name: string; total: number; checked: number; remaining: number }[];
 }
 
-type Tab = 'overview' | 'participants';
+type Tab = 'overview' | 'participants' | 'staff';
 
 function DonutChart({ pct, size = 148 }: { pct: number; size?: number }) {
   const r = (size / 2) * 0.74;
@@ -47,13 +48,16 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
   const [stats, setStats]       = useState<EventStats | null>(null);
   const [error, setError]       = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isOwner, setIsOwner]   = useState(false);
 
   const loadStats = useCallback(async () => {
     if (!/^\d+$/.test(eventId)) { setError(`ID invalide : "${eventId}"`); return; }
     try {
       const res = await fetch(`/api/organizer/events/${eventId}/stats`);
       if (!res.ok) throw new Error();
-      setStats(await res.json() as EventStats);
+      const data = await res.json() as EventStats;
+      setStats(data);
+      setIsOwner(data.isOwner ?? false);
       setLastRefresh(new Date());
       setError(null);
     } catch {
@@ -99,14 +103,24 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             </h1>
           </div>
 
-          {/* Scan button */}
-          <Link
-            href={`/dashboard/scanner/${eventId}`}
-            className="btn-primary btn-action shrink-0"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4A7C6F' }}
-          >
-            ◎ Scanner les billets
-          </Link>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            {isOwner && (
+              <Link
+                href={`/dashboard/organizer/events/${eventId}/edit`}
+                className="btn-outline btn-action"
+              >
+                ✎ Modifier
+              </Link>
+            )}
+            <Link
+              href={`/dashboard/scanner/${eventId}`}
+              className="btn-primary btn-action"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4A7C6F' }}
+            >
+              ◎ Scanner les billets
+            </Link>
+          </div>
         </div>
 
         {lastRefresh && (
@@ -128,6 +142,7 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
         {([
           { key: 'overview' as Tab,      label: 'Statistiques'  },
           { key: 'participants' as Tab,  label: 'Participants'  },
+          ...(isOwner ? [{ key: 'staff' as Tab, label: 'Staff' }] : []),
         ]).map(({ key, label }) => (
           <button
             key={key}
@@ -216,7 +231,7 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
               {stats.byCategory.map((cat) => {
                 const catPct = cat.total > 0 ? Math.round((cat.checked / cat.total) * 100) : 0;
                 return (
-                  <div key={cat.name} style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <div key={cat.id} style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <p style={{ flex: 1, fontSize: '0.875rem', fontWeight: 500 }}>{cat.name || '—'}</p>
                     <p style={{ fontSize: '0.875rem', color: 'var(--muted)', minWidth: '80px', textAlign: 'right' }}>{cat.checked} / {cat.total}</p>
                     <div style={{ width: '100px', height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -229,6 +244,11 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
             </div>
           )}
         </>
+      )}
+
+      {/* ── STAFF TAB ── */}
+      {tab === 'staff' && isOwner && (
+        <StaffPanel eventId={eventId} />
       )}
 
       {/* ── PARTICIPANTS TAB ── */}
@@ -269,6 +289,166 @@ export default function ManageEventPage({ params }: { params: Promise<{ eventId:
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Staff management panel ─────────────────────────────────────────────────
+interface StaffEntry {
+  id: number;
+  staffRole: string;
+  user: { id: number; username: string; email: string; full_name: string | null };
+}
+interface UserSearchResult { id: number; username: string; email: string; full_name: string | null; }
+
+function StaffPanel({ eventId }: { eventId: string }) {
+  const [staffList, setStaffList]       = useState<StaffEntry[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [query, setQuery]               = useState('');
+  const [results, setResults]           = useState<UserSearchResult[]>([]);
+  const [searching, setSearching]       = useState(false);
+  const [assigning, setAssigning]       = useState<number | null>(null);
+  const [err, setErr]                   = useState<string | null>(null);
+  const debounceRef                     = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadStaff = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/organizer/events/${eventId}/staff`);
+      if (res.ok) setStaffList(await res.json() as StaffEntry[]);
+    } finally { setLoading(false); }
+  }, [eventId]);
+
+  useEffect(() => { void loadStaff(); }, [loadStaff]);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.trim().length < 2) { setResults([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/organizer/users/search?role=STAFF&username=${encodeURIComponent(query.trim())}`);
+        if (res.ok) setResults(await res.json() as UserSearchResult[]);
+      } finally { setSearching(false); }
+    }, 300);
+  }, [query]);
+
+  const assignedUserIds = new Set(staffList.map((s) => s.user.id));
+
+  async function assign(userId: number) {
+    setAssigning(userId); setErr(null);
+    const res = await fetch(`/api/organizer/events/${eventId}/staff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    setAssigning(null);
+    if (res.ok) { setQuery(''); setResults([]); void loadStaff(); }
+    else {
+      const data = await res.json() as { message?: string };
+      setErr(data.message ?? "Erreur lors de l'assignation.");
+    }
+  }
+
+  async function remove(userId: number) {
+    const res = await fetch(`/api/organizer/events/${eventId}/staff/${userId}`, { method: 'DELETE' });
+    if (res.ok || res.status === 204) void loadStaff();
+    else setErr('Impossible de retirer ce membre du staff.');
+  }
+
+  return (
+    <div>
+      {/* Search box */}
+      <div style={{ border: '1px solid var(--border)', padding: '24px 28px', marginBottom: '16px' }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, marginBottom: '10px' }}>
+          Assigner un membre du staff
+        </p>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Rechercher par nom d'utilisateur…"
+          style={{
+            width: '100%', padding: '10px 14px', fontSize: '0.875rem',
+            border: '1px solid var(--border)', background: 'var(--background)',
+            color: 'var(--foreground)', outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+        {searching && (
+          <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: '8px' }}>Recherche…</p>
+        )}
+        {results.length > 0 && (
+          <div style={{ border: '1px solid var(--border)', marginTop: '4px' }}>
+            {results.map((u) => {
+              const already = assignedUserIds.has(u.id);
+              return (
+                <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
+                  <div>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{u.full_name || u.username}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{u.email}</p>
+                  </div>
+                  <button
+                    onClick={() => void assign(u.id)}
+                    disabled={already || assigning === u.id}
+                    style={{
+                      padding: '6px 14px', fontSize: '0.8125rem', fontWeight: 600,
+                      background: already ? 'var(--border)' : '#4A7C6F', color: already ? 'var(--muted)' : '#fff',
+                      border: 'none', cursor: already ? 'not-allowed' : 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    {already ? 'Déjà assigné' : assigning === u.id ? '…' : 'Assigner'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {err && (
+          <div style={{ marginTop: '10px', padding: '10px 14px', background: '#dc262608', border: '1px solid #dc262630', color: '#dc2626', fontSize: '0.875rem' }}>
+            {err}
+          </div>
+        )}
+      </div>
+
+      {/* Assigned staff list */}
+      <div style={{ border: '1px solid var(--border)' }}>
+        <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            Staff assigné ({loading ? '…' : staffList.length})
+          </p>
+        </div>
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--border)' }}>
+            {[1, 2].map((i) => <div key={i} style={{ height: '56px', background: 'var(--background)', opacity: 0.4 }} />)}
+          </div>
+        ) : staffList.length === 0 ? (
+          <div style={{ padding: '32px', textAlign: 'center' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucun membre du staff assigné.</p>
+          </div>
+        ) : (
+          staffList.map((s, idx) => (
+            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px', borderBottom: idx < staffList.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div>
+                <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{s.user.full_name || s.user.username}</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{s.user.email}</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '0.6875rem', padding: '2px 8px', background: '#6B728014', color: '#6B7280', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  {s.staffRole === 'ORGANIZER' ? 'Organisateur' : 'Staff'}
+                </span>
+                {s.staffRole !== 'ORGANIZER' && (
+                  <button
+                    onClick={() => void remove(s.user.id)}
+                    style={{ padding: '5px 12px', fontSize: '0.8125rem', color: '#C2533A', border: '1px solid #C2533A40', background: '#C2533A0d', cursor: 'pointer' }}
+                  >
+                    Retirer
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

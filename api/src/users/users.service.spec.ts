@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
@@ -22,7 +21,10 @@ const mockUser = {
   username: 'testuser',
   email: 'test@example.com',
   password: 'hashed_password',
+  first_name: null as unknown as string,
+  last_name: null as unknown as string,
   full_name: null as unknown as string,
+  date_of_birth: null,
   phone_number: null as unknown as string,
   refresh_token_hash: null,
   status: 'ACTIVE' as const,
@@ -198,6 +200,66 @@ describe('UsersService', () => {
       expect(userRepo.update).toHaveBeenCalledWith(1, {
         refresh_token_hash: null,
       });
+    });
+  });
+
+  // ── updateProfile ────────────────────────────────────────
+  describe('updateProfile', () => {
+    it('saves when the new username is free', async () => {
+      userRepo.findOne
+        .mockResolvedValueOnce({ ...mockUser }) // getProfile
+        .mockResolvedValueOnce(null); // username availability
+      userRepo.save.mockImplementation((u) => Promise.resolve(u as User));
+
+      const result = await service.updateProfile(1, { username: 'freshname' });
+
+      expect(result.username).toBe('freshname');
+      expect(userRepo.save).toHaveBeenCalled();
+    });
+
+    it('throws Conflict when the username is taken by another user', async () => {
+      userRepo.findOne
+        .mockResolvedValueOnce({ ...mockUser }) // getProfile
+        .mockResolvedValueOnce({ ...mockUser, id: 2 } as User); // taken
+
+      await expect(
+        service.updateProfile(1, { username: 'freshname' }),
+      ).rejects.toThrow(ConflictException);
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('throws Conflict when the email is taken by another user', async () => {
+      userRepo.findOne
+        .mockResolvedValueOnce({ ...mockUser }) // getProfile
+        .mockResolvedValueOnce({ ...mockUser, id: 2 } as User); // taken
+
+      await expect(
+        service.updateProfile(1, { email: 'other@example.com' }),
+      ).rejects.toThrow(ConflictException);
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('normalizes a valid phone number to E.164 and saves', async () => {
+      userRepo.findOne
+        .mockResolvedValueOnce({ ...mockUser }) // getProfile
+        .mockResolvedValueOnce(null); // phone availability
+      userRepo.save.mockImplementation((u) => Promise.resolve(u as User));
+
+      const result = await service.updateProfile(1, {
+        phone_number: '+212612345678',
+      });
+
+      expect(result.phone_number).toBe('+212612345678');
+      expect(userRepo.save).toHaveBeenCalled();
+    });
+
+    it('throws BadRequest for an invalid phone number', async () => {
+      userRepo.findOne.mockResolvedValueOnce({ ...mockUser }); // getProfile
+
+      await expect(
+        service.updateProfile(1, { phone_number: '+2120' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(userRepo.save).not.toHaveBeenCalled();
     });
   });
 });

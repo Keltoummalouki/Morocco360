@@ -1,0 +1,32 @@
+<!-- @dsCard group="Components" name="Input & newsletter" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Input</title>
+  <link rel="stylesheet" href="../../../styles.css" />
+  <style>
+    body { margin: 0; }
+    .wrap { padding: 44px; display: flex; flex-direction: column; gap: 30px; max-width: 520px; }
+    .tag { font-size: 0.625rem; color: var(--c-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+    .field { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body class="cinema">
+  <div class="wrap">
+    <div>
+      <div class="tag c-mono">Text input · .c-input</div>
+      <input class="c-input" style="width:100%" type="email" placeholder="you@example.com" />
+    </div>
+    <div>
+      <div class="tag c-mono">Newsletter pattern</div>
+      <label class="c-mono" style="display:block;font-size:0.625rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--c-muted-dim);margin-bottom:10px">The dispatch — new scenes, monthly</label>
+      <div class="field">
+        <input class="c-input" style="flex:1;min-width:180px" type="email" placeholder="you@example.com" />
+        <button class="c-btn" style="padding:12px 22px">Join <span class="arrow">→</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

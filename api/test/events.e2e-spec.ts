@@ -8,6 +8,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { EventsController } from '../src/events/events.controller';
 import { EventsService } from '../src/events/events.service';
 import { Event } from '../src/events/entities/event.entity';
+import { EventStaff } from '../src/events/entities/event-staff.entity';
 import { TicketCategory } from '../src/events/entities/ticket-category.entity';
 import { User } from '../src/users/entities/user.entity';
 
@@ -15,6 +16,8 @@ import { User } from '../src/users/entities/user.entity';
 const mockCategory: TicketCategory = {
   id: 1,
   name: 'General',
+  description: null as unknown as string,
+  status: 'ACTIVE' as TicketCategory['status'],
   price: 50,
   stock_allocated: 100,
   stock_remaining: 100,
@@ -42,6 +45,9 @@ const mockEvent: Event = {
   total_stock: 200,
   is_active: true,
   is_sold_out: false,
+  status: 'ACTIVE' as Event['status'],
+  cityEntity: null as unknown as Event['cityEntity'],
+  categoryEntity: null as unknown as Event['categoryEntity'],
   created_at: new Date(),
   organizer: null as unknown as User,
   savedByUsers: [],
@@ -52,8 +58,26 @@ const mockEvent: Event = {
 describe('Events endpoints (e2e)', () => {
   let app: INestApplication<App>;
 
+  // `findAll` builds a query instead of calling `find`, so the chain is stubbed
+  // and each test stages its rows on `getMany`.
+  const qbMock = {
+    leftJoinAndSelect: jest.fn(),
+    where: jest.fn(),
+    andWhere: jest.fn(),
+    orderBy: jest.fn(),
+    getMany: jest.fn(),
+  };
+  for (const method of [
+    'leftJoinAndSelect',
+    'where',
+    'andWhere',
+    'orderBy',
+  ] as const) {
+    qbMock[method].mockReturnValue(qbMock);
+  }
+
   const eventRepoMock = {
-    find: jest.fn(),
+    createQueryBuilder: jest.fn(() => qbMock),
     findOne: jest.fn(),
   };
 
@@ -65,6 +89,8 @@ describe('Events endpoints (e2e)', () => {
         EventsService,
         { provide: getRepositoryToken(Event), useValue: eventRepoMock },
         { provide: getRepositoryToken(User), useValue: {} },
+        // Read-only event endpoints never touch it, but EventsService injects it.
+        { provide: getRepositoryToken(EventStaff), useValue: {} },
       ],
     }).compile();
 
@@ -86,7 +112,7 @@ describe('Events endpoints (e2e)', () => {
   // ── GET /events ────────────────────────────────────────
   describe('GET /events', () => {
     it('200 – returns an array of active events', async () => {
-      eventRepoMock.find.mockResolvedValue([mockEvent]);
+      qbMock.getMany.mockResolvedValue([mockEvent]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 
@@ -96,7 +122,7 @@ describe('Events endpoints (e2e)', () => {
     });
 
     it('200 – returns an empty array when no events exist', async () => {
-      eventRepoMock.find.mockResolvedValue([]);
+      qbMock.getMany.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 

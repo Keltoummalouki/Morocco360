@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 interface ConfirmModalProps {
   title: string;
@@ -17,39 +17,11 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  // Close on Escape
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
-
   return (
-    <div
-      onClick={onCancel}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '24px',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--background)',
-          border: '1px solid var(--border)',
-          padding: '36px 40px',
-          maxWidth: '440px',
-          width: '100%',
-          boxShadow: '0 24px 64px -12px var(--shadow)',
-        }}
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent
+        className="max-w-[440px]"
+        style={{ padding: '36px 40px' }}
       >
         {/* Icon */}
         <div
@@ -67,28 +39,16 @@ export default function ConfirmModal({
         </div>
 
         {/* Title */}
-        <p
-          style={{
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            marginBottom: '10px',
-          }}
-        >
+        <DialogTitle style={{ fontSize: '1.25rem', marginBottom: '10px' }}>
           {title}
-        </p>
+        </DialogTitle>
 
         {/* Message */}
-        <p
-          style={{
-            fontSize: '0.9375rem',
-            color: 'var(--muted)',
-            lineHeight: 1.6,
-            marginBottom: '28px',
-          }}
+        <DialogDescription
+          style={{ fontSize: '0.9375rem', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '28px' }}
         >
           {message}
-        </p>
+        </DialogDescription>
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -121,7 +81,7 @@ export default function ConfirmModal({
             Annuler
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

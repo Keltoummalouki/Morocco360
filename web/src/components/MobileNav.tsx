@@ -3,9 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const NAV_LINKS = ["Experiences", "Destinations", "Gallery", "About"];
+interface MobileNavProps {
+  isAuthenticated?: boolean;
+  dashboardHref?: string;
+}
 
-export default function MobileNav() {
+const NAV_LINKS = ['Experiences', 'Destinations', 'Gallery', 'About'];
+
+export default function MobileNav({
+  isAuthenticated = false,
+  dashboardHref = '/user/events',
+}: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -66,23 +74,37 @@ export default function MobileNav() {
                 </Link>
               ))}
             </nav>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="btn-outline"
-                style={{ textAlign: 'center', padding: '11px 24px' }}
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setOpen(false)}
-                className="btn-primary"
-                style={{ textAlign: 'center' }}
-              >
-                Get Started
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setOpen(false)}
+                  className="btn-primary"
+                  style={{ textAlign: 'center' }}
+                >
+                  My Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="btn-outline"
+                    style={{ textAlign: 'center', padding: '11px 24px' }}
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setOpen(false)}
+                    className="btn-primary"
+                    style={{ textAlign: 'center' }}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </>

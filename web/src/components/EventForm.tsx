@@ -2,6 +2,20 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Radix Select forbids an item with value="" — this sentinel represents
+// the "no category selected" placeholder and is translated back to '' below.
+const CLEAR_VALUE = '__clear__';
 
 interface TicketCategory {
   name: string;
@@ -30,6 +44,7 @@ export interface EventFormData {
 interface EventFormProps {
   initial?: Partial<EventFormData>;
   eventId?: number;
+  redirectTo?: string;
 }
 
 const EMPTY: EventFormData = {
@@ -94,6 +109,15 @@ function validate(form: EventFormData): Record<string, string> {
     if (!Number.isInteger(stock) || stock < 0) e[`cat_${i}_stock`] = 'Entier ≥ 0 requis.';
   });
 
+  // Validate total capacity equals sum of category stocks
+  if (form.categories.length > 0) {
+    const totalStock = Number(form.total_stock) || 0;
+    const categorySum = form.categories.reduce((sum, cat) => sum + Number(cat.stock_allocated), 0);
+    if (totalStock !== categorySum) {
+      e.total_stock = `La capacité totale (${totalStock}) doit être égale à la somme des places des catégories (${categorySum}).`;
+    }
+  }
+
   return e;
 }
 
@@ -105,7 +129,7 @@ const errMsg: React.CSSProperties = {
   marginTop: '4px',
 };
 
-export default function EventForm({ initial, eventId }: EventFormProps) {
+export default function EventForm({ initial, eventId, redirectTo }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +162,11 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
     data.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: data });
+      const res = await fetch('/api/upload', { 
+        method: 'POST', 
+        body: data,
+        credentials: 'include', // Include cookies for authentication
+      });
       const json = await res.json() as { url?: string; message?: string };
       if (!res.ok) throw new Error(json.message ?? 'Erreur lors de l\'upload.');
       setField('image_url', json.url ?? '');
@@ -189,10 +217,10 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
     const payload = {
       title: form.title,
       description: form.description,
-      date_start: form.date_start,
+      date_start: form.date_start, // YYYY-MM-DD format from date input
       date_end: form.date_end,
       location_name: form.location_name,
-      city: form.city || undefined,
+      city: form.city.trim() || undefined,
       category: form.category || undefined,
       latitude: form.latitude ? Number(form.latitude) : undefined,
       longitude: form.longitude ? Number(form.longitude) : undefined,
@@ -206,6 +234,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
       })),
     };
 
+    console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
     try {
       const url = isEdit ? `/api/events/${eventId}` : '/api/events';
       const method = isEdit ? 'PATCH' : 'POST';
@@ -213,34 +243,23 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const data = (await res.json()) as { message?: string };
-        throw new Error(data.message ?? 'Une erreur est survenue.');
+        const data = (await res.json()) as { message?: string; error?: string };
+        console.error('API Error Response:', data);
+        throw new Error(data.message ?? data.error ?? 'Une erreur est survenue.');
       }
 
-      router.push('/dashboard/admin/events');
+      router.push(redirectTo ?? '/dashboard/admin/events');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue.');
     } finally {
       setLoading(false);
     }
-  }
-
-  function inputStyle(field: string): React.CSSProperties {
-    return {
-      width: '100%',
-      border: `1.5px solid ${errors[field] ? accent : 'var(--border)'}`,
-      background: 'transparent',
-      padding: '10px 14px',
-      fontSize: '0.9375rem',
-      color: 'var(--foreground)',
-      outline: 'none',
-      fontFamily: 'var(--font-inter), system-ui, sans-serif',
-    };
   }
 
   const labelStyle: React.CSSProperties = {
@@ -373,8 +392,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         {/* Title */}
         <div>
           <label style={labelStyle}>Titre *</label>
-          <input
-            style={inputStyle('title')}
+          <Input
+            aria-invalid={!!errors.title}
             value={form.title}
             onChange={(e) => setField('title', e.target.value)}
             maxLength={200}
@@ -385,8 +404,9 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         {/* Description */}
         <div>
           <label style={labelStyle}>Description *</label>
-          <textarea
-            style={{ ...inputStyle('description'), minHeight: '120px', resize: 'vertical' }}
+          <Textarea
+            aria-invalid={!!errors.description}
+            className="min-h-[120px] resize-y"
             value={form.description}
             onChange={(e) => setField('description', e.target.value)}
           />
@@ -394,24 +414,22 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         </div>
 
         {/* Dates */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
           <div>
             <label style={labelStyle}>Date de début *</label>
-            <input
-              style={inputStyle('date_start')}
-              type="date"
+            <DatePicker
+              aria-invalid={!!errors.date_start}
               value={form.date_start}
-              onChange={(e) => setField('date_start', e.target.value)}
+              onChange={(v) => setField('date_start', v)}
             />
             {errors.date_start && <p style={errMsg}>{errors.date_start}</p>}
           </div>
           <div>
             <label style={labelStyle}>Date de fin *</label>
-            <input
-              style={inputStyle('date_end')}
-              type="date"
+            <DatePicker
+              aria-invalid={!!errors.date_end}
               value={form.date_end}
-              onChange={(e) => setField('date_end', e.target.value)}
+              onChange={(v) => setField('date_end', v)}
             />
             {errors.date_end && <p style={errMsg}>{errors.date_end}</p>}
           </div>
@@ -420,8 +438,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         {/* Location */}
         <div>
           <label style={labelStyle}>Lieu *</label>
-          <input
-            style={inputStyle('location_name')}
+          <Input
+            aria-invalid={!!errors.location_name}
             value={form.location_name}
             onChange={(e) => setField('location_name', e.target.value)}
             maxLength={255}
@@ -430,11 +448,10 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         </div>
 
         {/* City + Category */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
           <div>
             <label style={labelStyle}>Ville</label>
-            <input
-              style={inputStyle('city')}
+            <Input
               value={form.city}
               onChange={(e) => setField('city', e.target.value)}
               placeholder="ex: Marrakech"
@@ -443,25 +460,29 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
           </div>
           <div>
             <label style={labelStyle}>Catégorie</label>
-            <select
-              style={{ ...inputStyle('category'), cursor: 'pointer' }}
-              value={form.category}
-              onChange={(e) => setField('category', e.target.value)}
+            <Select
+              value={form.category || CLEAR_VALUE}
+              onValueChange={(v) => setField('category', v === CLEAR_VALUE ? '' : v)}
             >
-              <option value="">— Sélectionner —</option>
-              {EVENT_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full min-w-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={CLEAR_VALUE}>— Sélectionner —</SelectItem>
+                {EVENT_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Coordinates */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
           <div>
             <label style={labelStyle}>Latitude</label>
-            <input
-              style={inputStyle('latitude')}
+            <Input
+              aria-invalid={!!errors.latitude}
               type="number"
               step="any"
               min={-90}
@@ -474,8 +495,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
           </div>
           <div>
             <label style={labelStyle}>Longitude</label>
-            <input
-              style={inputStyle('longitude')}
+            <Input
+              aria-invalid={!!errors.longitude}
               type="number"
               step="any"
               min={-180}
@@ -492,8 +513,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'end' }}>
           <div>
             <label style={labelStyle}>Capacité totale</label>
-            <input
-              style={inputStyle('total_stock')}
+            <Input
+              aria-invalid={!!errors.total_stock}
               type="number"
               min={0}
               step={1}
@@ -560,13 +581,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
             >
               <div>
                 <label style={{ ...labelStyle, marginBottom: '4px' }}>Nom</label>
-                <input
-                  style={{
-                    width: '100%', border: `1.5px solid ${errors[`cat_${i}_name`] ? accent : 'var(--border)'}`,
-                    background: 'transparent', padding: '10px 14px', fontSize: '0.9375rem',
-                    color: 'var(--foreground)', outline: 'none',
-                    fontFamily: 'var(--font-inter), system-ui, sans-serif',
-                  }}
+                <Input
+                  aria-invalid={!!errors[`cat_${i}_name`]}
                   value={cat.name}
                   onChange={(e) => updateCategory(i, 'name', e.target.value)}
                   placeholder="Ex: VIP"
@@ -575,13 +591,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
               </div>
               <div>
                 <label style={{ ...labelStyle, marginBottom: '4px' }}>Prix (MAD)</label>
-                <input
-                  style={{
-                    width: '100%', border: `1.5px solid ${errors[`cat_${i}_price`] ? accent : 'var(--border)'}`,
-                    background: 'transparent', padding: '10px 14px', fontSize: '0.9375rem',
-                    color: 'var(--foreground)', outline: 'none',
-                    fontFamily: 'var(--font-inter), system-ui, sans-serif',
-                  }}
+                <Input
+                  aria-invalid={!!errors[`cat_${i}_price`]}
                   type="number"
                   min={0}
                   step="0.01"
@@ -592,13 +603,8 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
               </div>
               <div>
                 <label style={{ ...labelStyle, marginBottom: '4px' }}>Places</label>
-                <input
-                  style={{
-                    width: '100%', border: `1.5px solid ${errors[`cat_${i}_stock`] ? accent : 'var(--border)'}`,
-                    background: 'transparent', padding: '10px 14px', fontSize: '0.9375rem',
-                    color: 'var(--foreground)', outline: 'none',
-                    fontFamily: 'var(--font-inter), system-ui, sans-serif',
-                  }}
+                <Input
+                  aria-invalid={!!errors[`cat_${i}_stock`]}
                   type="number"
                   min={0}
                   step={1}
@@ -640,7 +646,7 @@ export default function EventForm({ initial, eventId }: EventFormProps) {
           <button
             type="button"
             className="btn-outline"
-            onClick={() => router.push('/dashboard/admin/events')}
+            onClick={() => router.push(redirectTo ?? '/dashboard/admin/events')}
           >
             Annuler
           </button>

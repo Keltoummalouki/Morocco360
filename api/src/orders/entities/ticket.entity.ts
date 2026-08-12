@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -16,6 +17,7 @@ export enum TicketStatus {
   CHECKED = 'CHECKED',
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',
+  SUSPENDED = 'SUSPENDED',
 }
 
 @Entity('tickets')
@@ -45,6 +47,7 @@ export class Ticket {
   checked_by_user_id: number;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'checked_by_user_id' })
   checked_by: User;
 
   /** Denormalized FK for fast scanner lookup — avoids joining order→category→event */
@@ -53,6 +56,7 @@ export class Ticket {
   event_id: number;
 
   @ManyToOne(() => Event, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'event_id' })
   event: Event;
 
   @ManyToOne(() => Order, (order) => order.tickets, { onDelete: 'CASCADE' })
@@ -60,6 +64,7 @@ export class Ticket {
 
   @ManyToOne(() => TicketCategory, (category) => category.tickets, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   category: TicketCategory;
 }

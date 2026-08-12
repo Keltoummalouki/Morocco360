@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -23,7 +22,10 @@ const mockUser = {
   username: 'testuser',
   email: 'test@example.com',
   password: '$2b$12$hashedpassword',
+  first_name: null as unknown as string,
+  last_name: null as unknown as string,
   full_name: null as unknown as string,
+  date_of_birth: null,
   phone_number: null as unknown as string,
   refresh_token_hash: null,
   status: 'ACTIVE' as const,

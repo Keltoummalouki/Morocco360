@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -26,7 +27,11 @@ export class QRScanLog {
   @Column()
   ticket_id: number;
 
+  // The relation reuses the raw FK column above. Without @JoinColumn, TypeORM
+  // adds a second NOT NULL "ticketId" column and every insert that only sets
+  // ticket_id (i.e. every scan) fails.
   @ManyToOne(() => Ticket, { onDelete: 'CASCADE', nullable: false })
+  @JoinColumn({ name: 'ticket_id' })
   ticket: Ticket;
 
   @Index()
@@ -34,6 +39,7 @@ export class QRScanLog {
   scanned_by_user_id: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
+  @JoinColumn({ name: 'scanned_by_user_id' })
   scanned_by: User;
 
   @CreateDateColumn()

@@ -11,7 +11,7 @@ const LOCALE_META: Record<Locale, { label: string; name: string }> = {
   en: { label: 'EN', name: 'English'   },
 };
 
-const ACCENT = '#4A7C6F';
+const ACCENT = 'var(--primary)';
 
 export default function LocaleSwitcher() {
   const { locale } = useLocale();

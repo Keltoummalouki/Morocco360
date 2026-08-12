@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   ParseIntPipe,
   Req,
   UseGuards,
@@ -13,9 +14,15 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Request } from 'express';
+
+interface JwtUser {
+  id: number;
+  role: string;
+}
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { FilterEventsDto } from './dto/filter-events.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -25,8 +32,8 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
-  findAll() {
-    return this.eventsService.findAll();
+  findAll(@Query() filters: FilterEventsDto) {
+    return this.eventsService.findAll(filters);
   }
 
   // Declared before :id to avoid route conflict
@@ -50,24 +57,31 @@ export class EventsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
-  create(@Body() dto: CreateEventDto) {
-    return this.eventsService.create(dto);
+  @Roles('ADMIN', 'ORGANIZER')
+  create(@Body() dto: CreateEventDto, @Req() req: Request & { user: JwtUser }) {
+    return this.eventsService.create(dto, req.user);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventDto) {
-    return this.eventsService.update(id, dto);
+  @Roles('ADMIN', 'ORGANIZER')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateEventDto,
+    @Req() req: Request & { user: JwtUser },
+  ) {
+    return this.eventsService.update(id, dto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'ORGANIZER')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.eventsService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: JwtUser },
+  ) {
+    return this.eventsService.remove(id, req.user);
   }
 
   @Post(':id/save')

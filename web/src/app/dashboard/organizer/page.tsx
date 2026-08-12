@@ -111,7 +111,10 @@ export default function OrganizerDashboard() {
 
       {/* CTA bar */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '40px', flexWrap: 'wrap' }}>
-        <Link href="/dashboard/organizer/events" className="btn-primary btn-sm">
+        <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm">
+          + Nouvel événement
+        </Link>
+        <Link href="/dashboard/organizer/events" className="btn-outline btn-sm">
           Tous les événements
         </Link>
         <button
@@ -194,9 +197,12 @@ export default function OrganizerDashboard() {
         <div style={{ padding: '64px 24px', textAlign: 'center', border: '1px dashed var(--border)', background: 'var(--surface)' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '16px', opacity: 0.3 }}>◆</div>
           <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: 600, marginBottom: '8px' }}>Aucun événement</p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.875rem', maxWidth: '300px', margin: '0 auto' }}>
-            Aucun événement ne vous a encore été assigné par l&apos;administrateur.
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem', maxWidth: '300px', margin: '0 auto 20px' }}>
+            Créez votre premier événement ou attendez une assignation de l&apos;administrateur.
           </p>
+          <Link href="/dashboard/organizer/events/new" className="btn-primary btn-sm">
+            + Créer un événement
+          </Link>
         </div>
       )}
     </div>

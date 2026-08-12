@@ -1,0 +1,2 @@
+-- The production-safe role rows are inserted by the initial migration.
+-- Demo users and events remain opt-in via `npm run seed` in the API project.

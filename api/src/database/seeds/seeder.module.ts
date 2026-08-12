@@ -10,10 +10,19 @@ import { Order } from '../../orders/entities/order.entity';
 import { Ticket } from '../../orders/entities/ticket.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { QRScanLog } from '../../scanner/entities/qr-scan-log.entity';
+import { Country } from '../../settings/entities/country.entity';
+import { City } from '../../settings/entities/city.entity';
+import { Language } from '../../settings/entities/language.entity';
+import { EventCategory } from '../../settings/entities/event-category.entity';
+import { EventReview } from '../../reviews/entities/event-review.entity';
 import { RoleSeeder } from './role.seeder';
 import { UserSeeder } from './user.seeder';
 import { EventSeeder } from './event.seeder';
+import { SettingsSeeder } from './settings.seeder';
+import { CommerceSeeder } from './commerce.seeder';
+import { ReviewSeeder } from './review.seeder';
 import { SeederService } from './seeder.service';
+import { createTypeOrmOptions } from '../typeorm.options';
 
 const ALL_ENTITIES = [
   User,
@@ -25,6 +34,11 @@ const ALL_ENTITIES = [
   Ticket,
   Payment,
   QRScanLog,
+  Country,
+  City,
+  Language,
+  EventCategory,
+  EventReview,
 ];
 
 @Module({
@@ -33,27 +47,23 @@ const ALL_ENTITIES = [
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get<string>('DB_USER', 'morocco360'),
-        password: config.get<string>('DB_PASS', 'morocco360'),
-        database: config.get<string>('DB_NAME', 'morocco360'),
-        entities: ALL_ENTITIES,
-        synchronize: true,
-      }),
+      useFactory: (config: ConfigService) =>
+        createTypeOrmOptions(config, {
+          autoLoadEntities: false,
+          entities: ALL_ENTITIES,
+          migrationsRun: false,
+        }),
     }),
-    TypeOrmModule.forFeature([
-      User,
-      Role,
-      Event,
-      TicketCategory,
-      EventStaff,
-      Order,
-      Ticket,
-    ]),
+    TypeOrmModule.forFeature(ALL_ENTITIES),
   ],
-  providers: [RoleSeeder, UserSeeder, EventSeeder, SeederService],
+  providers: [
+    RoleSeeder,
+    UserSeeder,
+    EventSeeder,
+    SettingsSeeder,
+    CommerceSeeder,
+    ReviewSeeder,
+    SeederService,
+  ],
 })
 export class SeederModule {}

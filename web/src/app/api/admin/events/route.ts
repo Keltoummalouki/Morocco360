@@ -1,21 +1,10 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
+import { forwardToApi } from '@/lib/api-proxy';
 
-const API_URL = process.env.API_URL;
+export function GET(req: NextRequest) {
+  return forwardToApi('/admin/events', req);
+}
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value;
-  if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-  try {
-    const res = await fetch(`${API_URL}/admin/events`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    const data: unknown = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch {
-    return NextResponse.json({ message: 'API unavailable.' }, { status: 503 });
-  }
+export function POST(req: NextRequest) {
+  return forwardToApi('/admin/events', req);
 }

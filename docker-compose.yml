@@ -46,9 +46,13 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
       MAIL_FROM: ${MAIL_FROM}
+      # Hot reload on Windows host: tsc watch polling is configured via
+      # watchOptions in api/tsconfig.json. This env var is a harmless fallback.
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./api/src:/app/src
+      - ./api/tsconfig.json:/app/tsconfig.json
+      - ./api/nest-cli.json:/app/nest-cli.json
       - api_node_modules:/app/node_modules
     depends_on:
       postgres:
@@ -60,12 +64,19 @@ services:
       dockerfile: Dockerfile
     container_name: morocco360_web
     restart: unless-stopped
+    # Use Webpack (not the default Turbopack) inside Docker: Turbopack's file
+    # watcher — even with polling — does not reliably detect edits across the
+    # Windows/OneDrive bind mount, whereas Webpack polling (WATCHPACK_POLLING +
+    # watchOptions.pollIntervalMs) does. Host `npm run dev` still uses Turbopack.
+    command: ["npx", "next", "dev", "--webpack", "--port", "4001"]
     ports:
       - "4001:4001"
     environment:
       # Server-side calls go through the Docker network
       API_URL: http://api:4000
-      # Enable file polling for hot reload on Windows host
+      # Hot reload on the Windows/OneDrive bind mount relies on polling:
+      # WATCHPACK_POLLING drives Webpack's watcher; watchOptions.pollIntervalMs
+      # in web/next.config.ts sets the poll interval.
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:

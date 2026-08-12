@@ -1,16 +1,18 @@
-export type Role = 'ADMIN' | 'ORGANIZER' | 'USER';
+export type Role = 'ADMIN' | 'ORGANIZER' | 'STAFF' | 'USER';
 
 // ── Role → landing page ────────────────────────────────────
 export const ROLE_HOME: Record<Role, string> = {
   ADMIN:     '/dashboard/admin',
   ORGANIZER: '/dashboard/organizer',
-  USER:      '/dashboard/user',
+  STAFF:     '/dashboard/staff',
+  USER:      '/user/events',
 };
 
 // ── Role display labels ────────────────────────────────────
 export const ROLE_LABEL: Record<Role, string> = {
   ADMIN:     'Administrator',
   ORGANIZER: 'Organizer',
+  STAFF:     'Staff',
   USER:      'User',
 };
 
