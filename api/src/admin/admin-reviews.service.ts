@@ -28,10 +28,13 @@ export class AdminReviewsService {
       .leftJoinAndSelect('rv.event', 'e')
       .leftJoinAndSelect('rv.user', 'u');
 
-    if (query.status) qb.andWhere('rv.status = :status', { status: query.status });
-    if (query.eventId) qb.andWhere('e.id = :eventId', { eventId: query.eventId });
+    if (query.status)
+      qb.andWhere('rv.status = :status', { status: query.status });
+    if (query.eventId)
+      qb.andWhere('e.id = :eventId', { eventId: query.eventId });
     if (query.userId) qb.andWhere('u.id = :userId', { userId: query.userId });
-    if (query.rating) qb.andWhere('rv.rating = :rating', { rating: query.rating });
+    if (query.rating)
+      qb.andWhere('rv.rating = :rating', { rating: query.rating });
     if (query.search?.trim()) {
       qb.andWhere(
         `(rv.comment ILIKE :s OR u.full_name ILIKE :s OR u.email ILIKE :s

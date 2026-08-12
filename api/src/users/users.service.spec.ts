@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, ConflictException } from '@nestjs/common';
@@ -210,7 +209,7 @@ describe('UsersService', () => {
       userRepo.findOne
         .mockResolvedValueOnce({ ...mockUser }) // getProfile
         .mockResolvedValueOnce(null); // username availability
-      userRepo.save.mockImplementation(async (u) => u as User);
+      userRepo.save.mockImplementation((u) => Promise.resolve(u as User));
 
       const result = await service.updateProfile(1, { username: 'freshname' });
 
@@ -244,7 +243,7 @@ describe('UsersService', () => {
       userRepo.findOne
         .mockResolvedValueOnce({ ...mockUser }) // getProfile
         .mockResolvedValueOnce(null); // phone availability
-      userRepo.save.mockImplementation(async (u) => u as User);
+      userRepo.save.mockImplementation((u) => Promise.resolve(u as User));
 
       const result = await service.updateProfile(1, {
         phone_number: '+212612345678',

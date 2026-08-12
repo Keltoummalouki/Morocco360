@@ -14,6 +14,7 @@ import {
 } from '../events/entities/event-staff.entity';
 import { Ticket, TicketStatus } from '../orders/entities/ticket.entity';
 import { User } from '../users/entities/user.entity';
+import { RoleName } from '../users/entities/role.entity';
 import { AssignStaffDto } from './dto/assign-staff.dto';
 
 interface AssignedEventRaw {
@@ -195,7 +196,7 @@ export class OrganizerService {
       throw new ConflictException('User already assigned to this event');
 
     const staffRole =
-      user.role?.name === 'ORGANIZER'
+      user.role?.name === RoleName.ORGANIZER
         ? EventStaffRole.ORGANIZER
         : EventStaffRole.STAFF;
 

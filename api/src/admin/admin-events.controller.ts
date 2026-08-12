@@ -29,10 +29,20 @@ import {
   UpdateAdminEventDto,
 } from './dto/admin-event.dto';
 
+/** Renders a cell value as text; objects would otherwise become `[object Object]`. */
+function cell(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint')
+    return v.toString();
+  if (v instanceof Date) return v.toISOString();
+  return JSON.stringify(v) ?? '';
+}
+
 function toCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return '';
   const headers = Object.keys(rows[0]);
-  const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const escape = (v: unknown) => `"${cell(v).replace(/"/g, '""')}"`;
   const lines = [headers.join(',')];
   for (const row of rows) {
     lines.push(headers.map((h) => escape(row[h])).join(','));

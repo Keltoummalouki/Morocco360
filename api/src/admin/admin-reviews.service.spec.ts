@@ -9,7 +9,13 @@ import {
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['leftJoinAndSelect', 'andWhere', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);
@@ -62,7 +68,10 @@ describe('AdminReviewsService', () => {
 
   describe('setStatus', () => {
     it('records the approver when approving', async () => {
-      repo.findOne.mockResolvedValue({ id: 1, status: ReviewStatus.PENDING } as EventReview);
+      repo.findOne.mockResolvedValue({
+        id: 1,
+        status: ReviewStatus.PENDING,
+      } as EventReview);
 
       await service.setStatus(1, ReviewStatus.APPROVED, 42);
 
@@ -75,12 +84,18 @@ describe('AdminReviewsService', () => {
     });
 
     it('clears the approver when unapproving', async () => {
-      repo.findOne.mockResolvedValue({ id: 1, status: ReviewStatus.APPROVED } as EventReview);
+      repo.findOne.mockResolvedValue({
+        id: 1,
+        status: ReviewStatus.APPROVED,
+      } as EventReview);
 
       await service.setStatus(1, ReviewStatus.UNAPPROVED, 42);
 
       expect(repo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ status: ReviewStatus.UNAPPROVED, approved_by: null }),
+        expect.objectContaining({
+          status: ReviewStatus.UNAPPROVED,
+          approved_by: null,
+        }),
       );
     });
   });

@@ -84,9 +84,7 @@ export class EventsService {
     }
 
     // Sort
-    const dir = (filters.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
-      | 'ASC'
-      | 'DESC';
+    const dir = filters.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
     if (filters.sort === 'price') {
       qb.orderBy(PRICE_SUBQUERY, dir);
@@ -134,7 +132,11 @@ export class EventsService {
     return saved;
   }
 
-  async update(id: number, dto: UpdateEventDto, caller?: Caller): Promise<Event> {
+  async update(
+    id: number,
+    dto: UpdateEventDto,
+    caller?: Caller,
+  ): Promise<Event> {
     const event = await this.findOne(id);
     if (caller?.role === 'ORGANIZER' && event.organizer?.id !== caller.id) {
       throw new ForbiddenException('You can only edit your own events');

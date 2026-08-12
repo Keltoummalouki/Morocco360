@@ -34,7 +34,12 @@ export class AdminEventsQueryDto extends PaginationQueryDto {
 
 export class SearchUsersDto {
   @IsOptional()
-  @IsEnum({ ADMIN: 'ADMIN', ORGANIZER: 'ORGANIZER', STAFF: 'STAFF', USER: 'USER' })
+  @IsEnum({
+    ADMIN: 'ADMIN',
+    ORGANIZER: 'ORGANIZER',
+    STAFF: 'STAFF',
+    USER: 'USER',
+  })
   role?: string;
 
   @IsOptional()

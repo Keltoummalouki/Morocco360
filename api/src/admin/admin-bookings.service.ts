@@ -4,9 +4,7 @@ import { In, Repository } from 'typeorm';
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { Ticket, TicketStatus } from '../orders/entities/ticket.entity';
 import { paginate, PaginatedResult } from '../common/pagination';
-import {
-  AdminBookingsQueryDto,
-} from './dto/admin-booking.dto';
+import { AdminBookingsQueryDto } from './dto/admin-booking.dto';
 
 const SORTABLE = {
   createdAt: 'o.created_at',
@@ -28,7 +26,8 @@ export class AdminBookingsService {
       .leftJoinAndSelect('o.payment', 'p')
       .loadRelationCountAndMap('o.ticketCount', 'o.tickets');
 
-    if (query.status) qb.andWhere('o.status = :status', { status: query.status });
+    if (query.status)
+      qb.andWhere('o.status = :status', { status: query.status });
     if (query.userId) qb.andWhere('u.id = :userId', { userId: query.userId });
     if (query.eventId) {
       qb.andWhere(
@@ -121,7 +120,10 @@ export class AdminBookingsService {
     return tickets.map((t) => this.ticketDto(t));
   }
 
-  async setTicketStatus(ticketId: number, status: TicketStatus): Promise<unknown> {
+  async setTicketStatus(
+    ticketId: number,
+    status: TicketStatus,
+  ): Promise<unknown> {
     const ticket = await this.ticketRepo.findOne({
       where: { id: ticketId },
       relations: ['category', 'event'],
@@ -138,11 +140,29 @@ export class AdminBookingsService {
     orderId: number,
     status: OrderStatus,
   ): Promise<void> {
-    const map: Partial<Record<OrderStatus, { from: TicketStatus[]; to: TicketStatus }>> = {
-      [OrderStatus.SUSPENDED]: { from: [TicketStatus.VALID], to: TicketStatus.SUSPENDED },
-      [OrderStatus.CANCELLED]: { from: [TicketStatus.VALID, TicketStatus.SUSPENDED], to: TicketStatus.CANCELLED },
-      [OrderStatus.REFUNDED]: { from: [TicketStatus.VALID, TicketStatus.CHECKED, TicketStatus.SUSPENDED], to: TicketStatus.REFUNDED },
-      [OrderStatus.PAID]: { from: [TicketStatus.SUSPENDED], to: TicketStatus.VALID },
+    const map: Partial<
+      Record<OrderStatus, { from: TicketStatus[]; to: TicketStatus }>
+    > = {
+      [OrderStatus.SUSPENDED]: {
+        from: [TicketStatus.VALID],
+        to: TicketStatus.SUSPENDED,
+      },
+      [OrderStatus.CANCELLED]: {
+        from: [TicketStatus.VALID, TicketStatus.SUSPENDED],
+        to: TicketStatus.CANCELLED,
+      },
+      [OrderStatus.REFUNDED]: {
+        from: [
+          TicketStatus.VALID,
+          TicketStatus.CHECKED,
+          TicketStatus.SUSPENDED,
+        ],
+        to: TicketStatus.REFUNDED,
+      },
+      [OrderStatus.PAID]: {
+        from: [TicketStatus.SUSPENDED],
+        to: TicketStatus.VALID,
+      },
     };
     const rule = map[status];
     if (!rule) return;

@@ -32,7 +32,9 @@ export class EventCategoriesController {
   constructor(private readonly service: EventCategoriesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List event categories (paginated, search, filter)' })
+  @ApiOperation({
+    summary: 'List event categories (paginated, search, filter)',
+  })
   list(@Query() query: QueryEventCategoryDto) {
     return this.service.list(query);
   }
@@ -60,7 +62,9 @@ export class EventCategoriesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a category (only when no active events use it)' })
+  @ApiOperation({
+    summary: 'Delete a category (only when no active events use it)',
+  })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.service.remove(id);
   }

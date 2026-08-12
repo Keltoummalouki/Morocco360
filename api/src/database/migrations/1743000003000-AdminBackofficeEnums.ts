@@ -16,10 +16,10 @@ export class AdminBackofficeEnums1743000003000 implements MigrationInterface {
     // On a brand-new database the enum types don't exist yet — migrations
     // run before synchronize, and synchronize creates them with all values
     // (including the ones added below) already included.
-    const [type] = await queryRunner.query(
+    const rows = (await queryRunner.query(
       `SELECT 1 FROM pg_type WHERE typname = 'orders_status_enum'`,
-    );
-    if (!type) return;
+    )) as unknown[];
+    if (rows.length === 0) return;
 
     await queryRunner.query(
       `ALTER TYPE "orders_status_enum" ADD VALUE IF NOT EXISTS 'SUSPENDED'`,

@@ -29,8 +29,10 @@ describe('EventCategoriesService', () => {
           useValue: {
             createQueryBuilder: jest.fn(),
             findOne: jest.fn(),
-            create: jest.fn((v) => v),
-            save: jest.fn((v) => Promise.resolve({ id: 1, ...v })),
+            create: jest.fn((v: Partial<EventCategory>) => v),
+            save: jest.fn((v: Partial<EventCategory>) =>
+              Promise.resolve({ id: 1, ...v }),
+            ),
             remove: jest.fn(),
           },
         },

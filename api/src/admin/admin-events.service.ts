@@ -22,6 +22,7 @@ import { User } from '../users/entities/user.entity';
 import { RoleName } from '../users/entities/role.entity';
 import { City } from '../settings/entities/city.entity';
 import { EventCategory as EventCategoryEntity } from '../settings/entities/event-category.entity';
+import { assignDefined } from '../common/assign-defined';
 import { paginate, PaginatedResult } from '../common/pagination';
 import { AdminEventsQueryDto } from './dto/admin-events-query.dto';
 import {
@@ -158,7 +159,7 @@ export class AdminEventsService {
   async update(id: number, dto: UpdateAdminEventDto): Promise<Event> {
     const event = await this.findOne(id);
 
-    const scalars: (keyof UpdateAdminEventDto)[] = [
+    assignDefined(event, dto, [
       'title',
       'description',
       'location_name',
@@ -168,14 +169,9 @@ export class AdminEventsService {
       'longitude',
       'image_url',
       'total_stock',
-    ];
-    for (const key of scalars) {
-      if (dto[key] !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (event as any)[key] = dto[key];
-      }
-    }
-    if (dto.date_start !== undefined) event.date_start = new Date(dto.date_start);
+    ]);
+    if (dto.date_start !== undefined)
+      event.date_start = new Date(dto.date_start);
     if (dto.date_end !== undefined) event.date_end = new Date(dto.date_end);
 
     if (dto.status !== undefined) {
@@ -192,7 +188,8 @@ export class AdminEventsService {
     }
 
     const saved = await this.eventRepo.save(event);
-    if (dto.organizerId !== undefined) await this.syncOrganizerAssignment(saved);
+    if (dto.organizerId !== undefined)
+      await this.syncOrganizerAssignment(saved);
     return this.findOne(saved.id);
   }
 
@@ -337,7 +334,12 @@ export class AdminEventsService {
 
   /** Structured payload for the printable/exportable attendee sheet. */
   async getAttendeeExport(eventId: number): Promise<{
-    event: { id: number; title: string; date_start: Date; location_name: string };
+    event: {
+      id: number;
+      title: string;
+      date_start: Date;
+      location_name: string;
+    };
     organizer: { name: string; email: string } | null;
     staff: { name: string; email: string; role: string }[];
     attendees: {
@@ -413,7 +415,10 @@ export class AdminEventsService {
   }
 
   /** Sets normalized category + mirrors a matching legacy enum value. */
-  private async applyCategory(event: Event, categoryId?: number): Promise<void> {
+  private async applyCategory(
+    event: Event,
+    categoryId?: number,
+  ): Promise<void> {
     if (categoryId === undefined) return;
     const category = await this.categoryRepo.findOne({
       where: { id: categoryId },

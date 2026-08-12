@@ -31,7 +31,9 @@ export class AdminUsersController {
   constructor(private readonly service: AdminUsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List users (paginated, search, filter by status/role)' })
+  @ApiOperation({
+    summary: 'List users (paginated, search, filter by status/role)',
+  })
   list(@Query() query: AdminUsersQueryDto) {
     // Defaults to normal users unless a role filter is supplied.
     return this.service.list(query, query.role ?? RoleName.USER);
