@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminPaymentsService } from './admin-payments.service';
-import {
-  Payment,
-  PaymentStatus,
-} from '../payments/entities/payment.entity';
+import { Payment, PaymentStatus } from '../payments/entities/payment.entity';
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 
 describe('AdminPaymentsService', () => {
@@ -71,14 +67,19 @@ describe('AdminPaymentsService', () => {
           id: 3,
           user: { full_name: 'Ali', email: 'ali@x.ma', username: 'ali' },
           tickets: [
-            { category: { name: 'VIP', price: 150 }, event: { title: 'Jazz', date_start: new Date() } },
+            {
+              category: { name: 'VIP', price: 150 },
+              event: { title: 'Jazz', date_start: new Date() },
+            },
             { category: { name: 'VIP', price: 150 }, event: { title: 'Jazz' } },
-            { category: { name: 'Standard', price: 100 }, event: { title: 'Jazz' } },
+            {
+              category: { name: 'Standard', price: 100 },
+              event: { title: 'Jazz' },
+            },
           ],
         },
       } as unknown as Payment);
 
-      // getInvoice already returns InvoiceData — no assertion needed.
       const invoice = await service.getInvoice(9);
 
       expect(invoice.lines).toHaveLength(2);

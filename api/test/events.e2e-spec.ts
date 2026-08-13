@@ -58,25 +58,28 @@ const mockEvent: Event = {
 describe('Events endpoints (e2e)', () => {
   let app: INestApplication<App>;
 
+  // `findAll` builds a query instead of calling `find`, so the chain is stubbed
+  // and each test stages its rows on `getMany`.
+  const qbMock = {
+    leftJoinAndSelect: jest.fn(),
+    where: jest.fn(),
+    andWhere: jest.fn(),
+    orderBy: jest.fn(),
+    getMany: jest.fn(),
+  };
+  for (const method of [
+    'leftJoinAndSelect',
+    'where',
+    'andWhere',
+    'orderBy',
+  ] as const) {
+    qbMock[method].mockReturnValue(qbMock);
+  }
+
   const eventRepoMock = {
-    createQueryBuilder: jest.fn(),
+    createQueryBuilder: jest.fn(() => qbMock),
     findOne: jest.fn(),
   };
-
-  /**
-   * findAll() builds its query with the query builder rather than repo.find(),
-   * so the chain has to be stubbed. Mirrors the helper in
-   * events.service.spec.ts.
-   */
-  function mockEventQuery(rows: Event[]) {
-    eventRepoMock.createQueryBuilder.mockReturnValue({
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue(rows),
-    });
-  }
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -86,8 +89,7 @@ describe('Events endpoints (e2e)', () => {
         EventsService,
         { provide: getRepositoryToken(Event), useValue: eventRepoMock },
         { provide: getRepositoryToken(User), useValue: {} },
-        // Only the organizer/staff paths touch this repo; the public GET
-        // endpoints under test never reach it.
+        // Read-only event endpoints never touch it, but EventsService injects it.
         { provide: getRepositoryToken(EventStaff), useValue: {} },
       ],
     }).compile();
@@ -110,7 +112,7 @@ describe('Events endpoints (e2e)', () => {
   // ── GET /events ────────────────────────────────────────
   describe('GET /events', () => {
     it('200 – returns an array of active events', async () => {
-      mockEventQuery([mockEvent]);
+      qbMock.getMany.mockResolvedValue([mockEvent]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 
@@ -120,7 +122,7 @@ describe('Events endpoints (e2e)', () => {
     });
 
     it('200 – returns an empty array when no events exist', async () => {
-      mockEventQuery([]);
+      qbMock.getMany.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 

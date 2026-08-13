@@ -99,11 +99,11 @@ describe('ScannerService.scanTicket', () => {
     expect(res.result).toBe(ScanResult.SUCCESS);
     expect(res.holderName).toBe('Test User');
     expect(res.category).toBe('VIP');
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.commitTransaction).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.rollbackTransaction).not.toHaveBeenCalled();
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.release).toHaveBeenCalledTimes(1);
   });
 
@@ -141,11 +141,11 @@ describe('ScannerService.scanTicket', () => {
 
     expect(res.result).toBe(ScanResult.ALREADY_USED);
     expect(res.checkedAt).toEqual(new Date('2026-03-01T10:00:00Z'));
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.rollbackTransaction).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.commitTransaction).not.toHaveBeenCalled();
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.release).toHaveBeenCalledTimes(1);
   });
 
@@ -157,9 +157,9 @@ describe('ScannerService.scanTicket', () => {
     const res = await service.scanTicket(DTO, SCANNER);
 
     expect(res.result).toBe(ScanResult.INVALID);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.rollbackTransaction).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.release).toHaveBeenCalledTimes(1);
   });
 
@@ -171,7 +171,7 @@ describe('ScannerService.scanTicket', () => {
     expect((await service.scanTicket(DTO, SCANNER)).result).toBe(
       ScanResult.INVALID,
     );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.release).toHaveBeenCalledTimes(1);
   });
 
@@ -196,9 +196,9 @@ describe('ScannerService.scanTicket', () => {
     expect((await service.scanTicket(DTO, SCANNER)).result).toBe(
       ScanResult.EXPIRED,
     );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.rollbackTransaction).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr.release).toHaveBeenCalledTimes(1);
   });
 
@@ -222,9 +222,9 @@ describe('ScannerService.scanTicket', () => {
     expect(results).toEqual(
       [ScanResult.ALREADY_USED, ScanResult.SUCCESS].sort(),
     );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr1.release).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     expect(qr2.release).toHaveBeenCalledTimes(1);
   });
 });

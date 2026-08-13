@@ -84,7 +84,6 @@ export class EventsService {
     }
 
     // Sort
-    // The ternary already narrows to 'ASC' | 'DESC'.
     const dir = filters.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
     if (filters.sort === 'price') {
@@ -133,7 +132,11 @@ export class EventsService {
     return saved;
   }
 
-  async update(id: number, dto: UpdateEventDto, caller?: Caller): Promise<Event> {
+  async update(
+    id: number,
+    dto: UpdateEventDto,
+    caller?: Caller,
+  ): Promise<Event> {
     const event = await this.findOne(id);
     if (caller?.role === 'ORGANIZER' && event.organizer?.id !== caller.id) {
       throw new ForbiddenException('You can only edit your own events');

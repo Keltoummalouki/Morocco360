@@ -16,7 +16,13 @@ import { Order } from '../orders/entities/order.entity';
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['leftJoinAndSelect', 'andWhere', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);
@@ -92,7 +98,10 @@ describe('AdminUsersService', () => {
 
     it('hashes the password and assigns the role', async () => {
       userRepo.findOne.mockResolvedValue(null);
-      roleRepo.findOne.mockResolvedValue({ id: 1, name: RoleName.STAFF } as Role);
+      roleRepo.findOne.mockResolvedValue({
+        id: 1,
+        name: RoleName.STAFF,
+      } as Role);
 
       await service.create(
         { username: 'newstaff', email: 's@x.com', password: 'Passw0rd' },
@@ -101,7 +110,10 @@ describe('AdminUsersService', () => {
 
       expect(bcrypt.hash).toHaveBeenCalledWith('Passw0rd', 12);
       expect(userRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ password: 'hashed', status: UserStatus.ACTIVE }),
+        expect.objectContaining({
+          password: 'hashed',
+          status: UserStatus.ACTIVE,
+        }),
       );
     });
   });

@@ -28,7 +28,9 @@ export class CitiesController {
   constructor(private readonly service: CitiesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List cities (paginated, search, filter by country)' })
+  @ApiOperation({
+    summary: 'List cities (paginated, search, filter by country)',
+  })
   list(@Query() query: QueryCityDto) {
     return this.service.list(query);
   }

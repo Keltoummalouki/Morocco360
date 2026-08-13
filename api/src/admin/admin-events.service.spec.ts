@@ -15,7 +15,14 @@ import { EventCategory } from '../settings/entities/event-category.entity';
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['leftJoinAndSelect', 'andWhere', 'where', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'andWhere',
+    'where',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);

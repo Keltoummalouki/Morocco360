@@ -65,10 +65,7 @@ export class CountriesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a country' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateCountryDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCountryDto) {
     return this.service.update(id, dto);
   }
 

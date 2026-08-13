@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -35,8 +34,10 @@ describe('LanguagesService', () => {
           useValue: {
             createQueryBuilder: jest.fn(),
             findOne: jest.fn(),
-            create: jest.fn((v: unknown) => v),
-            save: jest.fn((v) => Promise.resolve({ id: 1, ...v })),
+            create: jest.fn((v: Partial<Language>) => v),
+            save: jest.fn((v: Partial<Language>) =>
+              Promise.resolve({ id: 1, ...v }),
+            ),
             remove: jest.fn(),
           },
         },

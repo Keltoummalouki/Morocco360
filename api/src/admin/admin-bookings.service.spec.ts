@@ -8,7 +8,14 @@ import { Ticket, TicketStatus } from '../orders/entities/ticket.entity';
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['leftJoinAndSelect', 'loadRelationCountAndMap', 'andWhere', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'loadRelationCountAndMap',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);
@@ -34,7 +41,12 @@ describe('AdminBookingsService', () => {
         },
         {
           provide: getRepositoryToken(Ticket),
-          useValue: { find: jest.fn(), findOne: jest.fn(), update: jest.fn(), save: jest.fn() },
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            update: jest.fn(),
+            save: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -49,7 +61,12 @@ describe('AdminBookingsService', () => {
       const qb = chainableQb([], 0);
       orderRepo.createQueryBuilder.mockReturnValue(qb as never);
 
-      await service.list({ page: 1, limit: 20, status: OrderStatus.PAID, eventId: 3 });
+      await service.list({
+        page: 1,
+        limit: 20,
+        status: OrderStatus.PAID,
+        eventId: 3,
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith('o.status = :status', {
         status: OrderStatus.PAID,
@@ -63,7 +80,10 @@ describe('AdminBookingsService', () => {
 
   describe('setStatus', () => {
     it('suspends the order and cascades VALID tickets to SUSPENDED', async () => {
-      orderRepo.findOne.mockResolvedValue({ id: 1, tickets: [] } as unknown as Order);
+      orderRepo.findOne.mockResolvedValue({
+        id: 1,
+        tickets: [],
+      } as unknown as Order);
 
       await service.setStatus(1, OrderStatus.SUSPENDED);
 

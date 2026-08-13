@@ -2,10 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import PDFDocument from 'pdfkit';
-import {
-  Payment,
-  PaymentStatus,
-} from '../payments/entities/payment.entity';
+import { Payment, PaymentStatus } from '../payments/entities/payment.entity';
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { paginate, PaginatedResult } from '../common/pagination';
 import { AdminPaymentsQueryDto } from './dto/admin-payment.dto';
@@ -66,18 +63,27 @@ const C = {
   border: '#E2E8F0',
 };
 
-const STATUS_STYLE: Record<string, { label: string; fg: string; bg: string }> = {
-  [PaymentStatus.PAID]: { label: 'Payée', fg: '#1E6B52', bg: '#E6F0EC' },
-  [PaymentStatus.SUCCESS]: { label: 'Payée', fg: '#1E6B52', bg: '#E6F0EC' },
-  [PaymentStatus.PENDING]: { label: 'En attente', fg: '#7B5800', bg: '#FDF3DC' },
-  [PaymentStatus.NOT_PAID]: { label: 'Non payée', fg: '#AA131F', bg: '#F7E3E5' },
-  [PaymentStatus.FAILED]: { label: 'Échouée', fg: '#AA131F', bg: '#F7E3E5' },
-  [PaymentStatus.REFUNDED]: {
-    label: 'Remboursée',
-    fg: '#003E7A',
-    bg: '#E3ECF5',
-  },
-};
+const STATUS_STYLE: Record<string, { label: string; fg: string; bg: string }> =
+  {
+    [PaymentStatus.PAID]: { label: 'Payée', fg: '#1E6B52', bg: '#E6F0EC' },
+    [PaymentStatus.SUCCESS]: { label: 'Payée', fg: '#1E6B52', bg: '#E6F0EC' },
+    [PaymentStatus.PENDING]: {
+      label: 'En attente',
+      fg: '#7B5800',
+      bg: '#FDF3DC',
+    },
+    [PaymentStatus.NOT_PAID]: {
+      label: 'Non payée',
+      fg: '#AA131F',
+      bg: '#F7E3E5',
+    },
+    [PaymentStatus.FAILED]: { label: 'Échouée', fg: '#AA131F', bg: '#F7E3E5' },
+    [PaymentStatus.REFUNDED]: {
+      label: 'Remboursée',
+      fg: '#003E7A',
+      bg: '#E3ECF5',
+    },
+  };
 
 const GATEWAY_LABEL: Record<string, string> = {
   STRIPE: 'Carte bancaire (Stripe)',
@@ -126,7 +132,8 @@ function frDate(value: Date | string | null): string {
 @Injectable()
 export class AdminPaymentsService {
   constructor(
-    @InjectRepository(Payment) private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
     @InjectRepository(Order) private readonly orderRepo: Repository<Order>,
   ) {}
 
@@ -136,8 +143,10 @@ export class AdminPaymentsService {
       .leftJoinAndSelect('p.order', 'o')
       .leftJoinAndSelect('o.user', 'u');
 
-    if (query.status) qb.andWhere('p.status = :status', { status: query.status });
-    if (query.gateway) qb.andWhere('p.gateway = :gateway', { gateway: query.gateway });
+    if (query.status)
+      qb.andWhere('p.status = :status', { status: query.status });
+    if (query.gateway)
+      qb.andWhere('p.gateway = :gateway', { gateway: query.gateway });
     if (query.dateFrom) {
       qb.andWhere('p.created_at >= :df', { df: new Date(query.dateFrom) });
     }
@@ -216,7 +225,9 @@ export class AdminPaymentsService {
     return this.buildInvoice(payment);
   }
 
-  async getInvoicePdf(id: number): Promise<{ buffer: Buffer; filename: string }> {
+  async getInvoicePdf(
+    id: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const payment = await this.loadFull(id);
     const invoice = this.buildInvoice(payment);
     const buffer = await this.renderPdf(invoice);
@@ -457,7 +468,12 @@ export class AdminPaymentsService {
     ];
     const colW = CONTENT_W / items.length;
 
-    doc.moveTo(M, y).lineTo(RIGHT, y).lineWidth(1).strokeColor(C.border).stroke();
+    doc
+      .moveTo(M, y)
+      .lineTo(RIGHT, y)
+      .lineWidth(1)
+      .strokeColor(C.border)
+      .stroke();
     items.forEach(([label, value], i) => {
       const x = M + i * colW;
       doc
@@ -515,9 +531,14 @@ export class AdminPaymentsService {
         .fillColor(C.mutedDim)
         .font('Helvetica-Oblique')
         .fontSize(9)
-        .text(safe('Aucun billet associé à cette commande.'), M + 14, cursor + 11, {
-          width: CONTENT_W - 28,
-        });
+        .text(
+          safe('Aucun billet associé à cette commande.'),
+          M + 14,
+          cursor + 11,
+          {
+            width: CONTENT_W - 28,
+          },
+        );
       return cursor + ROW_H;
     }
 
@@ -538,12 +559,10 @@ export class AdminPaymentsService {
           lineBreak: false,
           ellipsis: true,
         });
-      doc
-        .fillColor(C.muted)
-        .text(String(line.quantity), M + 220, textY, {
-          width: 44,
-          align: 'right',
-        });
+      doc.fillColor(C.muted).text(String(line.quantity), M + 220, textY, {
+        width: 44,
+        align: 'right',
+      });
       doc.text(money(line.unitPrice, invoice.currency), M + 270, textY, {
         width: 100,
         align: 'right',

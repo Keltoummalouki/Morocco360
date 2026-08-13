@@ -11,6 +11,7 @@ import { Role, RoleName } from '../users/entities/role.entity';
 import { Event } from '../events/entities/event.entity';
 import { EventStaff } from '../events/entities/event-staff.entity';
 import { Order } from '../orders/entities/order.entity';
+import { assignDefined } from '../common/assign-defined';
 import { paginate, PaginatedResult } from '../common/pagination';
 import {
   AdminUsersQueryDto,
@@ -47,7 +48,8 @@ export class AdminUsersService {
 
     const role = roleScope ?? query.role;
     if (role) qb.andWhere('r.name = :role', { role });
-    if (query.status) qb.andWhere('u.status = :status', { status: query.status });
+    if (query.status)
+      qb.andWhere('u.status = :status', { status: query.status });
     if (query.search?.trim()) {
       qb.andWhere(
         `(u.username ILIKE :s OR u.email ILIKE :s OR u.full_name ILIKE :s
@@ -118,20 +120,14 @@ export class AdminUsersService {
       user,
     );
 
-    const fields: (keyof UpdateAdminUserDto)[] = [
+    assignDefined(user, dto, [
       'username',
       'email',
       'first_name',
       'last_name',
       'full_name',
       'phone_number',
-    ];
-    for (const key of fields) {
-      const value = dto[key];
-      // Object.assign keeps the copy type-checked; indexing through `any`
-      // would silently accept a key the entity does not have.
-      if (value !== undefined) Object.assign(user, { [key]: value });
-    }
+    ]);
     if (dto.date_of_birth !== undefined) {
       user.date_of_birth = dto.date_of_birth || null;
     }

@@ -15,7 +15,10 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 
-interface JwtUser { id: number; role: string; }
+interface JwtUser {
+  id: number;
+  role: string;
+}
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -55,10 +58,7 @@ export class EventsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'ORGANIZER')
-  create(
-    @Body() dto: CreateEventDto,
-    @Req() req: Request & { user: JwtUser },
-  ) {
+  create(@Body() dto: CreateEventDto, @Req() req: Request & { user: JwtUser }) {
     return this.eventsService.create(dto, req.user);
   }
 

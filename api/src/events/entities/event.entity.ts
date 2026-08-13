@@ -66,7 +66,10 @@ export class Event {
   cityEntity: City;
 
   /** Normalized taxonomy (admin backoffice); coexists with the legacy enum. */
-  @ManyToOne(() => EventCategoryEntity, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => EventCategoryEntity, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   categoryEntity: EventCategoryEntity;
 
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })

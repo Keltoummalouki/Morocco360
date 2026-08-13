@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, ConflictException } from '@nestjs/common';
@@ -10,7 +9,13 @@ import { Event } from '../events/entities/event.entity';
 
 function chainableQb(rows: unknown[], total: number) {
   const qb: Record<string, jest.Mock> = {};
-  for (const m of ['leftJoinAndSelect', 'andWhere', 'orderBy', 'skip', 'take']) {
+  for (const m of [
+    'leftJoinAndSelect',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+  ]) {
     qb[m] = jest.fn().mockReturnValue(qb);
   }
   qb.getManyAndCount = jest.fn().mockResolvedValue([rows, total]);
@@ -32,8 +37,10 @@ describe('CitiesService', () => {
           useValue: {
             createQueryBuilder: jest.fn(),
             findOne: jest.fn(),
-            create: jest.fn((v: unknown) => v),
-            save: jest.fn((v) => Promise.resolve({ id: 1, ...v })),
+            create: jest.fn((v: Partial<City>) => v),
+            save: jest.fn((v: Partial<City>) =>
+              Promise.resolve({ id: 1, ...v }),
+            ),
             remove: jest.fn(),
           },
         },
