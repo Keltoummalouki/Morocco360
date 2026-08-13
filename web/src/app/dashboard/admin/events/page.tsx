@@ -8,6 +8,9 @@ import StatusPill from '@/components/admin/StatusPill';
 import {
   AdminFormModal,
   Field,
+  FieldRow,
+  FormSection,
+  ImageUploadField,
   TextInput,
   TextArea,
   NumberInput,
@@ -85,8 +88,61 @@ const emptyForm = {
   organizerId: null as number | null,
   organizerLabel: '',
   total_stock: '',
+  image_url: '',
   status: 'ACTIVE' as EventStatus,
 };
+
+type EventForm = typeof emptyForm;
+type FieldErrors = Partial<Record<keyof EventForm, string>>;
+
+/** Checks the whole form up front so every problem is shown at once. */
+function validateEvent(form: EventForm): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (!form.title.trim()) errors.title = 'Le titre est requis.';
+  else if (form.title.trim().length < 3)
+    errors.title = 'Minimum 3 caractères.';
+
+  if (!form.description.trim())
+    errors.description = 'La description est requise.';
+
+  if (!form.date_start) errors.date_start = 'La date de début est requise.';
+  if (!form.date_end) errors.date_end = 'La date de fin est requise.';
+  else if (form.date_start && form.date_end < form.date_start)
+    errors.date_end = 'La fin doit suivre le début.';
+
+  if (!form.location_name.trim()) errors.location_name = 'Le lieu est requis.';
+
+  if (form.total_stock !== '') {
+    const stock = Number(form.total_stock);
+    if (!Number.isInteger(stock) || stock < 0)
+      errors.total_stock = 'Nombre entier positif requis.';
+  }
+
+  return errors;
+}
+
+/**
+ * The API answers with class-validator strings ("cityId must be an integer
+ * number"). Surface something a French-speaking admin can act on, and keep the
+ * original for anything unmapped rather than swallowing it.
+ */
+function toReadableError(message: string): string {
+  const map: [RegExp, string][] = [
+    [/cityId/i, 'Ville invalide — sélectionnez-la dans la liste.'],
+    [/categoryId/i, 'Catégorie invalide — sélectionnez-la dans la liste.'],
+    [/organizerId/i, 'Organisateur invalide — sélectionnez-le dans la liste.'],
+    [/date_start|date_end/i, 'Dates invalides.'],
+    [/total_stock/i, 'Le nombre de places est invalide.'],
+    [/title/i, 'Le titre est invalide.'],
+  ];
+
+  const matched = map
+    .filter(([pattern]) => pattern.test(message))
+    .map(([, label]) => label);
+
+  return matched.length > 0 ? matched.join(' ') : message;
+}
 
 export default function AdminEventsPage() {
   const [statusFilter, setStatusFilter] = useState<EventStatus | ''>('');
@@ -126,6 +182,18 @@ export default function AdminEventsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  /** Updates one field and clears its error, so a fix removes the red text. */
+  function setField<K extends keyof EventForm>(key: K, value: EventForm[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
 
   // Cities depend on the selected country in the create/edit form — a city
   // has exactly one country, so re-scope the list whenever it changes.
@@ -147,6 +215,7 @@ export default function AdminEventsPage() {
   function openCreate() {
     setForm(emptyForm);
     setFormError(null);
+    setFieldErrors({});
     setModal({ type: 'create' });
   }
   function openEdit(row: AdminEvent) {
@@ -164,17 +233,22 @@ export default function AdminEventsPage() {
         ? row.organizer.full_name || row.organizer.username
         : '',
       total_stock: String(row.total_stock ?? ''),
+      image_url: row.image_url ?? '',
       status: row.status,
     });
     setFormError(null);
+    setFieldErrors({});
     setModal({ type: 'edit', row });
   }
 
   async function submit() {
-    if (!form.date_start || !form.date_end) {
-      setFormError('Les dates de début et de fin sont requises.');
+    const validation = validateEvent(form);
+    if (Object.keys(validation).length > 0) {
+      setFieldErrors(validation);
+      setFormError('Vérifiez les champs signalés ci-dessus.');
       return;
     }
+    setFieldErrors({});
     setSaving(true);
     setFormError(null);
     try {
@@ -188,6 +262,7 @@ export default function AdminEventsPage() {
         categoryId: form.categoryId === '' ? undefined : form.categoryId,
         organizerId: form.organizerId ?? undefined,
         total_stock: form.total_stock ? Number(form.total_stock) : undefined,
+        image_url: form.image_url || undefined,
         status: form.status,
       };
       if (modal.type === 'edit') {
@@ -198,7 +273,11 @@ export default function AdminEventsPage() {
       setModal({ type: 'none' });
       await list.reload();
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Échec de l’enregistrement');
+      setFormError(
+        e instanceof Error
+          ? toReadableError(e.message)
+          : 'Échec de l’enregistrement',
+      );
     } finally {
       setSaving(false);
     }
@@ -379,48 +458,70 @@ export default function AdminEventsPage() {
 
       {modal.type !== 'none' && (
         <AdminFormModal
+          wide
           title={modal.type === 'edit' ? 'Modifier l’événement' : 'Nouvel événement'}
+          description="Les champs marqués d’un astérisque sont obligatoires."
           onCancel={() => setModal({ type: 'none' })}
           onSubmit={submit}
           submitting={saving}
           error={formError}
+          submitLabel={modal.type === 'edit' ? 'Enregistrer' : 'Créer l’événement'}
         >
-          <Field label="Titre">
-            <TextInput
-              value={form.title}
-              onChange={(v) => setForm((f) => ({ ...f, title: v }))}
-              required
-              maxLength={200}
-            />
-          </Field>
-          <Field label="Description">
-            <TextArea
-              value={form.description}
-              onChange={(v) => setForm((f) => ({ ...f, description: v }))}
-            />
-          </Field>
-          <Field label="Début">
-            <DateTimePicker
-              value={form.date_start}
-              onChange={(v) => setForm((f) => ({ ...f, date_start: v }))}
-            />
-          </Field>
-          <Field label="Fin">
-            <DateTimePicker
-              value={form.date_end}
-              onChange={(v) => setForm((f) => ({ ...f, date_end: v }))}
-            />
-          </Field>
-          <Field label="Lieu">
-            <TextInput
-              value={form.location_name}
-              onChange={(v) => setForm((f) => ({ ...f, location_name: v }))}
-              required
-              maxLength={255}
-            />
-          </Field>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ flex: 1 }}>
+          <FormSection title="Présentation">
+            <Field label="Image de couverture" hint="Affichée sur la fiche et dans les listes.">
+              <ImageUploadField
+                value={form.image_url}
+                onChange={(url) => setField('image_url', url)}
+                disabled={saving}
+              />
+            </Field>
+            <Field label="Titre" required error={fieldErrors.title}>
+              <TextInput
+                value={form.title}
+                onChange={(v) => setField('title', v)}
+                invalid={!!fieldErrors.title}
+                maxLength={200}
+              />
+            </Field>
+            <Field label="Description" required error={fieldErrors.description}>
+              <TextArea
+                value={form.description}
+                onChange={(v) => setField('description', v)}
+                invalid={!!fieldErrors.description}
+                rows={4}
+              />
+            </Field>
+          </FormSection>
+
+          <FormSection title="Dates">
+            <FieldRow>
+              <Field label="Début" required error={fieldErrors.date_start}>
+                <DateTimePicker
+                  value={form.date_start}
+                  onChange={(v) => setField('date_start', v)}
+                  aria-invalid={!!fieldErrors.date_start}
+                />
+              </Field>
+              <Field label="Fin" required error={fieldErrors.date_end}>
+                <DateTimePicker
+                  value={form.date_end}
+                  onChange={(v) => setField('date_end', v)}
+                  aria-invalid={!!fieldErrors.date_end}
+                />
+              </Field>
+            </FieldRow>
+          </FormSection>
+
+          <FormSection title="Lieu">
+            <Field label="Adresse" required error={fieldErrors.location_name}>
+              <TextInput
+                value={form.location_name}
+                onChange={(v) => setField('location_name', v)}
+                invalid={!!fieldErrors.location_name}
+                maxLength={255}
+              />
+            </Field>
+            <FieldRow>
               <Field label="Pays">
                 <SelectInput<number>
                   value={form.countryId}
@@ -431,88 +532,86 @@ export default function AdminEventsPage() {
                   placeholder="Sélectionner"
                 />
               </Field>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Field label="Ville">
+              <Field
+                label="Ville"
+                hint={form.countryId === '' ? 'Choisissez d’abord un pays.' : undefined}
+              >
                 <SelectInput<number>
                   value={form.cityId}
-                  onChange={(v) => setForm((f) => ({ ...f, cityId: v }))}
+                  onChange={(v) => setField('cityId', v)}
                   options={cities.map((c) => ({ value: c.id, label: c.name }))}
-                  placeholder={
-                    form.countryId === '' ? 'Choisir un pays d’abord' : 'Sélectionner'
-                  }
+                  placeholder="Sélectionner"
                   disabled={form.countryId === ''}
                 />
               </Field>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ flex: 1 }}>
+            </FieldRow>
+          </FormSection>
+
+          <FormSection title="Billetterie">
+            <FieldRow>
               <Field label="Catégorie">
                 <SelectInput<number>
                   value={form.categoryId}
-                  onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
+                  onChange={(v) => setField('categoryId', v)}
                   options={categories.map((c) => ({ value: c.id, label: c.name }))}
                   placeholder="Sélectionner"
                 />
               </Field>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Field label="Places (stock)">
+              <Field
+                label="Places"
+                hint="Laisser vide si la capacité n’est pas limitée."
+                error={fieldErrors.total_stock}
+              >
                 <NumberInput
                   value={form.total_stock}
-                  onChange={(v) => setForm((f) => ({ ...f, total_stock: v }))}
+                  onChange={(v) => setField('total_stock', v)}
+                  invalid={!!fieldErrors.total_stock}
+                  min={0}
                   placeholder="0"
                 />
               </Field>
-            </div>
-          </div>
-          <Field label="Statut">
-            <SelectInput<EventStatus>
-              value={form.status}
-              onChange={(v) => setForm((f) => ({ ...f, status: (v || 'ACTIVE') as EventStatus }))}
-              options={EVENT_STATUSES.map((s) => ({ value: s, label: s }))}
-              placeholder="ACTIVE"
-            />
-          </Field>
-          <Field label="Organisateur">
-            {form.organizerId ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                }}
-              >
-                <span style={{ fontSize: '0.875rem' }}>{form.organizerLabel}</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setForm((f) => ({ ...f, organizerId: null, organizerLabel: '' }))
-                  }
-                  style={rowBtn}
-                >
-                  Changer
-                </button>
-              </div>
-            ) : (
-              <UserPicker
-                role="ORGANIZER"
-                onSelect={(u) =>
-                  setForm((f) => ({
-                    ...f,
-                    organizerId: u.id,
-                    organizerLabel: u.full_name || u.username,
-                  }))
-                }
-                placeholder="Rechercher un organisateur…"
+            </FieldRow>
+            <Field label="Statut">
+              <SelectInput<EventStatus>
+                value={form.status}
+                onChange={(v) => setField('status', (v || 'ACTIVE') as EventStatus)}
+                options={EVENT_STATUSES.map((s) => ({ value: s, label: s }))}
+                placeholder="ACTIVE"
               />
-            )}
-          </Field>
+            </Field>
+          </FormSection>
+
+          <FormSection title="Organisateur">
+            <Field label="Responsable de l’événement">
+              {form.organizerId ? (
+                <div className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2">
+                  <span className="text-sm">{form.organizerLabel}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, organizerId: null, organizerLabel: '' }))
+                    }
+                    style={rowBtn}
+                  >
+                    Changer
+                  </button>
+                </div>
+              ) : (
+                <UserPicker
+                  role="ORGANIZER"
+                  inline
+                  onSelect={(u) =>
+                    setForm((f) => ({
+                      ...f,
+                      organizerId: u.id,
+                      organizerLabel: u.full_name || u.username,
+                    }))
+                  }
+                  placeholder="Rechercher un organisateur…"
+                />
+              )}
+            </Field>
+          </FormSection>
         </AdminFormModal>
       )}
     </DashboardPage>

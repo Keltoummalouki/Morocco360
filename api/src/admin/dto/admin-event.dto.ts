@@ -42,6 +42,13 @@ export class AdminTicketCategoryDto {
   status?: SettingStatus;
 }
 
+/**
+ * Foreign-key ids arrive from `<select>` elements, which hand back strings.
+ * `@Type(() => Number)` coerces those before validation so a well-formed id is
+ * never rejected for its wrapper type, while `@Min(1)` still rejects the values
+ * coercion invents out of junk — `Number('')` and `Number(null)` are both 0.
+ */
+
 export class CreateAdminEventDto {
   @IsString()
   @MaxLength(200)
@@ -67,7 +74,9 @@ export class CreateAdminEventDto {
   city?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   cityId?: number;
 
   @IsOptional()
@@ -75,11 +84,15 @@ export class CreateAdminEventDto {
   category?: EventCategory;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   categoryId?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   organizerId?: number;
 
   @IsOptional()
@@ -139,7 +152,9 @@ export class UpdateAdminEventDto {
   city?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   cityId?: number;
 
   @IsOptional()
@@ -147,11 +162,15 @@ export class UpdateAdminEventDto {
   category?: EventCategory;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   categoryId?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
+  @Min(1)
   organizerId?: number;
 
   @IsOptional()

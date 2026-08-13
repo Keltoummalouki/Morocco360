@@ -30,9 +30,14 @@ export class User {
   @Column({ unique: true, length: 150 })
   email: string;
 
+  /**
+   * Null for accounts created through a social provider (Google / Facebook).
+   * The type is explicit: TypeORM cannot infer a column type from a
+   * `string | null` union, which reflects as `Object`.
+   */
   @Exclude()
-  @Column()
-  password: string;
+  @Column({ type: 'varchar', nullable: true })
+  password: string | null;
 
   @Column({ length: 100, nullable: true })
   first_name: string;
@@ -52,6 +57,19 @@ export class User {
   @Exclude()
   @Column({ type: 'text', nullable: true })
   refresh_token_hash: string | null;
+
+  // ── Social identities ────────────────────────────────────
+  // One column per provider so a single account can be linked to both.
+  // Nullable + unique: PostgreSQL allows many NULLs in a unique index.
+
+  @Column({ type: 'varchar', length: 64, unique: true, nullable: true })
+  google_id: string | null;
+
+  @Column({ type: 'varchar', length: 64, unique: true, nullable: true })
+  facebook_id: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  avatar_url: string | null;
 
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
   status: UserStatus;

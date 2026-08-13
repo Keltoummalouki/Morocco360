@@ -404,8 +404,10 @@ export class AdminEventsService {
   }
 
   /** Sets normalized city + keeps the legacy `city` string in sync. */
-  private async applyCity(event: Event, cityId?: number): Promise<void> {
-    if (cityId === undefined) return;
+  private async applyCity(event: Event, cityId?: number | null): Promise<void> {
+    // `@IsOptional()` lets null through as "not provided", so treat it the same
+    // as undefined instead of looking up a city with a null id.
+    if (cityId == null) return;
     const city = await this.cityRepo.findOne({ where: { id: cityId } });
     if (!city) throw new BadRequestException('City not found');
     event.cityEntity = city;
@@ -413,8 +415,11 @@ export class AdminEventsService {
   }
 
   /** Sets normalized category + mirrors a matching legacy enum value. */
-  private async applyCategory(event: Event, categoryId?: number): Promise<void> {
-    if (categoryId === undefined) return;
+  private async applyCategory(
+    event: Event,
+    categoryId?: number | null,
+  ): Promise<void> {
+    if (categoryId == null) return;
     const category = await this.categoryRepo.findOne({
       where: { id: categoryId },
     });
@@ -428,10 +433,10 @@ export class AdminEventsService {
 
   private async applyOrganizer(
     event: Event,
-    organizerId?: number,
+    organizerId?: number | null,
     requireOrganizerRole = false,
   ): Promise<void> {
-    if (organizerId === undefined) return;
+    if (organizerId == null) return;
     const user = await this.userRepo.findOne({
       where: { id: organizerId },
       relations: ['role'],

@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { ShieldCheck, Ticket, QrCode, CalendarHeart } from 'lucide-react';
 import AuthShell from '@/components/auth/AuthShell';
 import RegisterForm from '@/components/RegisterForm';
+import { getEnabledOAuthProviders } from '@/lib/oauth-server';
 
 export const metadata: Metadata = {
   title: 'Create account',
@@ -17,6 +18,8 @@ const PERKS = [
 ];
 
 export default function RegisterPage() {
+  const oauthProviders = getEnabledOAuthProviders();
+
   return (
     <AuthShell
       image="/events/gnaoua.webp"
@@ -50,7 +53,7 @@ export default function RegisterPage() {
           <div className="w-full max-w-md text-sm text-muted-foreground">Loading…</div>
         }
       >
-        <RegisterForm />
+        <RegisterForm oauthProviders={oauthProviders} />
       </Suspense>
     </AuthShell>
   );
