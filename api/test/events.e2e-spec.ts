@@ -8,6 +8,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { EventsController } from '../src/events/events.controller';
 import { EventsService } from '../src/events/events.service';
 import { Event } from '../src/events/entities/event.entity';
+import { EventStaff } from '../src/events/entities/event-staff.entity';
 import { TicketCategory } from '../src/events/entities/ticket-category.entity';
 import { User } from '../src/users/entities/user.entity';
 
@@ -58,9 +59,24 @@ describe('Events endpoints (e2e)', () => {
   let app: INestApplication<App>;
 
   const eventRepoMock = {
-    find: jest.fn(),
+    createQueryBuilder: jest.fn(),
     findOne: jest.fn(),
   };
+
+  /**
+   * findAll() builds its query with the query builder rather than repo.find(),
+   * so the chain has to be stubbed. Mirrors the helper in
+   * events.service.spec.ts.
+   */
+  function mockEventQuery(rows: Event[]) {
+    eventRepoMock.createQueryBuilder.mockReturnValue({
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue(rows),
+    });
+  }
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -70,6 +86,9 @@ describe('Events endpoints (e2e)', () => {
         EventsService,
         { provide: getRepositoryToken(Event), useValue: eventRepoMock },
         { provide: getRepositoryToken(User), useValue: {} },
+        // Only the organizer/staff paths touch this repo; the public GET
+        // endpoints under test never reach it.
+        { provide: getRepositoryToken(EventStaff), useValue: {} },
       ],
     }).compile();
 
@@ -91,7 +110,7 @@ describe('Events endpoints (e2e)', () => {
   // ── GET /events ────────────────────────────────────────
   describe('GET /events', () => {
     it('200 – returns an array of active events', async () => {
-      eventRepoMock.find.mockResolvedValue([mockEvent]);
+      mockEventQuery([mockEvent]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 
@@ -101,7 +120,7 @@ describe('Events endpoints (e2e)', () => {
     });
 
     it('200 – returns an empty array when no events exist', async () => {
-      eventRepoMock.find.mockResolvedValue([]);
+      mockEventQuery([]);
 
       const res = await request(app.getHttpServer()).get('/events').expect(200);
 

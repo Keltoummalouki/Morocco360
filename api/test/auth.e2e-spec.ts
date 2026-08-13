@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService } from '../src/auth/auth.service';
+import { OAuthTokenService } from '../src/auth/oauth-token.service';
 import { LocalStrategy } from '../src/auth/strategies/local.strategy';
 import { JwtStrategy } from '../src/auth/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from '../src/auth/strategies/jwt-refresh.strategy';
@@ -79,6 +80,9 @@ describe('Auth endpoints (e2e)', () => {
       controllers: [AuthController],
       providers: [
         AuthService,
+        // Real instance: it only needs JwtService + ConfigService, both of
+        // which this module already provides, and AuthService depends on it.
+        OAuthTokenService,
         LocalStrategy,
         JwtStrategy,
         JwtRefreshStrategy,
