@@ -29,10 +29,27 @@ import {
   UpdateAdminEventDto,
 } from './dto/admin-event.dto';
 
+/**
+ * Renders one value for a CSV cell. Objects need handling explicitly — a bare
+ * String() on a row value would silently emit "[object Object]" into the export.
+ */
+function toCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value.toString();
+  }
+  if (value instanceof Date) return value.toISOString();
+  // Anything left is an object, symbol or function — none of which have a
+  // meaningful default string form, so serialise instead of emitting
+  // "[object Object]" into the export.
+  return JSON.stringify(value) ?? '';
+}
+
 function toCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return '';
   const headers = Object.keys(rows[0]);
-  const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const escape = (v: unknown) => `"${toCell(v).replace(/"/g, '""')}"`;
   const lines = [headers.join(',')];
   for (const row of rows) {
     lines.push(headers.map((h) => escape(row[h])).join(','));

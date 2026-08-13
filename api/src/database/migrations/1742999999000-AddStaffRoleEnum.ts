@@ -12,10 +12,12 @@ export class AddStaffRoleEnum1742999999000 implements MigrationInterface {
     // On a brand-new database the type doesn't exist yet — TypeORM runs
     // migrations before synchronize, and synchronize will create the enum
     // with STAFF already included (it's in the Role entity's TS enum).
-    const [type] = await queryRunner.query(
+    // queryRunner.query() is typed `any`; narrowing to unknown[] keeps the
+    // existence check honest without asserting a row shape we never read.
+    const types = (await queryRunner.query(
       `SELECT 1 FROM pg_type WHERE typname = 'roles_name_enum'`,
-    );
-    if (!type) return;
+    )) as unknown[];
+    if (types.length === 0) return;
 
     // PostgreSQL requires ALTER TYPE ... ADD VALUE to extend an existing enum.
     // TypeORM's synchronize cannot do this natively — it needs a migration.

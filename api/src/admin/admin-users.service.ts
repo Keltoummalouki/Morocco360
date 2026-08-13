@@ -127,10 +127,10 @@ export class AdminUsersService {
       'phone_number',
     ];
     for (const key of fields) {
-      if (dto[key] !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (user as any)[key] = dto[key];
-      }
+      const value = dto[key];
+      // Object.assign keeps the copy type-checked; indexing through `any`
+      // would silently accept a key the entity does not have.
+      if (value !== undefined) Object.assign(user, { [key]: value });
     }
     if (dto.date_of_birth !== undefined) {
       user.date_of_birth = dto.date_of_birth || null;

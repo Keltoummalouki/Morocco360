@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AdminPaymentsService, type InvoiceData } from './admin-payments.service';
+import { AdminPaymentsService } from './admin-payments.service';
 import {
   Payment,
   PaymentStatus,
@@ -77,7 +78,8 @@ describe('AdminPaymentsService', () => {
         },
       } as unknown as Payment);
 
-      const invoice = (await service.getInvoice(9)) as InvoiceData;
+      // getInvoice already returns InvoiceData — no assertion needed.
+      const invoice = await service.getInvoice(9);
 
       expect(invoice.lines).toHaveLength(2);
       const vip = invoice.lines.find((l) => l.description === 'VIP');

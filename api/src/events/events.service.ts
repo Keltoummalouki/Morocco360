@@ -84,9 +84,8 @@ export class EventsService {
     }
 
     // Sort
-    const dir = (filters.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
-      | 'ASC'
-      | 'DESC';
+    // The ternary already narrows to 'ASC' | 'DESC'.
+    const dir = filters.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
     if (filters.sort === 'price') {
       qb.orderBy(PRICE_SUBQUERY, dir);

@@ -170,10 +170,10 @@ export class AdminEventsService {
       'total_stock',
     ];
     for (const key of scalars) {
-      if (dto[key] !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (event as any)[key] = dto[key];
-      }
+      const value = dto[key];
+      // Object.assign keeps the copy type-checked; indexing through `any`
+      // would silently accept a key the entity does not have.
+      if (value !== undefined) Object.assign(event, { [key]: value });
     }
     if (dto.date_start !== undefined) event.date_start = new Date(dto.date_start);
     if (dto.date_end !== undefined) event.date_end = new Date(dto.date_end);

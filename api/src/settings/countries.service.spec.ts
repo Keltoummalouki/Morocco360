@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
@@ -39,7 +40,7 @@ describe('CountriesService', () => {
           useValue: {
             createQueryBuilder: jest.fn(),
             findOne: jest.fn(),
-            create: jest.fn((v) => v),
+            create: jest.fn((v: unknown) => v),
             save: jest.fn((v) => Promise.resolve({ id: 1, ...v })),
             remove: jest.fn(),
           },
