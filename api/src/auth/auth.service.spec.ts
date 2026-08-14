@@ -10,6 +10,8 @@ jest.mock('bcrypt', () => ({
 }));
 
 import { AuthService } from './auth.service';
+import { OAuthTokenService } from './oauth-token.service';
+import { OAuthProfileData } from './oauth.types';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { Role, RoleName } from '../users/entities/role.entity';
@@ -28,6 +30,9 @@ const mockUser = {
   date_of_birth: null,
   phone_number: null as unknown as string,
   refresh_token_hash: null,
+  google_id: null,
+  facebook_id: null,
+  avatar_url: null,
   status: 'ACTIVE' as const,
   created_at: new Date(),
   updated_at: new Date(),
@@ -42,6 +47,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
   let jwtService: jest.Mocked<JwtService>;
+  let oauthTokens: jest.Mocked<OAuthTokenService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,7 +60,12 @@ describe('AuthService', () => {
             findById: jest.fn(),
             create: jest.fn(),
             updateRefreshToken: jest.fn(),
+            findOrCreateFromOAuth: jest.fn(),
           },
+        },
+        {
+          provide: OAuthTokenService,
+          useValue: { consumeExchangeCode: jest.fn() },
         },
         {
           provide: JwtService,
@@ -73,6 +84,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     usersService = module.get(UsersService);
     jwtService = module.get(JwtService);
+    oauthTokens = module.get(OAuthTokenService);
   });
 
   afterEach(() => {
@@ -116,6 +128,80 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeNull();
+    });
+
+    it('returns null for a social account, without touching bcrypt', async () => {
+      // bcrypt.compare against a null hash would throw; a passwordless account
+      // must simply fail the password login.
+      usersService.findByEmail.mockResolvedValue({
+        ...mockUser,
+        password: null,
+      } as User);
+
+      const result = await service.validateUser('test@example.com', 'anything');
+
+      expect(result).toBeNull();
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── OAuth ────────────────────────────────────────────────
+  describe('validateOAuthUser', () => {
+    it('delegates to the users service', async () => {
+      const profile: OAuthProfileData = {
+        provider: 'google',
+        providerId: 'sub-1',
+        email: 'a@b.com',
+        emailVerified: true,
+        firstName: null,
+        lastName: null,
+        fullName: null,
+        avatarUrl: null,
+      };
+      usersService.findOrCreateFromOAuth.mockResolvedValue(mockUser);
+
+      await expect(service.validateOAuthUser(profile)).resolves.toEqual(
+        mockUser,
+      );
+      expect(usersService.findOrCreateFromOAuth).toHaveBeenCalledWith(profile);
+    });
+  });
+
+  describe('exchangeOAuthCode', () => {
+    beforeEach(() => {
+      jwtService.signAsync
+        .mockResolvedValueOnce('access.jwt')
+        .mockResolvedValueOnce('refresh.jwt');
+    });
+
+    it('spends the code and issues a token pair', async () => {
+      oauthTokens.consumeExchangeCode.mockReturnValue(1);
+      usersService.findById.mockResolvedValue(mockUser);
+
+      const result = await service.exchangeOAuthCode('the-code', 'the-nonce');
+
+      expect(oauthTokens.consumeExchangeCode).toHaveBeenCalledWith(
+        'the-code',
+        'the-nonce',
+      );
+      expect(result).toEqual({
+        accessToken: 'access.jwt',
+        refreshToken: 'refresh.jwt',
+      });
+      expect(usersService.updateRefreshToken).toHaveBeenCalledWith(
+        1,
+        'refresh.jwt',
+      );
+    });
+
+    it('throws when the code points at a user who no longer exists', async () => {
+      oauthTokens.consumeExchangeCode.mockReturnValue(404);
+      usersService.findById.mockResolvedValue(null);
+
+      await expect(
+        service.exchangeOAuthCode('the-code', 'the-nonce'),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(usersService.updateRefreshToken).not.toHaveBeenCalled();
     });
   });
 

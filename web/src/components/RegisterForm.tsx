@@ -4,11 +4,17 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 import { ROLE_HOME, apiRegister } from '@/lib/auth';
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { EnabledOAuthProviders } from '@/lib/oauth';
 
-export default function RegisterForm() {
+export default function RegisterForm({
+  oauthProviders,
+}: {
+  oauthProviders: EnabledOAuthProviders;
+}) {
   const [fields, setFields] = useState({
     firstName: '',
     lastName: '',
@@ -58,6 +64,8 @@ export default function RegisterForm() {
           Book tickets to events across Morocco — free to join.
         </p>
       </div>
+
+      <SocialAuthButtons providers={oauthProviders} />
 
       <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

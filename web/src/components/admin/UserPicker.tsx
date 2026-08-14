@@ -11,10 +11,18 @@ export default function UserPicker({
   role,
   onSelect,
   placeholder,
+  inline = false,
 }: {
   role: 'ORGANIZER' | 'STAFF';
   onSelect: (user: UserSearchResult) => void;
   placeholder?: string;
+  /**
+   * Render results in the document flow instead of floating above the page.
+   * Required inside a scrolling container (e.g. a modal body): an absolutely
+   * positioned list is clipped by the container and adds no scroll height, so
+   * there is no way to scroll it back into view.
+   */
+  inline?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<UserSearchResult[]>([]);
@@ -60,15 +68,19 @@ export default function UserPicker({
       {open && (
         <div
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            insetInlineStart: 0,
-            insetInlineEnd: 0,
+            ...(inline
+              ? { marginTop: '4px' }
+              : {
+                  position: 'absolute',
+                  top: 'calc(100% + 4px)',
+                  insetInlineStart: 0,
+                  insetInlineEnd: 0,
+                  boxShadow: '0 12px 32px -8px var(--shadow)',
+                  zIndex: 20,
+                }),
             background: 'var(--background)',
             border: '1px solid var(--border)',
             borderRadius: '6px',
-            boxShadow: '0 12px 32px -8px var(--shadow)',
-            zIndex: 20,
             maxHeight: '240px',
             overflowY: 'auto',
           }}

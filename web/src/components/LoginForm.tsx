@@ -5,9 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 import { DEV_USERS, ROLE_HOME, apiLogin } from '@/lib/auth';
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { EnabledOAuthProviders } from '@/lib/oauth';
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: 'var(--accent)',
@@ -15,13 +17,35 @@ const ROLE_COLORS: Record<string, string> = {
   USER: 'var(--primary)',
 };
 
-export default function LoginForm() {
+/** Reasons the API can bounce a social sign-in back to `/login?error=…`. */
+const OAUTH_ERRORS: Record<string, string> = {
+  oauth_cancelled: 'Sign-in was cancelled. You can try again or use your email.',
+  oauth_expired: 'That sign-in took too long. Please start again.',
+  oauth_email_taken:
+    'An account already uses this email. Sign in with your password below, then link the account from your profile.',
+  oauth_no_email:
+    'That account did not share an email address, which we need to create your profile.',
+  oauth_failed: 'We could not complete that sign-in. Please try again.',
+  api_unavailable: 'The server is unavailable right now. Please try again shortly.',
+};
+
+// Seed credentials are a local convenience — never ship them to real users.
+const SHOW_DEV_USERS = process.env.NODE_ENV === 'development';
+
+export default function LoginForm({
+  oauthProviders,
+}: {
+  oauthProviders: EnabledOAuthProviders;
+}) {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect');
+  const oauthError = searchParams.get('error');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(
+    oauthError ? OAUTH_ERRORS[oauthError] ?? OAUTH_ERRORS.oauth_failed : '',
+  );
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -47,6 +71,8 @@ export default function LoginForm() {
           Sign in to book tickets and manage your events.
         </p>
       </div>
+
+      <SocialAuthButtons providers={oauthProviders} redirect={redirectTo} />
 
       <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
         <div className="grid gap-2">
@@ -98,7 +124,8 @@ export default function LoginForm() {
         </Button>
       </form>
 
-      {/* Dev quick access */}
+      {/* Dev quick access — development builds only */}
+      {SHOW_DEV_USERS && (
       <div className="mt-8 rounded-xl border border-border bg-muted p-5">
         <p className="mb-3 text-[0.6875rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
           Dev — Quick access
@@ -125,6 +152,7 @@ export default function LoginForm() {
           ))}
         </div>
       </div>
+      )}
 
       <div className="mt-7 border-t border-border pt-6 text-center">
         <p className="text-[0.9375rem] text-muted-foreground">

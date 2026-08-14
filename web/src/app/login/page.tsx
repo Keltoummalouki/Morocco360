@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import AuthShell from '@/components/auth/AuthShell';
 import LoginForm from '@/components/LoginForm';
+import { getEnabledOAuthProviders } from '@/lib/oauth-server';
 
 export const metadata: Metadata = {
   title: 'Sign in',
@@ -15,6 +16,8 @@ const STATS: Array<[string, string]> = [
 ];
 
 export default function LoginPage() {
+  const oauthProviders = getEnabledOAuthProviders();
+
   return (
     <AuthShell
       aside={
@@ -42,7 +45,7 @@ export default function LoginPage() {
           <div className="w-full max-w-md text-sm text-muted-foreground">Loading…</div>
         }
       >
-        <LoginForm />
+        <LoginForm oauthProviders={oauthProviders} />
       </Suspense>
     </AuthShell>
   );

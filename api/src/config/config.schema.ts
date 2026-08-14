@@ -1,6 +1,15 @@
 import * as Joi from 'joi';
 
 export const configValidationSchema = Joi.object({
+  // Social sign-in (optional — a provider is offered only when its pair is set).
+  // `.empty('')` maps a blank value to undefined, so the placeholders in
+  // .env.example and docker-compose read as "not configured" rather than
+  // as an invalid empty credential.
+  GOOGLE_CLIENT_ID: Joi.string().empty('').optional(),
+  GOOGLE_CLIENT_SECRET: Joi.string().empty('').optional(),
+  FACEBOOK_APP_ID: Joi.string().empty('').optional(),
+  FACEBOOK_APP_SECRET: Joi.string().empty('').optional(),
+
   // Database
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgres', 'postgresql'] })
@@ -62,4 +71,9 @@ export const configValidationSchema = Joi.object({
     .default('development'),
   PORT: Joi.number().default(3001),
   FRONTEND_URL: Joi.string().uri().required(),
-});
+  // Base URL the browser and the OAuth providers use to reach this API.
+  API_PUBLIC_URL: Joi.string().uri().empty('').default('http://localhost:4000'),
+})
+  // Half a credential pair is a misconfiguration, not a disabled provider.
+  .and('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
+  .and('FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET');

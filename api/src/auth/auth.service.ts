@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { OAuthProfileData } from './oauth.types';
+import { OAuthTokenService } from './oauth-token.service';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -12,13 +14,32 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private config: ConfigService,
+    private oauthTokens: OAuthTokenService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
     if (!user) return null;
+    // Social accounts have no password — they can only sign in via the provider.
+    if (!user.password) return null;
     const isMatch = await bcrypt.compare(password, user.password);
     return isMatch ? user : null;
+  }
+
+  /** Called by the Google / Facebook strategies once the provider vouches for a profile. */
+  async validateOAuthUser(profile: OAuthProfileData): Promise<User> {
+    return this.usersService.findOrCreateFromOAuth(profile);
+  }
+
+  /**
+   * Trade the single-use code from the social callback for a real token pair.
+   * Called server-to-server by the web app's BFF, never by the browser.
+   */
+  async exchangeOAuthCode(code: string, nonce: string) {
+    const userId = this.oauthTokens.consumeExchangeCode(code, nonce);
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException();
+    return this.login(user);
   }
 
   async register(dto: RegisterDto) {
