@@ -1,4 +1,5 @@
 import LogoMark from '@/components/LogoMark';
+import { cn } from '@/lib/utils';
 
 /**
  * Morocco360 brand lockup — the pictorial mark (LogoMark) next to the
@@ -20,51 +21,22 @@ export default function Logo({
   const light = tone === 'light';
   const word = light ? '#ffffff' : 'var(--foreground)';
 
+  // Layout/typography live in globals.css (`.m360-logo*`) so responsive rules
+  // can shrink the lockup (the nav scales the mark down on phones); only the
+  // tone-dependent colours stay inline.
   return (
-    <span
-      className={className}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}
-    >
+    <span className={cn('m360-logo', className)}>
       <LogoMark size={size} />
 
-      <span
-        style={{
-          display: 'inline-flex',
-          flexDirection: 'column',
-          gap: 3,
-          lineHeight: 1,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-jakarta), system-ui, sans-serif',
-            fontWeight: 800,
-            fontSize: '1.15rem',
-            letterSpacing: '-0.02em',
-            color: word,
-          }}
-        >
+      <span className="m360-logo-stack">
+        <span className="m360-logo-word" style={{ color: word }}>
           Morocco
-          <span
-            style={{
-              background: 'linear-gradient(92deg, #E7A43A 0%, #C25A32 100%)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            360
-          </span>
+          <span className="m360-logo-360">360</span>
         </span>
         {tagline && (
           <span
-            style={{
-              fontFamily: 'var(--font-jakarta), system-ui, sans-serif',
-              fontWeight: 600,
-              fontSize: '0.5rem',
-              letterSpacing: '0.2em',
-              color: light ? 'rgba(255,255,255,0.72)' : 'var(--foreground-dim)',
-            }}
+            className="m360-logo-tagline"
+            style={{ color: light ? 'rgba(255,255,255,0.72)' : 'var(--foreground-dim)' }}
           >
             DISCOVER · BOOK · EXPERIENCE
           </span>

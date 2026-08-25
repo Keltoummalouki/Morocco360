@@ -3,13 +3,14 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 /**
  * Icon toggle. Icon visibility is driven by the `[data-theme]` attribute via
  * the `dark:` variant (wired to that attribute in globals.css), so there's no
  * server/client render mismatch — no hydration flash.
  */
-export default function ThemeToggle() {
+export default function ThemeToggle({ className }: { className?: string }) {
   const { toggle } = useTheme();
   return (
     <Button
@@ -17,7 +18,7 @@ export default function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggle}
-      className="text-foreground"
+      className={cn('text-foreground', className)}
       title="Toggle theme"
       aria-label="Toggle theme"
     >

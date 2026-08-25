@@ -1201,6 +1201,38 @@ body {
 
 
 /* ══════════════════════════════════════════════════════════
+   BRAND LOCKUP (<Logo />)
+   Sizes live here so nav/footer can scale the lockup responsively;
+   the tone-dependent colours stay inline in the component.
+   ══════════════════════════════════════════════════════════ */
+.m360-logo { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.m360-logo-stack { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; min-width: 0; }
+.m360-logo-word { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; white-space: nowrap; }
+.m360-logo-360 { background: linear-gradient(92deg, #E7A43A 0%, #C25A32 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.m360-logo-tagline { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 600; font-size: 0.5rem; letter-spacing: 0.2em; white-space: nowrap; }
+
+
+/* ══════════════════════════════════════════════════════════
+   LOCALE SWITCHER (<LocaleSwitcher />)
+   ══════════════════════════════════════════════════════════ */
+.locale-switch { display: flex; gap: 2px; padding: 2px; background: var(--surface); border: 1px solid var(--border); }
+/* min-width/height keep the target at the WCAG 2.2 SC 2.5.8 (24×24) floor even
+   in the compacted phone nav. */
+.locale-switch-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 26px; min-height: 26px;
+  padding: 4px 9px; font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.05em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  color: var(--muted); background: transparent; border: none; cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.locale-switch-btn.is-ar { font-family: var(--font-arabic), system-ui; font-size: 0.9375rem; letter-spacing: 0; }
+.locale-switch-btn:hover { color: var(--foreground); }
+.locale-switch-btn.active { font-weight: 700; color: var(--primary); background: var(--background); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.locale-switch-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+
+/* ══════════════════════════════════════════════════════════
    EVENTS HOME — Imperial Trinity (Stitch design)
    Namespaced .ev-* so it never collides with the app-wide kit
    (.btn-primary, .feature-card, .search-input, etc.)
@@ -1226,41 +1258,72 @@ body {
 .ev-btn--ghost:hover { background: var(--primary-glow-soft); }
 .ev-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 
-/* Nav */
+/* Nav — base rules first, responsive overrides at the end of the block so the
+   media queries actually win (equal specificity = last one applies). */
 .ev-nav { position: sticky; top: 0; z-index: 50; background: var(--glass-bg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .ev-nav-inner { display: flex; align-items: center; gap: 24px; height: 64px; }
-.ev-brand { font-family: var(--font-jakarta), system-ui; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--foreground); text-decoration: none; }
-.ev-brand > span { color: var(--primary); }
+.ev-nav-brand { display: inline-flex; align-items: center; flex: 0 1 auto; min-width: 0; overflow: hidden; }
 .ev-nav-links { display: flex; gap: 26px; margin-inline-start: 20px; }
-/* Keep primary nav reachable on phones: wrap it to a scrollable second row
-   rather than hiding it (there is no hamburger menu). */
+.ev-nav-link { font-size: 0.9rem; font-weight: 500; color: var(--foreground-dim); text-decoration: none; position: relative; padding-block: 6px; }
+.ev-nav-link:hover { color: var(--foreground); }
+.ev-nav-link.active { color: var(--primary); }
+.ev-nav-link.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--primary); border-radius: 2px; }
+.ev-nav-right { margin-inline-start: auto; display: flex; align-items: center; gap: 14px; flex: none; }
+
+/* Phones + small tablets: two explicit rows — brand · controls, then the links.
+   Grid, not `flex-wrap`: a flex line breaks on each item's *unshrunk* width, so
+   a long label (ar "تسجيل الدخول") would still push the controls onto a row of
+   their own. Grid pins them to row 1 and lets the brand column absorb the
+   squeeze instead. */
 @media (max-width: 820px) {
-  .ev-nav-inner { flex-wrap: wrap; height: auto; padding-block: 10px; gap: 10px; }
+  .ev-nav-inner {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; height: auto; padding-block: 10px; gap: 10px;
+  }
+  /* Explicit rows: auto-placement follows DOM order (brand · links · controls)
+     and never backtracks, so the controls would land on a third row. */
+  .ev-nav-brand { grid-column: 1; grid-row: 1; }
+  .ev-nav-right { grid-column: 2; grid-row: 1; margin-inline-start: 0; gap: 8px; }
   .ev-nav-links {
-    order: 3; flex-basis: 100%; margin-inline-start: 0; gap: 18px;
+    grid-column: 1 / -1; grid-row: 2; margin-inline-start: 0; gap: 18px;
     overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
   }
   .ev-nav-links::-webkit-scrollbar { display: none; }
-  /* Keep Sign In visible on phones: shrink the cluster and drop the bell
-     (notifications are a signed-in concern anyway). */
-  .ev-nav-right { gap: 8px; flex-wrap: nowrap; min-width: 0; }
-  .ev-nav-right .ev-icon-btn { display: none; }
 }
+/* Phones: shrink the lockup and the control cluster so both fit that first row.
+   639.98px so this tiles with Tailwind's `sm:` (min-width: 640px) instead of
+   overlapping it by a pixel. */
+@media (max-width: 639.98px) {
+  .ev-nav-inner { gap: 8px; padding-block: 8px; }
+  .ev-nav-brand .m360-logo { gap: 7px; }
+  .ev-nav-brand .m360-logo > svg { width: 28px; height: 28px; }
+  .ev-nav-brand .m360-logo-word { font-size: 0.9375rem; }
+  .ev-nav-right { gap: 6px; }
+  .ev-nav-right .locale-switch { padding: 1px; gap: 1px; }
+  .ev-nav-right .locale-switch-btn { padding-inline: 6px; }
+}
+/* Small phones (360px Android, iPhone SE): squeeze a little further so the
+   wordmark still fits next to the controls. */
 @media (max-width: 420px) {
-  .ev-brand { font-size: 1rem; }
-  .ev-nav-right .ev-btn--primary { padding: 8px 12px; font-size: 0.8125rem; }
+  .ev-nav-brand .m360-logo { gap: 5px; }
+  .ev-nav-brand .m360-logo > svg { width: 26px; height: 26px; }
+  .ev-nav-brand .m360-logo-word { font-size: 0.875rem; }
+  .ev-nav-right { gap: 5px; }
+  .ev-nav-right .locale-switch-btn { padding-inline: 4px; }
+}
+/* Smallest phones: the mark alone carries the brand. Arabic drops it sooner —
+   "تسجيل الدخول" is a much wider CTA than "Connexion"/"Sign In", and in RTL an
+   overflowing wordmark is clipped at its *start* ("lorocco360"). */
+@media (max-width: 400px) {
+  [dir="rtl"] .ev-nav-brand .m360-logo-word { display: none; }
+}
+@media (max-width: 340px) {
+  .ev-nav-brand .m360-logo-word { display: none; }
 }
 
 /* Directional glyph that mirrors in RTL */
 .ev-arrow { display: inline-block; }
 [dir="rtl"] .ev-arrow { transform: scaleX(-1); }
-.ev-nav-link { font-size: 0.9rem; font-weight: 500; color: var(--foreground-dim); text-decoration: none; position: relative; padding-block: 6px; }
-.ev-nav-link:hover { color: var(--foreground); }
-.ev-nav-link.active { color: var(--primary); }
-.ev-nav-link.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--primary); border-radius: 2px; }
-.ev-nav-right { margin-inline-start: auto; display: flex; align-items: center; gap: 14px; }
-.ev-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground-dim); cursor: pointer; }
-.ev-icon-btn:hover { color: var(--primary); border-color: var(--primary-glow); }
 
 /* Hero */
 .ev-hero { padding-top: clamp(16px, 3vw, 28px); }

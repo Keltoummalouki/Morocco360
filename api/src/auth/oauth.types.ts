@@ -17,9 +17,31 @@ export function isProviderConfigured(
   return PROVIDER_ENV[provider].every((key) => !!config.get<string>(key));
 }
 
-/** Public base URL of this API — must be reachable by the browser and by the provider. */
-export function apiPublicUrl(config: ConfigService): string {
-  return config.get<string>('API_PUBLIC_URL', 'http://localhost:4000');
+/**
+ * Public base URL of this API — must be reachable by the browser and by the
+ * provider. Validated at boot (see `config.schema.ts`): defaulted for local
+ * dev, and held to a public https URL in production once a provider is
+ * configured, so it is always present here.
+ */
+function apiPublicUrl(config: ConfigService): string {
+  return config.getOrThrow<string>('API_PUBLIC_URL');
+}
+
+/**
+ * The callback the provider must redirect to, which has to match the URI
+ * registered with it byte for byte.
+ *
+ * Trailing slashes are trimmed rather than the whole thing resolved through
+ * `URL`, which would silently drop a base path — an API served at
+ * `https://host/api` must keep it. Either slip produces the same
+ * `redirect_uri_mismatch`, visible only in production.
+ */
+export function oauthCallbackUrl(
+  config: ConfigService,
+  provider: OAuthProvider,
+): string {
+  const base = apiPublicUrl(config).replace(/\/+$/, '');
+  return `${base}/auth/${provider}/callback`;
 }
 
 /** Provider profile normalised to the fields we actually persist. */

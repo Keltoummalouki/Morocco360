@@ -32,7 +32,28 @@ services:
         value: 7d
       - key: QR_HMAC_SECRET
         generateValue: true
+      # Public URL of the deployed web app. The social sign-in callback sends
+      # the browser back here, so a stale localhost value strands real users on
+      # their own machine. Boot fails if it is missing or localhost.
       - key: FRONTEND_URL
+        sync: false
+      # Public URL of *this* service (https://<name>.onrender.com). Used to
+      # build the OAuth callback the providers redirect to, so it must match
+      # the redirect URI registered with Google/Facebook exactly.
+      - key: API_PUBLIC_URL
+        sync: false
+      # Social sign-in. Each pair is all-or-nothing: set both keys to enable a
+      # provider, or leave both unset to hide its button. Half a pair fails
+      # validation at boot.
+      #   Google:   {API_PUBLIC_URL}/auth/google/callback
+      #   Facebook: {API_PUBLIC_URL}/auth/facebook/callback
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
         sync: false
       - key: STRIPE_SECRET_KEY
         sync: false

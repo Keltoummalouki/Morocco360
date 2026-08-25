@@ -34,13 +34,37 @@
 
 - [ ] `NODE_ENV=production` set
 - [ ] Config validation passing (Joi schema)
-- [ ] All required env vars present:
+- [ ] All required env vars present **on the API**:
   - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
   - `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
   - `QR_HMAC_SECRET`
-  - `FRONTEND_URL`
+  - `FRONTEND_URL` — public https URL of the web app
+  - `API_PUBLIC_URL` — public https URL of the API itself (required once a
+    social provider is configured)
   - `MAIL_*` (if using email)
   - `STRIPE_*` (if using payments)
+- [ ] All required env vars present **on the web app** — these are easy to miss
+      because the API's Joi schema cannot check them:
+  - `API_URL` — where the Next server reaches the API (server-to-server)
+  - `API_PUBLIC_URL` — where the *browser* reaches the API, for the social
+    sign-in redirects. Must match the API's own `API_PUBLIC_URL`.
+  - `GOOGLE_CLIENT_ID` / `FACEBOOK_APP_ID` — client ids only, never the
+    secrets; they only decide which buttons render.
+
+#### Social sign-in
+
+Every URL in the redirect chain must be public — a leftover `localhost`
+anywhere sends real users to their own machine, where sign-in dies on a missing
+cookie and reports the misleading "that sign-in took too long".
+
+- [ ] `API_PUBLIC_URL` identical on the API and the web app
+- [ ] Redirect URIs registered with each provider, matching exactly:
+  - Google: `{API_PUBLIC_URL}/auth/google/callback`
+  - Facebook: `{API_PUBLIC_URL}/auth/facebook/callback`
+- [ ] The dev redirect URIs (`http://localhost:4000/...`) removed from, or kept
+      separate from, the production OAuth client — otherwise a misconfigured
+      deploy is accepted by the provider instead of failing fast
+- [ ] End-to-end sign-in tested on the deployed domain, not just locally
 - [ ] Logging level appropriate for production
 - [ ] Error tracking configured (Sentry, etc.)
 

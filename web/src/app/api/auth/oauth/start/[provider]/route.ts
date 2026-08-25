@@ -1,10 +1,12 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  apiPublicUrl,
+  apiPublicUrlFor,
   isOAuthProvider,
+  isStrandingRedirect,
   NONCE_COOKIE,
   nonceCookieOptions,
+  requestHostname,
   safeRedirect,
 } from '@/lib/oauth';
 
@@ -28,15 +30,28 @@ export async function GET(
   { params }: { params: Promise<{ provider: string }> },
 ) {
   const { provider } = await params;
-  if (!isOAuthProvider(provider)) {
-    return NextResponse.redirect(
-      new URL('/login?error=oauth_failed', request.url),
+  if (!isOAuthProvider(provider)) return failed(request);
+
+  const target = apiPublicUrlFor(`/auth/${provider}`);
+  const host = requestHostname(
+    request.headers.get('x-forwarded-host'),
+    request.headers.get('host'),
+    request.nextUrl.hostname,
+  );
+
+  // Refuse the redirect that would strand the user on their own machine rather
+  // than performing it and failing confusingly two hops later.
+  if (isStrandingRedirect(host, target)) {
+    console.error(
+      `[oauth] API_PUBLIC_URL is "${target.origin}" but this request came from ` +
+        `"${host}". Set API_PUBLIC_URL to the public URL of the API, and ` +
+        `register ${target.origin}/auth/${provider}/callback with the provider.`,
     );
+    return failed(request);
   }
 
   const nonce = randomBytes(32).toString('hex');
 
-  const target = new URL(`/auth/${provider}`, apiPublicUrl());
   target.searchParams.set(
     'nonce',
     createHash('sha256').update(nonce).digest('hex'),
@@ -48,4 +63,11 @@ export async function GET(
   const response = NextResponse.redirect(target);
   response.cookies.set(NONCE_COOKIE, nonce, nonceCookieOptions());
   return response;
+}
+
+/** Back to the login page with the generic reason, as the callback route does. */
+function failed(request: NextRequest) {
+  return NextResponse.redirect(
+    new URL('/login?error=oauth_failed', request.url),
+  );
 }

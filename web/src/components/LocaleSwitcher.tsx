@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { useLocale } from './LocaleProvider';
 import type { Locale } from '@/lib/i18n';
 import { LOCALES } from '@/lib/i18n';
@@ -10,8 +11,6 @@ const LOCALE_META: Record<Locale, { label: string; name: string }> = {
   ar: { label: 'ع',  name: 'العربية'   },
   en: { label: 'EN', name: 'English'   },
 };
-
-const ACCENT = 'var(--primary)';
 
 export default function LocaleSwitcher() {
   const { locale } = useLocale();
@@ -27,16 +26,10 @@ export default function LocaleSwitcher() {
     router.refresh();
   }
 
+  // Styling lives in globals.css (`.locale-switch*`) so the nav can compact it
+  // on small screens.
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '2px',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        padding: '2px',
-      }}
-    >
+    <div className="locale-switch">
       {LOCALES.map((loc) => {
         const active = loc === locale;
         const { label, name } = LOCALE_META[loc];
@@ -46,22 +39,11 @@ export default function LocaleSwitcher() {
             type="button"
             onClick={() => switchLocale(loc)}
             title={name}
-            style={{
-              padding: '4px 9px',
-              fontSize: loc === 'ar' ? '0.9375rem' : '0.6875rem',
-              fontWeight: active ? 700 : 400,
-              color: active ? ACCENT : 'var(--muted)',
-              background: active ? 'var(--background)' : 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              letterSpacing: loc !== 'ar' ? '0.05em' : '0',
-              fontFamily:
-                loc === 'ar'
-                  ? 'var(--font-arabic), system-ui'
-                  : 'var(--font-inter), system-ui, sans-serif',
-              boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
+            lang={loc}
+            // aria-current, not aria-pressed: these are three mutually
+            // exclusive choices, not three independent toggles.
+            aria-current={active ? 'true' : undefined}
+            className={cn('locale-switch-btn', loc === 'ar' && 'is-ar', active && 'active')}
           >
             {label}
           </button>
