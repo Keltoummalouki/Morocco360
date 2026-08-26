@@ -21,9 +21,9 @@ export const ROLE_LABEL: Record<Role, string> = {
  * Passwords are already in the README — this is dev-only convenience, not secret storage.
  */
 export const DEV_USERS = [
-  { email: 'admin@morocco360.ma',     password: 'Admin1234',     role: 'ADMIN'     as Role, name: 'Administrator'  },
-  { email: 'organizer@morocco360.ma', password: 'Organizer1234', role: 'ORGANIZER' as Role, name: 'Event Organizer' },
-  { email: 'user@morocco360.ma',      password: 'User1234',      role: 'USER'      as Role, name: 'Test User'       },
+  { email: 'admin@eventhub.com',     password: 'Admin1234',     role: 'ADMIN'     as Role, name: 'Administrator'  },
+  { email: 'organizer@eventhub.com', password: 'Organizer1234', role: 'ORGANIZER' as Role, name: 'Event Organizer' },
+  { email: 'user@eventhub.com',      password: 'User1234',      role: 'USER'      as Role, name: 'Test User'       },
 ];
 
 // ── Client-side API helpers ────────────────────────────────

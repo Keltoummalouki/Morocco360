@@ -1,4 +1,4 @@
--- Morocco360 initial schema for Supabase Postgres.
+-- EventHub initial schema for Supabase Postgres.
 --
 -- The NestJS API connects as a trusted database client. Browser access through
 -- the Supabase Data API is intentionally disabled: every table has RLS enabled

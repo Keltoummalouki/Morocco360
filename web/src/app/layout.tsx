@@ -41,8 +41,8 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Morocco360 — Discover & book events across Morocco',
-    template: '%s · Morocco360',
+    default: 'EventHub — Discover & book events across Morocco',
+    template: '%s · EventHub',
   },
   description:
     'Discover concerts, festivals, matches and cultural events across Morocco — and book secure tickets in seconds. From the medina to the main stage.',

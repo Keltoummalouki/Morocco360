@@ -21,7 +21,7 @@ export default function ConfidenceSection({ locale }: { locale: Locale }) {
   const h = getTranslations(locale).home;
   const items = [
     { icon: ShieldIcon, title: h.conf1Title, body: h.conf1Body, color: 'var(--primary)', bg: 'var(--primary-glow-soft)' },
-    { icon: CultureIcon, title: h.conf2Title, body: h.conf2Body, color: 'var(--gold-strong)', bg: 'rgba(253,187,36,0.16)' },
+    { icon: CultureIcon, title: h.conf2Title, body: h.conf2Body, color: 'var(--highlight-strong)', bg: 'rgba(0,184,217,0.16)' },
     { icon: QrIcon, title: h.conf3Title, body: h.conf3Body, color: 'var(--primary)', bg: 'var(--primary-glow-soft)' },
   ];
 

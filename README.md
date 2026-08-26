@@ -1,4 +1,4 @@
-# Morocco360
+# EventHub
 
 **Plateforme centralisee pour tous les evenements au Maroc**
 
@@ -6,7 +6,7 @@
 
 ## Vue d'ensemble
 
-Morocco360 est une plateforme web permettant aux utilisateurs (locaux et touristes) de decouvrir, reserver et gerer des evenements au Maroc.
+EventHub est une plateforme web permettant aux utilisateurs (locaux et touristes) de decouvrir, reserver et gerer des evenements au Maroc.
 
 **Objectif principal** : Simplifier l'acces aux evenements au Maroc tout en offrant une experience utilisateur fluide et securisee.
 
@@ -73,7 +73,7 @@ pas a pas : **[docs/SUPABASE_DEPLOYMENT.md](docs/SUPABASE_DEPLOYMENT.md)**.
 ## Structure du projet
 
 ```
-morocco360/
+eventhub/
 ├── api/                        # Backend NestJS
 │   ├── src/
 │   │   ├── auth/               # Module authentification
@@ -146,8 +146,8 @@ morocco360/
 ### 1. Cloner et configurer
 
 ```bash
-git clone https://github.com/Keltoummalouki/Morocco360.git
-cd Morocco360
+git clone https://github.com/Keltoummalouki/EventHub.git
+cd EventHub
 ```
 
 ### 2. Demarrer la base de donnees
@@ -168,9 +168,9 @@ Variables a renseigner dans `api/.env` :
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=morocco360_user
-DB_PASS=morocco360_pass
-DB_NAME=morocco360
+DB_USER=eventhub_user
+DB_PASS=eventhub_pass
+DB_NAME=eventhub
 
 NODE_ENV=development
 
@@ -200,9 +200,9 @@ Comptes crees par le seeder :
 
 | Email                   | Mot de passe  | Role      |
 |-------------------------|---------------|-----------|
-| admin@morocco360.ma     | Admin1234     | ADMIN     |
-| organizer@morocco360.ma | Organizer1234 | ORGANIZER |
-| user@morocco360.ma      | User1234      | USER      |
+| admin@eventhub.com     | Admin1234     | ADMIN     |
+| organizer@eventhub.com | Organizer1234 | ORGANIZER |
+| user@eventhub.com      | User1234      | USER      |
 
 ---
 

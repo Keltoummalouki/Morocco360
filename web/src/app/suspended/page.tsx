@@ -39,7 +39,7 @@ export default function SuspendedPage() {
 
       {/* Contact */}
       <a
-        href="mailto:support@morocco360.ma"
+        href="mailto:support@eventhub.com"
         style={{
           display: 'inline-block', padding: '11px 28px',
           background: '#C2533A', color: '#fff',

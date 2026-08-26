@@ -3,7 +3,7 @@ import InfoPage from '@/components/InfoPage';
 
 export const metadata: Metadata = {
   title: 'Support',
-  description: 'Get help with your Morocco360 bookings, tickets and account.',
+  description: 'Get help with your EventHub bookings, tickets and account.',
 };
 
 export default function SupportPage() {
@@ -19,10 +19,10 @@ export default function SupportPage() {
       <p>
         A full help centre is on the way. In the meantime, reach us at{' '}
         <a
-          href="mailto:support@morocco360.com"
+          href="mailto:support@eventhub.com"
           className="text-primary underline underline-offset-2"
         >
-          support@morocco360.com
+          support@eventhub.com
         </a>
         .
       </p>

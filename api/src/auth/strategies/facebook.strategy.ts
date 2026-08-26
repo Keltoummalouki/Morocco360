@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-facebook';
 import { AuthService } from '../auth.service';
-import { apiPublicUrl, OAuthProfileData } from '../oauth.types';
+import { oauthCallbackUrl, OAuthProfileData } from '../oauth.types';
 import { User } from '../../users/entities/user.entity';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     super({
       clientID: config.getOrThrow<string>('FACEBOOK_APP_ID'),
       clientSecret: config.getOrThrow<string>('FACEBOOK_APP_SECRET'),
-      callbackURL: `${apiPublicUrl(config)}/auth/facebook/callback`,
+      callbackURL: oauthCallbackUrl(config, 'facebook'),
       scope: ['email'],
       // Facebook returns only `id` and `name` unless the fields are requested.
       profileFields: ['id', 'displayName', 'name', 'emails', 'photos'],

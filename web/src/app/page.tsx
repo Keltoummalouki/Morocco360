@@ -8,7 +8,7 @@ import OrganizerSection from '@/components/home/OrganizerSection';
 import EventsFooter from '@/components/home/EventsFooter';
 
 /**
- * Morocco360 — events home (Imperial Trinity, matches the Stitch design).
+ * EventHub — events home (Imperial Trinity, matches the Stitch design).
  * Server Component: resolves locale from cookie, renders the six sections.
  * All styling is scoped under `.ev`.
  */

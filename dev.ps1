@@ -1,4 +1,4 @@
-# Morocco360 - unified dev starter
+# EventHub - unified dev starter
 # Usage:
 #   .\dev.ps1              - lint + test + seed + start servers
 #   .\dev.ps1 -SkipLint    - skip lint
@@ -48,7 +48,7 @@ function Run  { param($dir, $cmd)
 }
 
 Write-Host ""
-Write-Host "  Morocco360 - Dev Starter" -ForegroundColor Magenta
+Write-Host "  EventHub - Dev Starter" -ForegroundColor Magenta
 Write-Host "  API  ->  http://localhost:$apiPort"
 Write-Host "  Web  ->  http://localhost:$webPort"
 Write-Host ""

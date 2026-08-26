@@ -10,7 +10,7 @@ export default function UserAppBar({ email }: { email: string }) {
   return (
     <header className="ev-nav">
       <nav className="ev-container ev-nav-inner">
-        <Link href="/user/events" aria-label="Morocco360">
+        <Link href="/user/events" className="ev-nav-brand" aria-label="EventHub">
           <Logo />
         </Link>
         <UserNavTabs />

@@ -3,17 +3,17 @@ import InfoPage from '@/components/InfoPage';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'The terms that govern the use of Morocco360.',
+  description: 'The terms that govern the use of EventHub.',
 };
 
 export default function TermsPage() {
   return (
     <InfoPage
       title="Terms of Service"
-      intro="The terms that govern your use of Morocco360."
+      intro="The terms that govern your use of EventHub."
     >
       <p>
-        Tickets bought through Morocco360 are issued as signed QR codes and are valid for a single
+        Tickets bought through EventHub are issued as signed QR codes and are valid for a single
         entry to the event they were issued for. Refunds and changes follow the policy set by each
         event organizer.
       </p>

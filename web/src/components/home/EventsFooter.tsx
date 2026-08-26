@@ -8,9 +8,9 @@ export default function EventsFooter({ locale }: { locale: Locale }) {
     <footer className="ev-footer">
       <div className="ev-container ev-footer-inner">
         <div>
-          <Link href="/" aria-label="Morocco360 — home"><Logo size={26} /></Link>
+          <Link href="/" aria-label="EventHub — home"><Logo size={26} /></Link>
           <p style={{ fontSize: '0.8125rem', color: 'var(--muted)', marginTop: 6 }}>
-            © {new Date().getFullYear()} Morocco360. {h.footRights}
+            © {new Date().getFullYear()} EventHub. {h.footRights}
           </p>
         </div>
         <div className="ev-foot-links">

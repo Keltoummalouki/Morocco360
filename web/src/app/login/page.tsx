@@ -6,7 +6,7 @@ import { getEnabledOAuthProviders } from '@/lib/oauth-server';
 
 export const metadata: Metadata = {
   title: 'Sign in',
-  description: 'Sign in to Morocco360 to book tickets to events across Morocco.',
+  description: 'Sign in to EventHub to book tickets to events across Morocco.',
 };
 
 const STATS: Array<[string, string]> = [

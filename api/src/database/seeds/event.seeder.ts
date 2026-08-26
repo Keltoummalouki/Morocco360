@@ -41,10 +41,10 @@ interface SeedEvent {
   categories: SeedTicketCategory[];
 }
 
-const ORGANIZER_1 = 'organizer@morocco360.ma';
-const ORGANIZER_2 = 'organizer2@morocco360.ma';
-const STAFF_1 = 'staff@morocco360.ma';
-const STAFF_2 = 'staff2@morocco360.ma';
+const ORGANIZER_1 = 'organizer@eventhub.com';
+const ORGANIZER_2 = 'organizer2@eventhub.com';
+const STAFF_1 = 'staff@eventhub.com';
+const STAFF_2 = 'staff2@eventhub.com';
 
 const SEED_EVENTS: SeedEvent[] = [
   {

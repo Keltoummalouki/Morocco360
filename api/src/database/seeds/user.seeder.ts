@@ -25,18 +25,18 @@ interface SeedUser {
 const SEED_USERS: SeedUser[] = [
   {
     username: 'admin',
-    email: 'admin@morocco360.ma',
+    email: 'admin@eventhub.com',
     password: 'Admin1234',
     full_name: 'Administrator',
     first_name: 'Admin',
-    last_name: 'Morocco360',
+    last_name: 'EventHub',
     phone_number: '+212600000001',
     date_of_birth: '1988-01-15',
     roleName: RoleName.ADMIN,
   },
   {
     username: 'organizer',
-    email: 'organizer@morocco360.ma',
+    email: 'organizer@eventhub.com',
     password: 'Organizer1234',
     full_name: 'Event Organizer',
     first_name: 'Event',
@@ -47,7 +47,7 @@ const SEED_USERS: SeedUser[] = [
   },
   {
     username: 'organizer2',
-    email: 'organizer2@morocco360.ma',
+    email: 'organizer2@eventhub.com',
     password: 'Organizer1234',
     full_name: 'Yasmine Alaoui',
     first_name: 'Yasmine',
@@ -58,7 +58,7 @@ const SEED_USERS: SeedUser[] = [
   },
   {
     username: 'staff',
-    email: 'staff@morocco360.ma',
+    email: 'staff@eventhub.com',
     password: 'Staff1234',
     full_name: 'Hicham Benali',
     first_name: 'Hicham',
@@ -69,7 +69,7 @@ const SEED_USERS: SeedUser[] = [
   },
   {
     username: 'staff2',
-    email: 'staff2@morocco360.ma',
+    email: 'staff2@eventhub.com',
     password: 'Staff1234',
     full_name: 'Loubna Cherkaoui',
     first_name: 'Loubna',
@@ -80,7 +80,7 @@ const SEED_USERS: SeedUser[] = [
   },
   {
     username: 'user',
-    email: 'user@morocco360.ma',
+    email: 'user@eventhub.com',
     password: 'User1234',
     full_name: 'Test User',
     first_name: 'Test',
@@ -169,7 +169,7 @@ const SEED_USERS: SeedUser[] = [
   {
     // Locked account — exercises the /suspended page and the admin ban flow.
     username: 'suspended',
-    email: 'suspended@morocco360.ma',
+    email: 'suspended@eventhub.com',
     password: 'User1234',
     full_name: 'Compte Suspendu',
     first_name: 'Compte',

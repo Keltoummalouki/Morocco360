@@ -36,11 +36,11 @@ export class MailService {
 
       const from = this.configService.get<string>(
         'MAIL_FROM',
-        'noreply@morocco360.ma',
+        'noreply@eventhub.com',
       );
 
       await this.transporter.sendMail({
-        from: `Morocco360 <${from}>`,
+        from: `EventHub <${from}>`,
         to: user.email,
         subject: `Confirmation de reservation — ${eventTitle}`,
         html: this.buildEmailHtml(
@@ -122,11 +122,11 @@ export class MailService {
     let y = 0;
 
     // ── Red header ──────────────────────────────────────────
-    doc.rect(0, 0, W, 52).fill('#c0392b');
+    doc.rect(0, 0, W, 52).fill('#0B3D91');
     doc
       .fontSize(17)
       .fillColor('#ffffff')
-      .text('Morocco360', 0, 14, { align: 'center', width: W });
+      .text('EventHub', 0, 14, { align: 'center', width: W });
     doc
       .fontSize(8)
       .fillColor('rgba(255,255,255,0.8)')
@@ -254,8 +254,8 @@ export class MailService {
 
         <!-- Header -->
         <tr>
-          <td style="background:#c0392b;padding:28px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:1px;">Morocco360</h1>
+          <td style="background:#0B3D91;padding:28px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:1px;">EventHub</h1>
             <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Votre plateforme d'evenements au Maroc</p>
           </td>
         </tr>
@@ -284,9 +284,9 @@ export class MailService {
         <!-- Event info card -->
         <tr>
           <td style="padding:24px 40px 0;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf6f6;border:1px solid #f5c6c6;border-radius:8px;overflow:hidden;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F6FD;border:1px solid #C7D9F3;border-radius:8px;overflow:hidden;">
               <tr>
-                <td style="background:#c0392b;padding:12px 20px;">
+                <td style="background:#0B3D91;padding:12px 20px;">
                   <span style="color:#fff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Details de l'evenement</span>
                 </td>
               </tr>
@@ -319,7 +319,7 @@ export class MailService {
               </tr>
               <tr>
                 <td style="padding:10px 16px;font-size:14px;color:#555;border-top:1px solid #eee;">Montant total</td>
-                <td style="padding:10px 16px;font-size:14px;font-weight:700;color:#c0392b;text-align:right;border-top:1px solid #eee;">${totalLabel}</td>
+                <td style="padding:10px 16px;font-size:14px;font-weight:700;color:#0B3D91;text-align:right;border-top:1px solid #eee;">${totalLabel}</td>
               </tr>
             </table>
           </td>
@@ -329,7 +329,7 @@ export class MailService {
         <tr>
           <td style="padding:24px 40px 0;text-align:center;">
             <a href="${frontendUrl}/api/payments/order/${order.id}/pdf"
-               style="display:inline-block;background:#c0392b;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:6px;letter-spacing:0.5px;">
+               style="display:inline-block;background:#0B3D91;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:6px;letter-spacing:0.5px;">
               Telecharger mes billets (PDF)
             </a>
           </td>
@@ -351,7 +351,7 @@ export class MailService {
         <!-- Footer -->
         <tr>
           <td style="background:#f5f5f5;padding:80px 80px;text-align:center;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:12px;color:#999;">Morocco360 — Votre plateforme d'evenements au Maroc</p>
+            <p style="margin:0;font-size:12px;color:#999;">EventHub — Votre plateforme d'evenements au Maroc</p>
             <p style="margin:4px 0 0;font-size:11px;color:#bbb;">Cet email a ete envoye automatiquement, merci de ne pas y repondre.</p>
           </td>
         </tr>

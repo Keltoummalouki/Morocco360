@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 
 type NavKey = 'discover' | 'events' | 'about';
 
+/** Phone-first control sizes, back to the shadcn defaults from `sm:` up. */
+const ICON_SIZE = 'size-8 sm:size-9';
+const CTA_SIZE = 'h-8 px-2.5 text-xs sm:h-9 sm:px-4 sm:text-sm';
+
 /**
  * Shared top nav for the public surfaces (home + events).
  * Auth-aware: swaps Sign In for a dashboard link + notifications bell once the
@@ -37,7 +41,7 @@ export default function EventsNav({
   return (
     <header className="ev-nav">
       <nav className="ev-container ev-nav-inner">
-        <Link href="/" aria-label="Morocco360 — home">
+        <Link href="/" className="ev-nav-brand" aria-label="EventHub — home">
           <Logo />
         </Link>
 
@@ -55,21 +59,22 @@ export default function EventsNav({
         </div>
 
         <div className="ev-nav-right">
-          <LocaleSwitcher />
-          <ThemeToggle />
+          <LocaleSwitcher className={ICON_SIZE} />
+          <ThemeToggle className={ICON_SIZE} />
           {isAuthenticated ? (
             <>
-              <Button asChild variant="ghost" size="icon" className="text-foreground" aria-label={h.navNotifications}>
+              {/* Bell is a nicety — drop it on phones so the row still fits. */}
+              <Button asChild variant="ghost" size="icon" className={`hidden text-foreground sm:inline-flex ${ICON_SIZE}`} aria-label={h.navNotifications}>
                 <Link href={dashboardHref}>
                   <Bell className="size-[18px]" />
                 </Link>
               </Button>
-              <Button asChild>
+              <Button asChild className={CTA_SIZE}>
                 <Link href={dashboardHref}>{h.navDashboard}</Link>
               </Button>
             </>
           ) : (
-            <Button asChild>
+            <Button asChild className={CTA_SIZE}>
               <Link href="/login">{h.signIn}</Link>
             </Button>
           )}
