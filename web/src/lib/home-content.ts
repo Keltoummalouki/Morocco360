@@ -45,7 +45,7 @@ export const TRENDING: EventItem[] = [
     price: 150,
     currency: 'DH',
     variant: 'fill',
-    tint: 'linear-gradient(150deg, #7B3F00 0%, #AA131F 55%, #003E7A 130%)',
+    tint: 'linear-gradient(150deg, #0A6ED1 0%, #0B3D91 55%, #061E4A 130%)',
     image: '/events/gnaoua.webp',
     tall: true,
   },
@@ -60,7 +60,7 @@ export const TRENDING: EventItem[] = [
     price: 400,
     currency: 'DH',
     variant: 'stacked',
-    tint: 'linear-gradient(150deg, #0E7490 0%, #0055A4 100%)',
+    tint: 'linear-gradient(150deg, #086E86 0%, #0A6ED1 100%)',
     image: '/events/taghazout.webp',
   },
   {
@@ -74,7 +74,7 @@ export const TRENDING: EventItem[] = [
     price: 250,
     currency: 'DH',
     variant: 'fill',
-    tint: 'linear-gradient(150deg, #1E6B52 0%, #7B5800 90%)',
+    tint: 'linear-gradient(150deg, #00B8D9 0%, #0B3D91 90%)',
     image: '/events/medina.webp',
   },
   {

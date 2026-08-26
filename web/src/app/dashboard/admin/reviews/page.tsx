@@ -28,7 +28,7 @@ const ALL_VALUE = '__all__';
 
 function Stars({ n }: { n: number }) {
   return (
-    <span style={{ color: 'var(--gold, #FDBB24)', letterSpacing: '1px' }} aria-label={`${n} sur 5`}>
+    <span style={{ color: 'var(--highlight, #00B8D9)', letterSpacing: '1px' }} aria-label={`${n} sur 5`}>
       {'★'.repeat(n)}
       <span style={{ color: 'var(--border)' }}>{'★'.repeat(5 - n)}</span>
     </span>

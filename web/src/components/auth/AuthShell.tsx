@@ -38,7 +38,7 @@ export default function AuthShell({
         />
 
         <div className="relative z-10 p-10">
-          <Link href="/" aria-label="Morocco360 — home">
+          <Link href="/" aria-label="EventHub — home">
             <Logo tone="light" />
           </Link>
         </div>
@@ -49,7 +49,7 @@ export default function AuthShell({
       {/* ── Form panel ─────────────────────────────────── */}
       <main className="flex min-h-screen flex-col items-center justify-center px-5 py-12 sm:px-8 lg:min-h-0 lg:py-16">
         <div className="mb-10 self-start lg:hidden">
-          <Link href="/" aria-label="Morocco360 — home">
+          <Link href="/" aria-label="EventHub — home">
             <Logo />
           </Link>
         </div>

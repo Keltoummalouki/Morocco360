@@ -108,15 +108,15 @@ export class SeederService {
       console.log(`  ${table.padEnd(20)} ${rows[0].count}`);
     }
     console.log('\nLogins (all seeded accounts):');
-    console.log('  admin@morocco360.ma      Admin1234');
-    console.log('  organizer@morocco360.ma  Organizer1234');
-    console.log('  organizer2@morocco360.ma Organizer1234');
-    console.log('  staff@morocco360.ma      Staff1234');
-    console.log('  staff2@morocco360.ma     Staff1234');
-    console.log('  user@morocco360.ma       User1234');
+    console.log('  admin@eventhub.com      Admin1234');
+    console.log('  organizer@eventhub.com  Organizer1234');
+    console.log('  organizer2@eventhub.com Organizer1234');
+    console.log('  staff@eventhub.com      Staff1234');
+    console.log('  staff2@eventhub.com     Staff1234');
+    console.log('  user@eventhub.com       User1234');
     console.log(
       '  <firstname>@example.ma   User1234  (amine, sara, youssef, imane, karim, nadia)',
     );
-    console.log('  suspended@morocco360.ma  User1234  (blocked account)');
+    console.log('  suspended@eventhub.com  User1234  (blocked account)');
   }
 }

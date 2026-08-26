@@ -13,7 +13,7 @@ import type { EnabledOAuthProviders } from '@/lib/oauth';
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: 'var(--accent)',
-  ORGANIZER: 'var(--gold-strong)',
+  ORGANIZER: 'var(--highlight-strong)',
   USER: 'var(--primary)',
 };
 

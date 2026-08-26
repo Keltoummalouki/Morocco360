@@ -448,14 +448,14 @@ describe('UsersService', () => {
       const linked = {
         ...mockUser,
         google_id: 'google-sub-123',
-        avatar_url: 'https://morocco360.ma/uploads/mine.webp',
+        avatar_url: 'https://eventhub.com/uploads/mine.webp',
       } as User;
       userRepo.findOne.mockResolvedValueOnce(linked);
       userRepo.save.mockImplementation((u) => Promise.resolve(u as User));
 
       const result = await service.findOrCreateFromOAuth(googleProfile);
 
-      expect(result.avatar_url).toBe('https://morocco360.ma/uploads/mine.webp');
+      expect(result.avatar_url).toBe('https://eventhub.com/uploads/mine.webp');
     });
   });
 

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: morocco360_db
+    container_name: eventhub_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -21,7 +21,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: morocco360_api
+    container_name: eventhub_api
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -84,7 +84,7 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-    container_name: morocco360_web
+    container_name: eventhub_web
     restart: unless-stopped
     # Use Webpack (not the default Turbopack) inside Docker: Turbopack's file
     # watcher — even with polling — does not reliably detect edits across the
@@ -125,7 +125,7 @@ volumes:
   # modules in place and the app crashes with "Cannot find module ...".
   # Recreate them explicitly:
   #   docker compose down
-  #   docker volume rm morocco360_api_node_modules morocco360_web_node_modules
+  #   docker volume rm eventhub_api_node_modules eventhub_web_node_modules
   #   docker compose up -d --build
   api_node_modules:
   web_node_modules:

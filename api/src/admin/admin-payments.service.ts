@@ -51,16 +51,16 @@ const HEAD_H = 28;
 
 /** Mirrors the light-mode design tokens in web/src/app/globals.css. */
 const C = {
-  ink: '#161D1F',
-  muted: '#424751',
-  mutedDim: '#727783',
-  primary: '#003E7A',
+  ink: '#131A26',
+  muted: '#414A5A',
+  mutedDim: '#6E7686',
+  primary: '#0B3D91',
   onDark: '#FFFFFF',
   onDarkDim: '#AFCCFF',
-  gold: '#FDBB24',
-  surface: '#EEF5F7',
+  highlight: '#00B8D9',
+  surface: '#EEF3FA',
   zebra: '#F7FAFC',
-  border: '#E2E8F0',
+  border: '#E1E7F0',
 };
 
 const STATUS_STYLE: Record<string, { label: string; fg: string; bg: string }> =
@@ -80,7 +80,7 @@ const STATUS_STYLE: Record<string, { label: string; fg: string; bg: string }> =
     [PaymentStatus.FAILED]: { label: 'Échouée', fg: '#AA131F', bg: '#F7E3E5' },
     [PaymentStatus.REFUNDED]: {
       label: 'Remboursée',
-      fg: '#003E7A',
+      fg: '#0B3D91',
       bg: '#E3ECF5',
     },
   };
@@ -305,7 +305,7 @@ export class AdminPaymentsService {
           bufferPages: true,
           info: {
             Title: `Facture ${invoice.invoiceNumber}`,
-            Author: 'Morocco360',
+            Author: 'EventHub',
             Subject: `Facture ${invoice.invoiceNumber} — ${invoice.customer.name}`,
           },
         });
@@ -329,14 +329,14 @@ export class AdminPaymentsService {
 
   /** Full-bleed brand band: wordmark left, invoice identity + status right. */
   private drawHeader(doc: PDFKit.PDFDocument, invoice: InvoiceData): void {
-    doc.rect(0, 0, PAGE.width, 6).fill(C.gold);
+    doc.rect(0, 0, PAGE.width, 6).fill(C.highlight);
     doc.rect(0, 6, PAGE.width, 146).fill(C.primary);
 
     doc
       .fillColor(C.onDark)
       .font('Helvetica-Bold')
       .fontSize(24)
-      .text('Morocco360', M, 46);
+      .text('EventHub', M, 46);
     doc
       .fillColor(C.onDarkDim)
       .font('Helvetica')
@@ -346,7 +346,7 @@ export class AdminPaymentsService {
       });
 
     doc
-      .fillColor(C.gold)
+      .fillColor(C.highlight)
       .font('Helvetica-Bold')
       .fontSize(9)
       .text('FACTURE', M, 46, {
@@ -406,7 +406,7 @@ export class AdminPaymentsService {
       title: invoice.customer.name,
       sub: invoice.customer.email,
     });
-    this.drawCard(doc, M + w + gap, y, w, h, C.gold, 'ÉVÉNEMENT', {
+    this.drawCard(doc, M + w + gap, y, w, h, C.highlight, 'ÉVÉNEMENT', {
       title: invoice.event?.title ?? '—',
       sub: invoice.event ? frDate(invoice.event.date) : '—',
     });
@@ -656,7 +656,7 @@ export class AdminPaymentsService {
         .font('Helvetica')
         .fontSize(7.5)
         .text(
-          safe('Morocco360 · Billetterie événementielle · Maroc'),
+          safe('EventHub · Billetterie événementielle · Maroc'),
           M,
           y + 13,
           { width: CONTENT_W * 0.6, lineBreak: false },

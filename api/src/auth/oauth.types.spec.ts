@@ -11,13 +11,13 @@ const configWith = (apiPublicUrl: string) =>
 
 describe('oauthCallbackUrl', () => {
   it('builds the callback each provider redirects back to', () => {
-    const config = configWith('https://api.morocco360.example.com');
+    const config = configWith('https://api.eventhub.example.com');
 
     expect(oauthCallbackUrl(config, 'google')).toBe(
-      'https://api.morocco360.example.com/auth/google/callback',
+      'https://api.eventhub.example.com/auth/google/callback',
     );
     expect(oauthCallbackUrl(config, 'facebook')).toBe(
-      'https://api.morocco360.example.com/auth/facebook/callback',
+      'https://api.eventhub.example.com/auth/facebook/callback',
     );
   });
 
@@ -25,10 +25,10 @@ describe('oauthCallbackUrl', () => {
   // matches the URI registered with the provider — a redirect_uri_mismatch
   // that only shows up in production.
   it('survives a trailing slash on API_PUBLIC_URL', () => {
-    const config = configWith('https://api.morocco360.example.com/');
+    const config = configWith('https://api.eventhub.example.com/');
 
     expect(oauthCallbackUrl(config, 'google')).toBe(
-      'https://api.morocco360.example.com/auth/google/callback',
+      'https://api.eventhub.example.com/auth/google/callback',
     );
   });
 
@@ -44,10 +44,10 @@ describe('oauthCallbackUrl', () => {
   // Resolving through `new URL(path, base)` would drop the `/api` prefix and
   // produce a URI the provider was never told about.
   it('keeps a base path, for an API behind a path-prefixed proxy', () => {
-    const config = configWith('https://morocco360.example.com/api');
+    const config = configWith('https://eventhub.example.com/api');
 
     expect(oauthCallbackUrl(config, 'google')).toBe(
-      'https://morocco360.example.com/api/auth/google/callback',
+      'https://eventhub.example.com/api/auth/google/callback',
     );
   });
 });

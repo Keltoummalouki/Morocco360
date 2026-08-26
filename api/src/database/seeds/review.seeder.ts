@@ -18,7 +18,7 @@ interface SeedReview {
 
 const SEED_REVIEWS: SeedReview[] = [
   {
-    user: 'user@morocco360.ma',
+    user: 'user@eventhub.com',
     event: 'Marrakech du Rire',
     rating: 5,
     comment: 'Événement incroyable, très bien organisé ! On reviendra.',
@@ -39,7 +39,7 @@ const SEED_REVIEWS: SeedReview[] = [
     status: ReviewStatus.PENDING,
   },
   {
-    user: 'user@morocco360.ma',
+    user: 'user@eventhub.com',
     event: "Festival des Roses de Kelaat M'Gouna",
     rating: 5,
     comment: 'La vallée en pleine floraison, un souvenir inoubliable.',
@@ -60,7 +60,7 @@ const SEED_REVIEWS: SeedReview[] = [
     status: ReviewStatus.APPROVED,
   },
   {
-    user: 'user@morocco360.ma',
+    user: 'user@eventhub.com',
     event: 'Rallye Aicha des Gazelles',
     rating: 1,
     comment: 'Contenu inapproprié à modérer — test de rejet.',
@@ -110,7 +110,7 @@ export class ReviewSeeder {
     ]);
     const userByEmail = new Map(users.map((u) => [u.email, u]));
     const eventByTitle = new Map(events.map((e) => [e.title, e]));
-    const admin = userByEmail.get('admin@morocco360.ma') ?? null;
+    const admin = userByEmail.get('admin@eventhub.com') ?? null;
 
     let created = 0;
     for (const data of SEED_REVIEWS) {

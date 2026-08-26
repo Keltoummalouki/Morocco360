@@ -40,7 +40,7 @@ interface SeedBooking {
   checked_in?: number;
 }
 
-const TEST_USER = 'user@morocco360.ma';
+const TEST_USER = 'user@eventhub.com';
 
 /**
  * Covers every order / payment / ticket status the dashboards can filter on,
@@ -321,7 +321,7 @@ const SEED_BOOKINGS: SeedBooking[] = [
     ticket_status: TicketStatus.CANCELLED,
   },
   {
-    user: 'suspended@morocco360.ma',
+    user: 'suspended@eventhub.com',
     event: 'Marrakech du Rire',
     category: 'Carre standard',
     quantity: 1,

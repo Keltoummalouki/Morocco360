@@ -159,7 +159,7 @@ export default function Sidebar({ role, name, isOpen, onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom controls */}
-      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sidebar-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--sidebar-border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
         <LocaleSwitcher />
         <ThemeToggle />
       </div>

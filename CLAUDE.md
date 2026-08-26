@@ -1,9 +1,9 @@
-# CLAUDE.md — Morocco360
+# CLAUDE.md — EventHub
 
 Guidance for Claude Code when working in this repository. These instructions
 override default behavior — follow them exactly.
 
-Morocco360 is a centralized platform to discover, book, and manage events across
+EventHub is a centralized platform to discover, book, and manage events across
 Morocco (locals + tourists). Ticketing with signed QR codes, Stripe payments,
 role-based dashboards, and a secure QR-scanning system.
 
@@ -14,7 +14,7 @@ role-based dashboards, and a secure QR-scanning system.
 Monorepo with two apps and a Dockerized Postgres:
 
 ```
-Morocco360/
+EventHub/
 ├── api/        NestJS 11 backend (TypeORM 0.3 + PostgreSQL 16)
 ├── web/        Next.js 16 frontend (App Router, React 19)
 ├── docs/       Design docs (QR system, install, production checklist)

@@ -4,11 +4,11 @@ const SECRET = 'x'.repeat(32);
 
 /** Smallest env that validates, so each test can vary one thing. */
 const baseEnv = {
-  DATABASE_URL: 'postgresql://user:pass@db.example.com:5432/morocco360',
+  DATABASE_URL: 'postgresql://user:pass@db.example.com:5432/eventhub',
   JWT_ACCESS_SECRET: SECRET,
   JWT_REFRESH_SECRET: SECRET,
   QR_HMAC_SECRET: SECRET,
-  FRONTEND_URL: 'https://morocco360.example.com',
+  FRONTEND_URL: 'https://eventhub.example.com',
 };
 
 /** Mirrors the options AppModule passes to ConfigModule.forRoot. */
@@ -31,11 +31,11 @@ describe('configValidationSchema', () => {
     it('accepts a public https URL', () => {
       const { error, value } = validate({
         ...prod,
-        API_PUBLIC_URL: 'https://api.morocco360.example.com',
+        API_PUBLIC_URL: 'https://api.eventhub.example.com',
       });
 
       expect(error).toBeUndefined();
-      expect(value.API_PUBLIC_URL).toBe('https://api.morocco360.example.com');
+      expect(value.API_PUBLIC_URL).toBe('https://api.eventhub.example.com');
     });
 
     it('rejects a localhost URL', () => {
@@ -65,7 +65,7 @@ describe('configValidationSchema', () => {
     it('rejects a public http URL', () => {
       const { error } = validate({
         ...prod,
-        API_PUBLIC_URL: 'http://api.morocco360.example.com',
+        API_PUBLIC_URL: 'http://api.eventhub.example.com',
       });
 
       expect(error?.message).toContain('https');
@@ -111,7 +111,7 @@ describe('configValidationSchema', () => {
     it('accepts a public host whose name embeds localhost', () => {
       const { error } = validate({
         ...prod,
-        API_PUBLIC_URL: 'https://localhost.morocco360.example.com',
+        API_PUBLIC_URL: 'https://localhost.eventhub.example.com',
       });
 
       expect(error).toBeUndefined();
@@ -155,7 +155,7 @@ describe('configValidationSchema', () => {
     it('accepts a public https URL', () => {
       const { error } = validate({
         ...prod,
-        FRONTEND_URL: 'https://morocco360.example.com',
+        FRONTEND_URL: 'https://eventhub.example.com',
       });
 
       expect(error).toBeUndefined();
@@ -175,7 +175,7 @@ describe('configValidationSchema', () => {
     it('rejects a public http URL', () => {
       const { error } = validate({
         ...prod,
-        FRONTEND_URL: 'http://morocco360.example.com',
+        FRONTEND_URL: 'http://eventhub.example.com',
       });
 
       expect(error?.message).toContain('https');

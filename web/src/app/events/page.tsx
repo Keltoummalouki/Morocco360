@@ -128,7 +128,7 @@ export default async function EventsPage({
         <div className="ev-container relative py-12 sm:py-16">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="eyebrow mb-3" style={{ color: 'var(--gold)' }}>
+              <div className="eyebrow mb-3" style={{ color: 'var(--highlight)' }}>
                 {t.events.discover}
               </div>
               <h1 className="ev-display text-white text-[clamp(1.9rem,5vw,3.25rem)]">

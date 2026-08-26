@@ -7,7 +7,7 @@ import { getEnabledOAuthProviders } from '@/lib/oauth-server';
 
 export const metadata: Metadata = {
   title: 'Create account',
-  description: 'Create a free Morocco360 account to book tickets to events across Morocco.',
+  description: 'Create a free EventHub account to book tickets to events across Morocco.',
 };
 
 const PERKS = [

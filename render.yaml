@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: morocco360-api
+    name: eventhub-api
     runtime: node
     plan: free
     rootDir: api

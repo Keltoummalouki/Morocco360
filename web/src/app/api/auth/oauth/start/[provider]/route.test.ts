@@ -22,12 +22,12 @@ describe('GET /api/auth/oauth/start/[provider]', () => {
   });
 
   it('sends the browser to the API and plants a nonce cookie', async () => {
-    vi.stubEnv('API_PUBLIC_URL', 'https://api.morocco360.com');
+    vi.stubEnv('API_PUBLIC_URL', 'https://api.eventhub.com');
 
-    const response = await start('google', 'morocco360.com');
+    const response = await start('google', 'eventhub.com');
     const location = new URL(response.headers.get('location')!);
 
-    expect(location.origin).toBe('https://api.morocco360.com');
+    expect(location.origin).toBe('https://api.eventhub.com');
     expect(location.pathname).toBe('/auth/google');
     // The API only ever receives the hash, never the cookie value itself.
     expect(location.searchParams.get('nonce')).toMatch(/^[0-9a-f]{64}$/);
@@ -43,12 +43,12 @@ describe('GET /api/auth/oauth/start/[provider]', () => {
     vi.stubEnv('API_PUBLIC_URL', 'http://localhost:4000');
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const response = await start('google', 'morocco360.com');
+    const response = await start('google', 'eventhub.com');
     const location = new URL(response.headers.get('location')!);
 
     expect(location.pathname).toBe('/login');
     expect(location.searchParams.get('error')).toBe('oauth_failed');
-    expect(location.hostname).toBe('morocco360.com');
+    expect(location.hostname).toBe('eventhub.com');
     // The cause has to reach the deploy logs, or this is just as opaque.
     expect(logged).toHaveBeenCalledWith(
       expect.stringContaining('API_PUBLIC_URL'),
@@ -67,7 +67,7 @@ describe('GET /api/auth/oauth/start/[provider]', () => {
   });
 
   it('rejects an unknown provider', async () => {
-    const response = await start('twitter', 'morocco360.com');
+    const response = await start('twitter', 'eventhub.com');
     const location = new URL(response.headers.get('location')!);
 
     expect(location.pathname).toBe('/login');

@@ -41,7 +41,7 @@ export default function EventsNav({
   return (
     <header className="ev-nav">
       <nav className="ev-container ev-nav-inner">
-        <Link href="/" className="ev-nav-brand" aria-label="Morocco360 — home">
+        <Link href="/" className="ev-nav-brand" aria-label="EventHub — home">
           <Logo />
         </Link>
 
@@ -59,7 +59,7 @@ export default function EventsNav({
         </div>
 
         <div className="ev-nav-right">
-          <LocaleSwitcher />
+          <LocaleSwitcher className={ICON_SIZE} />
           <ThemeToggle className={ICON_SIZE} />
           {isAuthenticated ? (
             <>

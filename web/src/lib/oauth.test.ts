@@ -73,9 +73,9 @@ describe('isLoopbackHost', () => {
 
   // A host merely containing "localhost" is a real domain, not the loopback.
   it.each([
-    'morocco360.com',
-    'api.morocco360.com',
-    'localhost.morocco360.com',
+    'eventhub.com',
+    'api.eventhub.com',
+    'localhost.eventhub.com',
     'notlocalhost',
     '128.0.0.1',
   ])('treats %s as public', (host) => {
@@ -89,27 +89,27 @@ describe('apiPublicUrlFor', () => {
   });
 
   it('joins onto the configured API URL', () => {
-    vi.stubEnv('API_PUBLIC_URL', 'https://api.morocco360.com');
+    vi.stubEnv('API_PUBLIC_URL', 'https://api.eventhub.com');
 
     expect(apiPublicUrlFor('/auth/google').toString()).toBe(
-      'https://api.morocco360.com/auth/google',
+      'https://api.eventhub.com/auth/google',
     );
   });
 
   it('survives a trailing slash', () => {
-    vi.stubEnv('API_PUBLIC_URL', 'https://api.morocco360.com/');
+    vi.stubEnv('API_PUBLIC_URL', 'https://api.eventhub.com/');
 
     expect(apiPublicUrlFor('/auth/google').toString()).toBe(
-      'https://api.morocco360.com/auth/google',
+      'https://api.eventhub.com/auth/google',
     );
   });
 
   // Must agree with how the API builds its own provider callback URL.
   it('keeps a base path', () => {
-    vi.stubEnv('API_PUBLIC_URL', 'https://morocco360.com/api');
+    vi.stubEnv('API_PUBLIC_URL', 'https://eventhub.com/api');
 
     expect(apiPublicUrlFor('/auth/google').toString()).toBe(
-      'https://morocco360.com/api/auth/google',
+      'https://eventhub.com/api/auth/google',
     );
   });
 });
@@ -120,19 +120,19 @@ describe('apiPublicUrlProblem', () => {
   });
 
   it('reports a malformed URL', () => {
-    expect(apiPublicUrlProblem('api.morocco360.com')).toContain('not a valid');
+    expect(apiPublicUrlProblem('api.eventhub.com')).toContain('not a valid');
   });
 
   it('reports plain http, which providers reject', () => {
-    expect(apiPublicUrlProblem('http://api.morocco360.com')).toContain('https');
+    expect(apiPublicUrlProblem('http://api.eventhub.com')).toContain('https');
   });
 
   it('reports an internal service name', () => {
-    expect(apiPublicUrlProblem('https://morocco360-api')).toContain('internal');
+    expect(apiPublicUrlProblem('https://eventhub-api')).toContain('internal');
   });
 
   it('accepts a public https URL', () => {
-    expect(apiPublicUrlProblem('https://api.morocco360.com')).toBeNull();
+    expect(apiPublicUrlProblem('https://api.eventhub.com')).toBeNull();
   });
 
   // Judged per request instead, where the visitor's own host is known — it is
@@ -145,13 +145,13 @@ describe('apiPublicUrlProblem', () => {
 describe('requestHostname', () => {
   it('prefers the proxy header, since that is the public domain', () => {
     expect(
-      requestHostname('morocco360.com', 'internal.vercel.app', 'localhost'),
-    ).toBe('morocco360.com');
+      requestHostname('eventhub.com', 'internal.vercel.app', 'localhost'),
+    ).toBe('eventhub.com');
   });
 
   it('falls back to the host header, then to the request URL', () => {
-    expect(requestHostname(null, 'morocco360.com', 'localhost')).toBe(
-      'morocco360.com',
+    expect(requestHostname(null, 'eventhub.com', 'localhost')).toBe(
+      'eventhub.com',
     );
     expect(requestHostname(null, null, 'localhost')).toBe('localhost');
   });
@@ -170,8 +170,8 @@ describe('requestHostname', () => {
 
   // Chained proxies append; the client-facing value comes first.
   it('takes the first of a comma-joined list', () => {
-    expect(requestHostname('morocco360.com, internal', null, 'x')).toBe(
-      'morocco360.com',
+    expect(requestHostname('eventhub.com, internal', null, 'x')).toBe(
+      'eventhub.com',
     );
   });
 });
@@ -182,14 +182,14 @@ describe('isStrandingRedirect', () => {
   // The production misconfiguration this guard exists for.
   it('flags a public site pointed at a localhost API', () => {
     expect(
-      isStrandingRedirect('morocco360.com', api('http://localhost:4000')),
+      isStrandingRedirect('eventhub.com', api('http://localhost:4000')),
     ).toBe(true);
   });
 
   it.each(['http://127.0.0.1:4000', 'http://0.0.0.0:4000', 'http://[::1]:4000'])(
     'flags %s too',
     (url) => {
-      expect(isStrandingRedirect('morocco360.com', api(url))).toBe(true);
+      expect(isStrandingRedirect('eventhub.com', api(url))).toBe(true);
     },
   );
 
@@ -202,7 +202,7 @@ describe('isStrandingRedirect', () => {
 
   it('allows a correctly configured deployment', () => {
     expect(
-      isStrandingRedirect('morocco360.com', api('https://api.morocco360.com')),
+      isStrandingRedirect('eventhub.com', api('https://api.eventhub.com')),
     ).toBe(false);
   });
 });

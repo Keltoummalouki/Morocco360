@@ -1,35 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="24 20 172 172" fill="none">
-  <rect x="30" y="26" width="160" height="160" rx="40" fill="#FBF7EF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" fill="none">
   <defs>
-    <linearGradient id="fav-tower" x1="110" y1="100" x2="110" y2="168" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#C25A32"/><stop offset="1" stop-color="#9E3E19"/>
-    </linearGradient>
-    <clipPath id="fav-door">
-      <path d="M88 168C86 163 87 157 89 148C93 130 103 110 110 96C117 110 127 130 131 148C133 157 134 163 132 168Z"/>
-    </clipPath>
+    <mask id="fav-cut">
+      <rect width="100" height="60" fill="#fff"/>
+      <g fill="#000" stroke="#000" stroke-width="3.4" stroke-linecap="round">
+        <path d="M60.5 -6 41.5 66"/>
+        <path d="M42.3 20.4 62.9 38.2"/>
+        <circle cx="42.3" cy="20.4" r="8.4" stroke="none"/>
+        <circle cx="62.9" cy="38.2" r="8.4" stroke="none"/>
+      </g>
+    </mask>
   </defs>
-  <g clip-path="url(#fav-door)">
-    <path d="M84 168C90 158 98 157 104 163C110 156 118 156 124 162C129 158 133 160 135 168Z" fill="#CE7C48"/>
-    <path d="M86 168C92 156 100 155 106 161C112 152 120 153 126 160C130 156 134 158 136 168Z" fill="#E2A16E"/>
-    <path d="M99 168C97 156 96 148 98 140" stroke="#9E3E19" stroke-width="2.4" stroke-linecap="round"/>
-    <g stroke="#1C6B54" stroke-width="2" stroke-linecap="round" fill="none">
-      <path d="M98 140C93 135 88 135 84 138"/><path d="M98 140C94 133 90 131 86 130"/>
-      <path d="M98 140C97 133 97 129 98 126"/><path d="M98 140C101 133 105 131 109 131"/>
-      <path d="M98 140C100 135 104 135 108 138"/>
-    </g>
-    <rect x="101" y="160" width="18" height="8" fill="#9E3E19"/>
-    <rect x="103" y="120" width="14" height="42" fill="url(#fav-tower)"/>
-    <rect x="106" y="110" width="8" height="11" fill="url(#fav-tower)"/>
-    <path d="M110 100L114.5 110H105.5Z" fill="#9E3E19"/>
-    <circle cx="110" cy="99" r="1.9" fill="#C9871F"/>
-    <rect x="106.4" y="129" width="2.3" height="9" fill="#9E3E19"/>
-    <rect x="111.3" y="129" width="2.3" height="9" fill="#9E3E19"/>
+  <rect width="180" height="180" rx="40" fill="#0B3D91"/>
+  <g transform="translate(24 50.4) scale(1.32)">
+    <path d="M11 0H89A11 11 0 0 1 100 11V22A8 8 0 0 0 100 38V49A11 11 0 0 1 89 60H11A11 11 0 0 1 0 49V38A8 8 0 0 0 0 22V11A11 11 0 0 1 11 0Z" fill="#FFFFFF" mask="url(#fav-cut)"/>
   </g>
-  <path d="M40 172C39 130 41 96 46 72C50 42 58 34 70 40C86 47 97 64 104 82C108 90 111 93 110 96C103 110 93 130 89 148C87 157 86 163 88 168Z" fill="#124E44"/>
-  <path d="M40 172C39 130 41 96 46 72C50 42 58 34 70 40C86 47 97 64 104 82C108 90 111 93 110 96C103 110 93 130 89 148C87 157 86 163 88 168Z" fill="#124E44" transform="matrix(-1 0 0 1 220 0)"/>
-  <rect x="94.5" y="39.5" width="31" height="31" rx="3" fill="#E7A43A"/>
-  <rect x="94.5" y="39.5" width="31" height="31" rx="3" fill="#E7A43A" transform="rotate(45 110 55)"/>
-  <rect x="100.6" y="45.6" width="18.8" height="18.8" rx="2" fill="none" stroke="#FBF7EF" stroke-width="1.3"/>
-  <rect x="100.6" y="45.6" width="18.8" height="18.8" rx="2" fill="none" stroke="#FBF7EF" stroke-width="1.3" transform="rotate(45 110 55)"/>
-  <circle cx="110" cy="55" r="1.8" fill="#FBF7EF"/>
 </svg>

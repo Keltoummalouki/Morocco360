@@ -3,7 +3,7 @@ import InfoPage from '@/components/InfoPage';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'How Morocco360 handles your personal data.',
+  description: 'How EventHub handles your personal data.',
 };
 
 export default function PrivacyPage() {
@@ -22,10 +22,10 @@ export default function PrivacyPage() {
         being prepared with counsel and will be published here before launch. Questions in the
         meantime:{' '}
         <a
-          href="mailto:privacy@morocco360.com"
+          href="mailto:privacy@eventhub.com"
           className="text-primary underline underline-offset-2"
         >
-          privacy@morocco360.com
+          privacy@eventhub.com
         </a>
         .
       </p>

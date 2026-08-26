@@ -24,7 +24,7 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('Morocco360 API')
+    .setTitle('EventHub API')
     .setDescription('QR Scanning System for Event Management')
     .setVersion('1.0')
     .addBearerAuth()
@@ -40,7 +40,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
-  console.log(`🚀 Morocco360 API running on http://localhost:${port}`);
+  console.log(`🚀 EventHub API running on http://localhost:${port}`);
   console.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
 }
 void bootstrap();

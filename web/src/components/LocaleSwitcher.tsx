@@ -1,54 +1,82 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Languages } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useLocale } from './LocaleProvider';
 import type { Locale } from '@/lib/i18n';
-import { LOCALES } from '@/lib/i18n';
+import { LOCALES, isRTL } from '@/lib/i18n';
 
-const LOCALE_META: Record<Locale, { label: string; name: string }> = {
-  fr: { label: 'FR', name: 'Français'  },
-  ar: { label: 'ع',  name: 'العربية'   },
-  en: { label: 'EN', name: 'English'   },
+/** Each language names itself — and labels the trigger in its own words. */
+const LOCALE_META: Record<Locale, { name: string; label: string }> = {
+  fr: { name: 'Français', label: 'Langue' },
+  ar: { name: 'العربية', label: 'اللغة' },
+  en: { name: 'English', label: 'Language' },
 };
 
-export default function LocaleSwitcher() {
+/**
+ * Language picker: one icon button that opens a menu, so it takes the same
+ * room as <ThemeToggle /> instead of a three-button row.
+ */
+export default function LocaleSwitcher({ className }: { className?: string }) {
   const { locale } = useLocale();
   const router = useRouter();
+  const { name, label } = LOCALE_META[locale];
 
-  async function switchLocale(next: Locale) {
-    if (next === locale) return;
-    await fetch('/api/locale', {
+  // Radix hands back a plain string; narrow it before it reaches the API.
+  function switchLocale(next: string) {
+    if (next === locale || !LOCALES.includes(next as Locale)) return;
+    fetch('/api/locale', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ locale: next }),
-    });
-    router.refresh();
+    })
+      // Only re-render once the cookie is actually set; on failure the UI just
+      // stays in the current language rather than flickering back.
+      .then((res) => { if (res.ok) router.refresh(); })
+      .catch(() => {});
   }
 
-  // Styling lives in globals.css (`.locale-switch*`) so the nav can compact it
-  // on small screens.
   return (
-    <div className="locale-switch">
-      {LOCALES.map((loc) => {
-        const active = loc === locale;
-        const { label, name } = LOCALE_META[loc];
-        return (
-          <button
-            key={loc}
-            type="button"
-            onClick={() => switchLocale(loc)}
-            title={name}
-            lang={loc}
-            // aria-current, not aria-pressed: these are three mutually
-            // exclusive choices, not three independent toggles.
-            aria-current={active ? 'true' : undefined}
-            className={cn('locale-switch-btn', loc === 'ar' && 'is-ar', active && 'active')}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </div>
+    // Radix reads direction from this prop, not from the document's `dir`, so
+    // the menu has to be told when the page is Arabic.
+    <DropdownMenu dir={isRTL(locale) ? 'rtl' : 'ltr'}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn('text-foreground', className)}
+          title={label}
+          // Icon-only: name the control *and* its current value out loud.
+          aria-label={`${label} — ${name}`}
+        >
+          <Languages className="size-[18px]" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="min-w-36">
+        <DropdownMenuRadioGroup value={locale} onValueChange={switchLocale}>
+          {LOCALES.map((loc) => (
+            <DropdownMenuRadioItem
+              key={loc}
+              value={loc}
+              lang={loc}
+              className="locale-menu-item cursor-pointer"
+            >
+              {LOCALE_META[loc].name}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

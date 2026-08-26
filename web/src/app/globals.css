@@ -7,44 +7,49 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ══════════════════════════════════════════════════════════
-   MOROCCO360 — PREMIUM DESIGN SYSTEM v2.0
-   Deep Moroccan Green × Terracotta × Gold
+   EVENTHUB — PREMIUM DESIGN SYSTEM v2.0
+   Brand Navy × Azure × Cyan
+   The ramp is built around the logo blue (--primary, #0B3D91):
+   navy carries the brand, azure drives CTAs, cyan highlights
+   prices and badges. Green/red stay reserved for success/error,
+   and the per-category badge hues in lib/event-filters.ts stay
+   multi-hue on purpose — they encode category identity.
    ══════════════════════════════════════════════════════════ */
 
 /* ── Design tokens — Light mode (default) ──────────────── */
 :root {
-  --background:        #F4FAFD;
+  --background:        #F5F8FD;
   --surface:           #FFFFFF;
-  --surface-2:         #EEF5F7;
-  --surface-3:         #E8EFF1;
-  --foreground:        #161D1F;
-  --foreground-dim:    #424751;
-  --primary:           #003E7A;
-  --primary-dark:      #00305F;
-  --primary-light:     #0055A4;
-  --primary-glow:      rgba(0,62,122,0.30);
-  --primary-glow-soft: rgba(0,62,122,0.08);
+  --surface-2:         #EEF3FA;
+  --surface-3:         #E4EBF5;
+  --foreground:        #131A26;
+  --foreground-dim:    #414A5A;
+  --primary:           #0B3D91;
+  --primary-dark:      #072C6B;
+  --primary-light:     #1657C4;
+  --primary-glow:      rgba(11,61,145,0.30);
+  --primary-glow-soft: rgba(11,61,145,0.08);
   --on-primary:        #FFFFFF;
-  --accent:            #AA131F;
-  --accent-dark:       #820011;
-  --accent-glow:       rgba(170,19,31,0.28);
-  --accent-soft:       rgba(170,19,31,0.08);
+  --accent:            #0A6ED1;
+  --accent-dark:       #08529E;
+  --accent-glow:       rgba(10,110,209,0.28);
+  --accent-soft:       rgba(10,110,209,0.08);
   --on-accent:         #FFFFFF;
-  --gold:              #FDBB24;
-  --gold-strong:       #7B5800;
-  --gold-glow:         rgba(253,187,36,0.28);
-  --on-gold:           #6C4D00;
-  --muted:             #424751;
-  --muted-dim:         #727783;
-  --border:            #E2E8F0;
-  --border-light:      #C2C6D3;
-  --shadow:            rgba(0, 62, 122, 0.10);
-  --shadow-deep:       rgba(22, 29, 31, 0.18);
+  --highlight:         #00B8D9;
+  --highlight-strong:  #086E86;
+  --highlight-glow:    rgba(0,184,217,0.28);
+  --on-highlight:      #003543;
+  --muted:             #414A5A;
+  --muted-dim:         #6E7686;
+  --border:            #E1E7F0;
+  --border-light:      #C2C9D6;
+  --shadow:            rgba(11, 61, 145, 0.10);
+  --shadow-deep:       rgba(19, 26, 38, 0.18);
   --glass-bg:          rgba(255, 255, 255, 0.70);
-  --glass-border:      rgba(0, 62, 122, 0.18);
+  --glass-border:      rgba(11, 61, 145, 0.18);
   --input-bg:          #FFFFFF;
-  --input-border:      #C2C6D3;
-  --card-inverted-bg:  #003E7A;
+  --input-border:      #C2C9D6;
+  --card-inverted-bg:  #0B3D91;
   --card-inverted-text:#FFFFFF;
   --card-inverted-muted:#AFCCFF;
   --inverse-surface:   #22303D;
@@ -70,21 +75,21 @@
   --surface-3:         #1A2531;
   --foreground:        #E6EDF3;
   --foreground-dim:    #B8C4D0;
-  --primary:           #7FB0FF;
+  --primary:           #8AB4FF;
   --primary-dark:      #4D86E0;
-  --primary-light:     #A8C8FF;
-  --primary-glow:      rgba(127,176,255,0.32);
-  --primary-glow-soft: rgba(127,176,255,0.12);
+  --primary-light:     #B3CEFF;
+  --primary-glow:      rgba(138,180,255,0.32);
+  --primary-glow-soft: rgba(138,180,255,0.12);
   --on-primary:        #0A1017;
-  --accent:            #FF6B61;
-  --accent-dark:       #E0483F;
-  --accent-glow:       rgba(255,107,97,0.32);
-  --accent-soft:       rgba(255,107,97,0.12);
-  --on-accent:         #24060A;
-  --gold:              #FDBB24;
-  --gold-strong:       #FDD589;
-  --gold-glow:         rgba(253,187,36,0.28);
-  --on-gold:           #3A2A00;
+  --accent:            #4DA3FF;
+  --accent-dark:       #2C7FDB;
+  --accent-glow:       rgba(77,163,255,0.32);
+  --accent-soft:       rgba(77,163,255,0.12);
+  --on-accent:         #04142B;
+  --highlight:         #22D3EE;
+  --highlight-strong:  #7DE3F5;
+  --highlight-glow:    rgba(34,211,238,0.28);
+  --on-highlight:      #04252E;
   --muted:             #9FB0BF;
   --muted-dim:         #6B7D8C;
   --border:            #22303D;
@@ -92,7 +97,7 @@
   --shadow:            rgba(0, 0, 0, 0.5);
   --shadow-deep:       rgba(0, 0, 0, 0.72);
   --glass-bg:          rgba(15, 23, 32, 0.72);
-  --glass-border:      rgba(127, 176, 255, 0.18);
+  --glass-border:      rgba(138, 180, 255, 0.18);
   --input-bg:          #0F1720;
   --input-border:      #2C3D4C;
   --card-inverted-bg:  #E6EDF3;
@@ -117,8 +122,8 @@
   --color-foreground: var(--foreground);
   --color-surface:    var(--surface);
   --color-border:     var(--border);
-  --color-gold:       var(--gold);
-  /* Marrakesh Red. Lives under `brand` because shadcn claims `accent`
+  --color-highlight:  var(--highlight);
+  /* Azure CTA blue. Lives under `brand` because shadcn claims `accent`
      for a neutral hover surface (see below). */
   --color-brand:      var(--accent);
 
@@ -304,7 +309,7 @@ body {
   opacity: 0.6;
 }
 .text-gradient {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--gold) 50%, var(--primary) 100%);
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--highlight) 50%, var(--primary) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -312,7 +317,7 @@ body {
   animation: morphGradient 5s ease infinite;
 }
 .text-accent-gradient {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--highlight) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -633,7 +638,7 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--primary), var(--gold));
+  background: linear-gradient(90deg, var(--primary), var(--highlight));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
@@ -1084,7 +1089,7 @@ body {
     transparent 0deg,
     var(--primary-glow-soft) 60deg,
     transparent 120deg,
-    var(--gold-glow) 240deg,
+    var(--highlight-glow) 240deg,
     transparent 300deg,
     var(--primary-glow-soft) 360deg
   );
@@ -1205,31 +1210,18 @@ body {
    Sizes live here so nav/footer can scale the lockup responsively;
    the tone-dependent colours stay inline in the component.
    ══════════════════════════════════════════════════════════ */
-.m360-logo { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
-.m360-logo-stack { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; min-width: 0; }
-.m360-logo-word { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; white-space: nowrap; }
-.m360-logo-360 { background: linear-gradient(92deg, #E7A43A 0%, #C25A32 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.m360-logo-tagline { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 600; font-size: 0.5rem; letter-spacing: 0.2em; white-space: nowrap; }
+.eh-logo { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.eh-logo-stack { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; min-width: 0; }
+.eh-logo-word { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; white-space: nowrap; }
+.eh-logo-tagline { font-family: var(--font-jakarta), system-ui, sans-serif; font-weight: 600; font-size: 0.5rem; letter-spacing: 0.2em; white-space: nowrap; }
 
 
 /* ══════════════════════════════════════════════════════════
    LOCALE SWITCHER (<LocaleSwitcher />)
    ══════════════════════════════════════════════════════════ */
-.locale-switch { display: flex; gap: 2px; padding: 2px; background: var(--surface); border: 1px solid var(--border); }
-/* min-width/height keep the target at the WCAG 2.2 SC 2.5.8 (24×24) floor even
-   in the compacted phone nav. */
-.locale-switch-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 26px; min-height: 26px;
-  padding: 4px 9px; font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.05em;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  color: var(--muted); background: transparent; border: none; cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-.locale-switch-btn.is-ar { font-family: var(--font-arabic), system-ui; font-size: 0.9375rem; letter-spacing: 0; }
-.locale-switch-btn:hover { color: var(--foreground); }
-.locale-switch-btn.active { font-weight: 700; color: var(--primary); background: var(--background); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.locale-switch-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+/* The menu is portaled to <body>, so it inherits the *page* font. Give the
+   Arabic option its own face even while the UI is in French/English. */
+.locale-menu-item[lang="ar"] { font-family: var(--font-arabic), system-ui; }
 
 
 /* ══════════════════════════════════════════════════════════
@@ -1295,30 +1287,28 @@ body {
    overlapping it by a pixel. */
 @media (max-width: 639.98px) {
   .ev-nav-inner { gap: 8px; padding-block: 8px; }
-  .ev-nav-brand .m360-logo { gap: 7px; }
-  .ev-nav-brand .m360-logo > svg { width: 28px; height: 28px; }
-  .ev-nav-brand .m360-logo-word { font-size: 0.9375rem; }
+  .ev-nav-brand .eh-logo { gap: 7px; }
+  /* The ticket mark is 5:3, so scale by height and let the width follow. */
+  .ev-nav-brand .eh-logo > svg { height: 24px; width: auto; }
+  .ev-nav-brand .eh-logo-word { font-size: 0.9375rem; }
   .ev-nav-right { gap: 6px; }
-  .ev-nav-right .locale-switch { padding: 1px; gap: 1px; }
-  .ev-nav-right .locale-switch-btn { padding-inline: 6px; }
 }
 /* Small phones (360px Android, iPhone SE): squeeze a little further so the
    wordmark still fits next to the controls. */
 @media (max-width: 420px) {
-  .ev-nav-brand .m360-logo { gap: 5px; }
-  .ev-nav-brand .m360-logo > svg { width: 26px; height: 26px; }
-  .ev-nav-brand .m360-logo-word { font-size: 0.875rem; }
+  .ev-nav-brand .eh-logo { gap: 5px; }
+  .ev-nav-brand .eh-logo > svg { height: 22px; width: auto; }
+  .ev-nav-brand .eh-logo-word { font-size: 0.875rem; }
   .ev-nav-right { gap: 5px; }
-  .ev-nav-right .locale-switch-btn { padding-inline: 4px; }
 }
 /* Smallest phones: the mark alone carries the brand. Arabic drops it sooner —
    "تسجيل الدخول" is a much wider CTA than "Connexion"/"Sign In", and in RTL an
-   overflowing wordmark is clipped at its *start* ("lorocco360"). */
+   overflowing wordmark is clipped at its *start* ("ventHub"). */
 @media (max-width: 400px) {
-  [dir="rtl"] .ev-nav-brand .m360-logo-word { display: none; }
+  [dir="rtl"] .ev-nav-brand .eh-logo-word { display: none; }
 }
 @media (max-width: 340px) {
-  .ev-nav-brand .m360-logo-word { display: none; }
+  .ev-nav-brand .eh-logo-word { display: none; }
 }
 
 /* Directional glyph that mirrors in RTL */
@@ -1409,7 +1399,7 @@ body {
    --cat-dark; the dark variant is lightened so the label stays >=4.5:1. */
 .ev-cat--tint { background: color-mix(in srgb, var(--cat) 14%, transparent); color: var(--cat); }
 [data-theme="dark"] .ev-cat--tint { background: color-mix(in srgb, var(--cat-dark) 20%, transparent); color: var(--cat-dark); }
-.ev-price { position: absolute; top: 12px; inset-inline-end: 12px; z-index: 3; background: var(--gold); color: var(--on-gold); font-family: var(--font-work-sans), system-ui; font-weight: 700; font-size: 0.8125rem; padding: 5px 11px; border-radius: 10px; box-shadow: 0 6px 16px -6px var(--gold-glow); }
+.ev-price { position: absolute; top: 12px; inset-inline-end: 12px; z-index: 3; background: var(--highlight); color: var(--on-highlight); font-family: var(--font-work-sans), system-ui; font-weight: 700; font-size: 0.8125rem; padding: 5px 11px; border-radius: 10px; box-shadow: 0 6px 16px -6px var(--highlight-glow); }
 
 /* Confidence panel */
 .ev-conf { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: clamp(32px, 5vw, 56px); text-align: center; }
